@@ -72,6 +72,73 @@ class INFiLLPK_Mega_Menu_Walker extends Walker_Nav_Menu {
 }
 
 /**
+ * Renders the same Primary menu as an accordion for the mobile slide-in
+ * panel (template-parts/mobile-nav.php) — matching mobile-nav.tsx: each
+ * top-level item with children is a toggle button revealing its columns,
+ * a top-level item without children is a plain link.
+ */
+class INFiLLPK_Mobile_Nav_Walker extends Walker_Nav_Menu {
+
+	/** Set in start_el() for a depth-0 item with children, consumed by end_lvl(). */
+	private $pending_view_all = null;
+
+	public function start_lvl( &$output, $depth = 0, $args = null ) {
+		if ( 0 === $depth ) {
+			$output .= '<div class="js-mobile-panel hidden space-y-4 px-3 pb-4">';
+		} else {
+			$output .= '<ul class="space-y-1.5">';
+		}
+	}
+
+	public function end_lvl( &$output, $depth = 0, $args = null ) {
+		if ( 0 === $depth ) {
+			if ( $this->pending_view_all ) {
+				$output .= '<a href="' . esc_url( $this->pending_view_all['url'] ) . '" class="focus-ring block text-sm font-medium text-blue-700">' . esc_html__( 'View all', 'infillpk' ) . ' ' . esc_html( $this->pending_view_all['label'] ) . ' &rarr;</a>';
+				$this->pending_view_all = null;
+			}
+			$output .= '</div>';
+		} else {
+			$output .= '</ul>';
+		}
+	}
+
+	public function start_el( &$output, $item, $depth = 0, $args = null, $id = 0 ) {
+		$classes = empty( $item->classes ) ? array() : (array) $item->classes;
+		$has_children = in_array( 'menu-item-has-children', $classes, true );
+		$url = ! empty( $item->url ) ? $item->url : '#';
+		$label = apply_filters( 'the_title', $item->title, $item->ID );
+
+		if ( 0 === $depth ) {
+			if ( $has_children ) {
+				$this->pending_view_all = array( 'url' => $url, 'label' => $label );
+				$output .= '<div class="border-b border-border">';
+				$output .= '<button type="button" class="js-mobile-toggle focus-ring flex w-full cursor-pointer items-center justify-between px-3 py-3.5 text-left text-sm font-medium text-ink" aria-expanded="false">';
+				$output .= esc_html( $label );
+				$output .= '<svg class="js-mobile-toggle-caret transition-transform" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="m5 3 4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+				$output .= '</button>';
+			} else {
+				$output .= '<a href="' . esc_url( $url ) . '" class="focus-ring block border-b border-border px-3 py-3.5 text-sm font-medium text-ink">' . esc_html( $label ) . '</a>';
+			}
+		} elseif ( 1 === $depth ) {
+			$output .= '<div><p class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-faint">' . esc_html( $label ) . '</p>';
+		} else {
+			$output .= '<li><a href="' . esc_url( $url ) . '" class="focus-ring block py-1 text-sm text-ink-muted hover:text-blue-700">' . esc_html( $label ) . '</a></li>';
+		}
+	}
+
+	public function end_el( &$output, $item, $depth = 0, $args = null ) {
+		$classes = empty( $item->classes ) ? array() : (array) $item->classes;
+		$has_children = in_array( 'menu-item-has-children', $classes, true );
+
+		if ( 0 === $depth && $has_children ) {
+			$output .= '</div>'; // close this menu-item's own wrapper div opened in start_el.
+		} elseif ( 1 === $depth ) {
+			$output .= '</div>';
+		}
+	}
+}
+
+/**
  * Fallback used by wp_nav_menu() while no menu has been assigned yet to the
  * "Primary — Mega Menu" location (Appearance > Menus). Without this the
  * header would render with no links at all. Lists top-level published pages
@@ -81,6 +148,17 @@ class INFiLLPK_Mega_Menu_Walker extends Walker_Nav_Menu {
  */
 function infillpk_nav_fallback( $args = array() ) {
 	$pages = get_pages( array( 'parent' => 0, 'sort_column' => 'menu_order' ) );
+
+	// Cart/Checkout/My Account already have their own icons in the header —
+	// listing them again as text links here would be redundant.
+	$exclude_ids = array();
+	if ( class_exists( 'WooCommerce' ) ) {
+		$exclude_ids = array_filter(
+			array( wc_get_page_id( 'cart' ), wc_get_page_id( 'checkout' ), wc_get_page_id( 'myaccount' ), wc_get_page_id( 'shop' ) )
+		);
+	}
+	$pages = array_filter( $pages, fn( $page ) => ! in_array( $page->ID, $exclude_ids, true ) );
+
 	if ( empty( $pages ) ) {
 		return;
 	}

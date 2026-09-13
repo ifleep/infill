@@ -84,6 +84,18 @@ function infillpk_create_default_content() {
 			'title'   => __( 'Services', 'infillpk' ),
 			'content' => __( "3D printing, prototyping, design, installation & training, and technical support.\n\nEdit this page in Elementor — the homepage's Services section (#services) links here.", 'infillpk' ),
 		),
+		'privacy-policy'  => array(
+			'title'   => __( 'Privacy Policy', 'infillpk' ),
+			'content' => __( "How INFiLLPK collects, uses and protects your data.\n\nEdit this page — WordPress also has a dedicated Privacy Policy setting under Settings > Privacy if you'd rather use that page instead.", 'infillpk' ),
+		),
+		'returns-warranty' => array(
+			'title'   => __( 'Returns & Warranty', 'infillpk' ),
+			'content' => __( "Our returns process and manufacturer warranty terms.\n\nEdit this page to add your actual policy.", 'infillpk' ),
+		),
+		'shipping' => array(
+			'title'   => __( 'Shipping', 'infillpk' ),
+			'content' => __( "Shipping rates, timelines and coverage across Pakistan.\n\nEdit this page to add your actual policy.", 'infillpk' ),
+		),
 	);
 
 	foreach ( $pages as $slug => $page ) {

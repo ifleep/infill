@@ -15,6 +15,7 @@ require INFILLPK_DIR . '/inc/helpers.php';
 require INFILLPK_DIR . '/inc/theme-setup.php';
 require INFILLPK_DIR . '/inc/enqueue.php';
 require INFILLPK_DIR . '/inc/nav-walker.php';
+require INFILLPK_DIR . '/inc/default-menu.php';
 require INFILLPK_DIR . '/inc/woocommerce.php';
 require INFILLPK_DIR . '/inc/shortcodes.php';
 require INFILLPK_DIR . '/inc/catalog-importer.php';

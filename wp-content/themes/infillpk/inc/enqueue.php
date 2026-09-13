@@ -31,6 +31,12 @@ function infillpk_enqueue_assets() {
 		wp_enqueue_script( 'infillpk-main', $main_js[0], array(), $main_js[1], true );
 	}
 
+	// The search overlay is in the header on every page.
+	$search_js = infillpk_asset_uri( 'assets/js/search.bundle.js' );
+	if ( $search_js ) {
+		wp_enqueue_script( 'infillpk-search', $search_js[0], array(), $search_js[1], true );
+	}
+
 	if ( is_front_page() ) {
 		$hero_js = infillpk_asset_uri( 'assets/js/hero.bundle.js' );
 		if ( $hero_js ) {

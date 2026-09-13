@@ -6,9 +6,9 @@
   "scripts": {
     "build": "npm run build:css && npm run build:js",
     "build:css": "tailwindcss -i ./assets/css/main.css -o ./assets/css/main.build.css --minify",
-    "build:js": "esbuild assets/js/hero.js assets/js/main.js assets/js/find-your-printer.js assets/js/pakistan-map.js --bundle --minify --outdir=assets/js --entry-names=[name].bundle --format=iife",
+    "build:js": "esbuild assets/js/hero.js assets/js/main.js assets/js/search.js assets/js/find-your-printer.js assets/js/pakistan-map.js --bundle --minify --outdir=assets/js --entry-names=[name].bundle --format=iife",
     "watch:css": "tailwindcss -i ./assets/css/main.css -o ./assets/css/main.build.css --watch",
-    "watch:js": "esbuild assets/js/hero.js assets/js/main.js assets/js/find-your-printer.js assets/js/pakistan-map.js --bundle --outdir=assets/js --entry-names=[name].bundle --format=iife --watch"
+    "watch:js": "esbuild assets/js/hero.js assets/js/main.js assets/js/search.js assets/js/find-your-printer.js assets/js/pakistan-map.js --bundle --outdir=assets/js --entry-names=[name].bundle --format=iife --watch"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.0",
