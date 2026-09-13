@@ -35,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					'container'      => false,
 					'items_wrap'     => '<div class="flex items-center">%3$s</div>',
 					'walker'         => new INFiLLPK_Mega_Menu_Walker(),
-					'fallback_cb'    => false,
+					'fallback_cb'    => 'infillpk_nav_fallback',
 				)
 			);
 			?>
@@ -85,7 +85,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				'container_class' => 'container-page py-4',
 				'menu_class'     => 'space-y-1',
 				'depth'          => 1,
-				'fallback_cb'    => false,
+				'fallback_cb'    => 'infillpk_nav_fallback',
 			)
 		);
 		?>

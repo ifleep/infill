@@ -70,3 +70,34 @@ class INFiLLPK_Mega_Menu_Walker extends Walker_Nav_Menu {
 		}
 	}
 }
+
+/**
+ * Fallback used by wp_nav_menu() while no menu has been assigned yet to the
+ * "Primary — Mega Menu" location (Appearance > Menus). Without this the
+ * header would render with no links at all. Lists top-level published pages
+ * (About, Contact, Services, the WooCommerce Shop page, etc.) so the site is
+ * navigable immediately; switches over automatically the moment a real menu
+ * is assigned.
+ */
+function infillpk_nav_fallback( $args = array() ) {
+	$pages = get_pages( array( 'parent' => 0, 'sort_column' => 'menu_order' ) );
+	if ( empty( $pages ) ) {
+		return;
+	}
+
+	$link_class = 'focus-ring inline-flex items-center px-4 py-6 text-sm font-medium text-ink hover:text-blue-600 transition-colors';
+	if ( ! empty( $args['depth'] ) && 1 === (int) $args['depth'] ) {
+		$link_class = 'focus-ring block px-4 py-3 text-sm font-medium text-ink hover:text-blue-600 transition-colors';
+	}
+
+	echo '<div class="flex flex-col lg:flex-row lg:items-center">';
+	foreach ( $pages as $page ) {
+		printf(
+			'<a href="%s" class="%s">%s</a>',
+			esc_url( get_permalink( $page ) ),
+			esc_attr( $link_class ),
+			esc_html( get_the_title( $page ) )
+		);
+	}
+	echo '</div>';
+}
