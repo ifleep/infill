@@ -1,26 +1,26 @@
-# === WordPress theme (current project) ===
-wp-content/themes/infillpk/node_modules/
-wp-content/themes/infillpk/vendor/
-wp-content/themes/infillpk/assets/css/*.build.css
-wp-content/themes/infillpk/assets/css/*.build.css.map
-wp-content/themes/infillpk/assets/js/*.bundle.js
-wp-content/themes/infillpk/assets/js/*.bundle.js.map
+# === Next.js app (current project) ===
+node_modules/
+.next/
+out/
+build/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+data/*.db
+data/*.db-journal
+src/generated/prisma/
+.env*
+!.env.example
+__pycache__/
+*.pyc
 
-# === Next.js prototype (archived — see archive/nextjs-prototype/README.md) ===
-archive/nextjs-prototype/node_modules/
-archive/nextjs-prototype/.next/
-archive/nextjs-prototype/out/
-archive/nextjs-prototype/build/
-archive/nextjs-prototype/coverage/
-archive/nextjs-prototype/*.tsbuildinfo
-archive/nextjs-prototype/next-env.d.ts
-archive/nextjs-prototype/data/*.db
-archive/nextjs-prototype/data/*.db-journal
-archive/nextjs-prototype/src/generated/prisma/
-archive/nextjs-prototype/.env*
-!archive/nextjs-prototype/.env.example
-archive/nextjs-prototype/__pycache__/
-archive/nextjs-prototype/*.pyc
+# === Archived WordPress theme (see archive/wordpress-theme/README.md) ===
+archive/wordpress-theme/wp-content/themes/infillpk/node_modules/
+archive/wordpress-theme/wp-content/themes/infillpk/vendor/
+archive/wordpress-theme/wp-content/themes/infillpk/assets/css/*.build.css
+archive/wordpress-theme/wp-content/themes/infillpk/assets/css/*.build.css.map
+archive/wordpress-theme/wp-content/themes/infillpk/assets/js/*.bundle.js
+archive/wordpress-theme/wp-content/themes/infillpk/assets/js/*.bundle.js.map
 
 # === Common ===
 .DS_Store
@@ -30,5 +30,3 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 .vercel
-__pycache__/
-*.pyc
