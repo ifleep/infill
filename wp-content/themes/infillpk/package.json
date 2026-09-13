@@ -1,0 +1,22 @@
+{
+  "name": "infillpk-theme",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Asset build for the INFiLLPK WordPress theme.",
+  "scripts": {
+    "build": "npm run build:css && npm run build:js",
+    "build:css": "tailwindcss -i ./assets/css/main.css -o ./assets/css/main.build.css --minify",
+    "build:js": "esbuild assets/js/hero.js assets/js/main.js assets/js/find-your-printer.js assets/js/pakistan-map.js --bundle --minify --outdir=assets/js --entry-names=[name].bundle --format=iife",
+    "watch:css": "tailwindcss -i ./assets/css/main.css -o ./assets/css/main.build.css --watch",
+    "watch:js": "esbuild assets/js/hero.js assets/js/main.js assets/js/find-your-printer.js assets/js/pakistan-map.js --bundle --outdir=assets/js --entry-names=[name].bundle --format=iife --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.0",
+    "esbuild": "^0.24.0",
+    "tailwindcss": "^4.1.0"
+  },
+  "dependencies": {
+    "gsap": "^3.12.5",
+    "three": "^0.169.0"
+  }
+}
