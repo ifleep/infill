@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+:root {
+  /* Warm, quiet base — Apple-adjacent, never stark or cold */
+  --color-paper: #f7f5f1;
+  --color-surface: #ffffff;
+  --color-surface-sunken: #f0ede6;
+
+  /* Ink (text) — deep charcoal, never pure black */
+  --color-ink: #15181d;
+  --color-ink-muted: #565f6a;
+  --color-ink-faint: #5f6b7a;
+
+  /* Precision Blue — dominant technology accent */
+  --color-blue-50: #eef2fb;
+  --color-blue-100: #d9e3f6;
+  --color-blue-300: #85a3de;
+  --color-blue-500: #2f58ae;
+  --color-blue-600: #1f3f8a;
+  --color-blue-700: #17316b;
+  --color-blue-900: #0b1731;
+
+  /* Deep Navy — secondary, dark sections (hero, footer) */
+  --color-navy-900: #0a1526;
+  --color-navy-800: #0f1e35;
+  --color-navy-700: #152a47;
+
+  /* Pakistan Green — sparing accent only */
+  --color-pk-green: #0f6b3f;
+  --color-pk-green-deep: #0b4b2c;
+  --color-pk-green-tint: #e6f2ea;
+
+  /* Semantic */
+  --color-border: #e4e1da;
+  --color-border-strong: #cfcbc2;
+  --color-destructive: #b3261e;
+  --color-destructive-tint: #fbeae9;
+  --color-ring: var(--color-blue-500);
+
+  /* Dark-surface variants (hero / footer / navy sections) */
+  --color-on-navy: #eef1f6;
+  --color-on-navy-muted: #9aa7bc;
+  --color-border-on-navy: #24344e;
+}
+
+@theme inline {
+  --color-paper: var(--color-paper);
+  --color-surface: var(--color-surface);
+  --color-surface-sunken: var(--color-surface-sunken);
+
+  --color-ink: var(--color-ink);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-ink-faint: var(--color-ink-faint);
+
+  --color-blue-50: var(--color-blue-50);
+  --color-blue-100: var(--color-blue-100);
+  --color-blue-300: var(--color-blue-300);
+  --color-blue-500: var(--color-blue-500);
+  --color-blue-600: var(--color-blue-600);
+  --color-blue-700: var(--color-blue-700);
+  --color-blue-900: var(--color-blue-900);
+
+  --color-navy-900: var(--color-navy-900);
+  --color-navy-800: var(--color-navy-800);
+  --color-navy-700: var(--color-navy-700);
+
+  --color-pk-green: var(--color-pk-green);
+  --color-pk-green-deep: var(--color-pk-green-deep);
+  --color-pk-green-tint: var(--color-pk-green-tint);
+
+  --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+  --color-destructive: var(--color-destructive);
+  --color-destructive-tint: var(--color-destructive-tint);
+  --color-ring: var(--color-ring);
+
+  --color-on-navy: var(--color-on-navy);
+  --color-on-navy-muted: var(--color-on-navy-muted);
+  --color-border-on-navy: var(--color-border-on-navy);
+
+  --font-display: var(--font-outfit);
+  --font-sans: var(--font-inter);
+
+  --container-max: 90rem;
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+::selection {
+  background: var(--color-blue-100);
+  color: var(--color-blue-900);
+}
+
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.container-page {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .container-page {
+    padding-inline: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-page {
+    padding-inline: 3rem;
+  }
+}
+
+/* Tabular figures for prices / specs so columns never jitter */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}

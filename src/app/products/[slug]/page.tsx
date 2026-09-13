@@ -1,0 +1,295 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Star, CheckCircle } from "@phosphor-icons/react/ssr";
+import {
+  products,
+  getProductBySlug,
+  getRelatedProducts,
+  getAccessories,
+  getCompatibleFilaments,
+} from "@/lib/data/products";
+import { getBrandById } from "@/lib/data";
+import { ProductVisual } from "@/components/product/product-visual";
+import { ProductCard } from "@/components/product/product-card";
+import { AddToCartPanel } from "@/components/product/add-to-cart-panel";
+import { CompareToggle } from "@/components/compare/compare-toggle";
+import { formatPKR } from "@/lib/format";
+import { Faq } from "@/components/product/faq";
+
+export function generateStaticParams() {
+  return products.map((p) => ({ slug: p.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const product = getProductBySlug(slug);
+  if (!product) return {};
+  const brand = getBrandById(product.brandId);
+  return {
+    title: `${brand?.name ?? ""} ${product.name}`.trim(),
+    description: product.shortDescription,
+    alternates: { canonical: `/products/${product.slug}` },
+    openGraph: {
+      title: `${brand?.name ?? ""} ${product.name}`.trim(),
+      description: product.shortDescription,
+    },
+  };
+}
+
+const statFields: { label: string; get: (p: (typeof products)[number]) => string | null }[] = [
+  {
+    label: "Build volume",
+    get: (p) => (p.buildVolume ? `${p.buildVolume.x} × ${p.buildVolume.y} × ${p.buildVolume.z} mm` : null),
+  },
+  { label: "Max speed", get: (p) => (p.speedMmPerSec ? `${p.speedMmPerSec} mm/s` : null) },
+  { label: "Weight", get: (p) => (p.weightKg ? `${p.weightKg} kg` : null) },
+  { label: "Warranty", get: (p) => `${p.warrantyMonths} months` },
+];
+
+export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const product = getProductBySlug(slug);
+  if (!product) notFound();
+
+  const brand = getBrandById(product.brandId);
+  const related = getRelatedProducts(product);
+  const accessories = getAccessories(product);
+  const compatibleFilaments = getCompatibleFilaments(product);
+  const stats = statFields.map((f) => ({ label: f.label, value: f.get(product) })).filter((s) => s.value);
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    brand: { "@type": "Brand", name: brand?.name },
+    description: product.shortDescription,
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "PKR",
+      price: product.price,
+      availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    },
+    ...(product.rating
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: product.rating,
+            reviewCount: product.reviewCount,
+          },
+        }
+      : {}),
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://infillpk.com/" },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: product.category === "printers" ? "3D Printers" : product.subcategory,
+        item: `https://infillpk.com/category/${categorySlugFor(product.category)}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: product.name,
+        item: `https://infillpk.com/products/${product.slug}`,
+      },
+    ],
+  };
+
+  return (
+    <div className="container-page py-10 sm:py-14">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
+      <nav aria-label="Breadcrumb" className="mb-6 text-sm text-ink-faint">
+        <Link href="/" className="focus-ring hover:text-ink">
+          Home
+        </Link>
+        <span className="mx-2">/</span>
+        <Link href={`/category/${categorySlugFor(product.category)}`} className="focus-ring hover:text-ink">
+          {product.category === "printers" ? "3D Printers" : product.subcategory}
+        </Link>
+        <span className="mx-2">/</span>
+        <span className="text-ink">{product.name}</span>
+      </nav>
+
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+        <div>
+          <ProductVisual product={product} className="w-full" />
+        </div>
+
+        <div>
+          <p className="text-sm font-medium uppercase tracking-wide text-ink-faint">{brand?.name}</p>
+          <h1 className="font-display mt-1 text-3xl font-semibold text-ink sm:text-4xl">{product.name}</h1>
+
+          {product.rating && (
+            <div className="mt-3 flex items-center gap-1.5 text-sm text-ink-muted">
+              <Star size={16} weight="fill" className="text-amber-600" />
+              <span className="tabular font-medium text-ink">{product.rating}</span>
+              <span>({product.reviewCount} reviews)</span>
+            </div>
+          )}
+
+          <p className="mt-4 text-base text-ink-muted">{product.shortDescription}</p>
+
+          <div className="mt-5 flex items-baseline gap-3">
+            <span className="tabular text-3xl font-semibold text-ink">{formatPKR(product.price)}</span>
+            {product.compareAtPrice && (
+              <span className="tabular text-base text-ink-faint line-through">
+                {formatPKR(product.compareAtPrice)}
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-xs text-ink-faint">Estimated price — confirmed at checkout</p>
+
+          <p className="mt-3 flex items-center gap-1.5 text-sm text-pk-green">
+            <CheckCircle size={16} weight="fill" />
+            {product.stock > 0 ? `In stock — ${product.stock} available` : "Currently unavailable"}
+          </p>
+
+          <AddToCartPanel product={product} brandName={brand?.name ?? ""} />
+
+          <div className="mt-4">
+            <CompareToggle productId={product.id} />
+          </div>
+
+          {stats.length > 0 && (
+            <div className="mt-8 grid grid-cols-2 gap-4 border-t border-border pt-6 sm:grid-cols-4">
+              {stats.map((s) => (
+                <div key={s.label}>
+                  <p className="text-xs uppercase tracking-wide text-ink-faint">{s.label}</p>
+                  <p className="tabular mt-1 text-sm font-semibold text-ink">{s.value}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-16 grid grid-cols-1 gap-12 lg:grid-cols-[1fr_320px]">
+        <div>
+          <h2 className="font-display text-xl font-semibold text-ink">Overview</h2>
+          <p className="mt-3 max-w-2xl text-ink-muted">{product.description}</p>
+
+          <h2 className="font-display mt-10 text-xl font-semibold text-ink">Specifications</h2>
+          <div className="mt-4 overflow-hidden rounded-lg border border-border">
+            {product.specifications.map((spec, i) => (
+              <div
+                key={spec.label}
+                className={`flex justify-between px-4 py-3 text-sm ${i % 2 === 0 ? "bg-surface" : "bg-surface-sunken"}`}
+              >
+                <span className="text-ink-muted">{spec.label}</span>
+                <span className="tabular font-medium text-ink">{spec.value}</span>
+              </div>
+            ))}
+          </div>
+
+          {product.materials && product.materials.length > 0 && (
+            <>
+              <h2 className="font-display mt-10 text-xl font-semibold text-ink">Materials compatibility</h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {product.materials.map((m) => (
+                  <span key={m} className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                    {m}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+
+          <h2 className="font-display mt-10 text-xl font-semibold text-ink">FAQs</h2>
+          <Faq />
+        </div>
+
+        <div className="space-y-8">
+          <div>
+            <h3 className="font-display text-base font-semibold text-ink">Resources</h3>
+            <p className="mt-2 text-sm text-ink-muted">
+              Need a manual, spec sheet, or slicer profile for this machine? Our support team can send
+              the latest version directly.
+            </p>
+            <Link
+              href="/contact?type=support"
+              className="focus-ring mt-3 inline-block text-sm font-medium text-blue-700 hover:text-blue-600"
+            >
+              Contact Support →
+            </Link>
+          </div>
+          <div>
+            <h3 className="font-display text-base font-semibold text-ink">Warranty &amp; support</h3>
+            <p className="mt-2 text-sm text-ink-muted">
+              {product.warrantyMonths}-month warranty, with installation and training available through
+              our services team.
+            </p>
+            <Link
+              href="/services"
+              className="focus-ring mt-3 inline-block text-sm font-medium text-blue-700 hover:text-blue-600"
+            >
+              View Services →
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {compatibleFilaments.length > 0 && (
+        <section className="mt-16">
+          <h2 className="font-display text-xl font-semibold text-ink">Filaments that work with this printer</h2>
+          <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+            {compatibleFilaments.slice(0, 4).map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {accessories.length > 0 && (
+        <section className="mt-16">
+          <h2 className="font-display text-xl font-semibold text-ink">Accessories</h2>
+          <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+            {accessories.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {related.length > 0 && (
+        <section className="mt-16">
+          <h2 className="font-display text-xl font-semibold text-ink">Related products</h2>
+          <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+            {related.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function categorySlugFor(category: (typeof products)[number]["category"]) {
+  switch (category) {
+    case "printers":
+      return "3d-printers";
+    case "filament":
+      return "filament";
+    case "resin":
+      return "resin";
+    case "parts":
+      return "parts-accessories";
+    case "machines":
+      return "machines";
+  }
+}
