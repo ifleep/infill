@@ -28,6 +28,21 @@ export function AddToCartPanel({ product, brandName }: { product: Product; brand
     );
   }
 
+  if (product.availability === "out-of-stock") {
+    return (
+      <div className="mt-6">
+        <Button size="lg" disabled>
+          Out of Stock
+        </Button>
+        <p className="mt-2 text-xs text-ink-faint">
+          Contact us to be notified when this is back in stock.
+        </p>
+      </div>
+    );
+  }
+
+  const addLabel = product.availability === "preorder" ? "Preorder" : "Add to Cart";
+
   return (
     <div className="mt-6 flex flex-wrap items-center gap-3">
       <div className="flex items-center rounded-md border border-border-strong">
@@ -53,7 +68,7 @@ export function AddToCartPanel({ product, brandName }: { product: Product; brand
           addItem(product, brandName, qty);
         }}
       >
-        Add to Cart
+        {addLabel}
       </Button>
       <Button
         variant="secondary"
@@ -65,6 +80,9 @@ export function AddToCartPanel({ product, brandName }: { product: Product; brand
       >
         Buy Now
       </Button>
+      {product.availability === "preorder" && (
+        <p className="w-full text-xs text-ink-faint">This item ships once new stock arrives.</p>
+      )}
     </div>
   );
 }

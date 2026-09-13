@@ -8,13 +8,16 @@ import { PakistanMapSection } from "@/components/pakistan/pakistan-map-section";
 import { ServicesSection } from "@/components/sections/services-section";
 import { LearnSection } from "@/components/sections/learn-section";
 import { FinalCtaSection } from "@/components/sections/final-cta-section";
+import { getProductsByCategory } from "@/lib/data/products";
 
-export default function Home() {
+export default async function Home() {
+  const printers = await getProductsByCategory("printers");
+
   return (
     <>
       <CinematicHero />
       <PrintingDiscoverySection />
-      <FindYourPrinterSection />
+      <FindYourPrinterSection printers={printers} />
       <FeaturedPrintersSection />
       <MaterialsSection />
       <DigitalFabricationSection />

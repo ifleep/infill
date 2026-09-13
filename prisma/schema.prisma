@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// Products are the only part of the catalog backed by a real database —
+// brands, categories, articles, services and Pakistan-region content stay
+// as static code (src/lib/data) since they change rarely. Arrays are
+// stored as JSON-encoded strings for SQLite simplicity and are
+// serialized/deserialized in src/lib/data/products.ts, which is the only
+// place that should import this Prisma model directly.
+model Product {
+  id              String  @id @default(cuid())
+  slug            String  @unique
+  name            String
+  brandId         String
+  category        String // "printers" | "filament" | "resin" | "parts" | "machines"
+  subcategory     String
+  machineCategory String?
+  technology      String?
+  experienceLevel String  @default("[]") // JSON string[]
+  useCases        String  @default("[]") // JSON string[]
+
+  price          Int
+  compareAtPrice Int?
+  currency       String @default("PKR")
+  stock          Int    @default(0)
+  availability   String @default("in-stock") // "in-stock" | "out-of-stock" | "preorder"
+  quoteOnly      Boolean @default(false)
+
+  images            String @default("[]") // JSON string[]
+  shortDescription  String
+  description       String
+  specifications    String @default("[]") // JSON {label,value}[]
+  materials         String? // JSON string[]
+
+  buildVolumeX Float?
+  buildVolumeY Float?
+  buildVolumeZ Float?
+  speedMmPerSec Float?
+  weightKg      Float?
+  dimWidth      Float?
+  dimDepth      Float?
+  dimHeight     Float?
+  warrantyMonths Int    @default(0)
+
+  accessoryIds            String? // JSON string[] of product ids
+  relatedProductIds       String? // JSON string[] of product ids
+  compatibleFilamentTags  String? // JSON string[]
+  tags                    String  @default("[]") // JSON string[]
+
+  rating      Float?
+  reviewCount Int?
+  featured    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([brandId])
+}

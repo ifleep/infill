@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/cart", "/checkout", "/account", "/wishlist"],
+      disallow: ["/cart", "/checkout", "/account", "/wishlist", "/admin"],
     },
     sitemap: "https://infillpk.com/sitemap.xml",
   };

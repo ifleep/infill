@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
-import { products } from "@/lib/data/products";
+import { getAllProducts } from "@/lib/data/products";
 import { articles } from "@/lib/data/articles";
 import { categoryDefs } from "@/components/category/category-config";
 
 const BASE_URL = "https://infillpk.com";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const products = await getAllProducts();
   const staticRoutes = [
     "",
     "/about",

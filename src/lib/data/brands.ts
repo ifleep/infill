@@ -20,3 +20,7 @@ export const brands: Brand[] = [
   { id: "carvera", name: "Makera", slug: "makera", country: "China", description: "Desktop CNC machining centers." },
   { id: "roland", name: "Roland DG", slug: "roland-dg", country: "Japan", description: "Professional UV flatbed and wide-format printing." },
 ];
+
+export function getBrandById(id: string) {
+  return brands.find((b) => b.id === id);
+}

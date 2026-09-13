@@ -1,4 +1,4 @@
-import { products } from "@/lib/data/products";
+import { getAllProducts } from "@/lib/data/products";
 import { getBrandById } from "@/lib/data";
 import { ProductCard } from "@/components/product/product-card";
 
@@ -9,6 +9,7 @@ export default async function SearchPage({
 }) {
   const { q } = await searchParams;
   const query = (q ?? "").trim().toLowerCase();
+  const products = query ? await getAllProducts() : [];
 
   const results = query
     ? products.filter(

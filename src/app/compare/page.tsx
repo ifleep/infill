@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { X } from "@phosphor-icons/react";
 import { useCompareStore } from "@/components/compare/compare-store";
-import { products } from "@/lib/data/products";
-import { getBrandById } from "@/lib/data";
+import type { Product } from "@/lib/types";
+import { getBrandById } from "@/lib/data/brands";
 import { ProductVisual } from "@/components/product/product-visual";
 import { formatPKR } from "@/lib/format";
 import { LinkButton } from "@/components/ui/button";
 
-const fields: { label: string; get: (p: (typeof products)[number]) => string }[] = [
+const fields: { label: string; get: (p: Product) => string }[] = [
   { label: "Price", get: (p) => formatPKR(p.price) },
   { label: "Technology", get: (p) => p.technology ?? p.subcategory },
   {
@@ -32,10 +32,18 @@ export default function ComparePage() {
   const hydrate = useCompareStore((s) => s.hydrate);
   const ids = useCompareStore((s) => s.ids);
   const toggle = useCompareStore((s) => s.toggle);
+  const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     hydrate();
   }, [hydrate]);
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then(setProducts)
+      .catch(() => setProducts([]));
+  }, []);
 
   const selected = ids.map((id) => products.find((p) => p.id === id)).filter((p): p is NonNullable<typeof p> => Boolean(p));
 

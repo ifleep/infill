@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { CheckCircle, ArrowLeft } from "@phosphor-icons/react";
-import { products } from "@/lib/data/products";
 import type { ExperienceLevel, Product, UseCase } from "@/lib/types";
 import { ProductCard } from "@/components/product/product-card";
 import { SectionHeading } from "@/components/ui/section-heading";
@@ -62,7 +61,7 @@ function score(product: Product, answers: Answers): number {
   return s;
 }
 
-export function FindYourPrinterSection() {
+export function FindYourPrinterSection({ printers }: { printers: Product[] }) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>({
     useCase: null,
@@ -148,13 +147,13 @@ export function FindYourPrinterSection() {
 
   const results = useMemo(() => {
     if (step < 4) return [];
-    return [...products]
+    return [...printers]
       .map((p) => ({ p, s: score(p, answers) }))
       .filter((r) => r.s >= 0)
       .sort((a, b) => b.s - a.s)
       .slice(0, 3)
       .map((r) => r.p);
-  }, [step, answers]);
+  }, [step, answers, printers]);
 
   return (
     <section className="bg-surface-sunken py-20 sm:py-28">

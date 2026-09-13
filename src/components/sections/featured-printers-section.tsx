@@ -4,8 +4,8 @@ import { getFeaturedProducts } from "@/lib/data/products";
 import { ProductCard } from "@/components/product/product-card";
 import { SectionHeading } from "@/components/ui/section-heading";
 
-export function FeaturedPrintersSection() {
-  const featured = getFeaturedProducts().filter((p) => p.category === "printers");
+export async function FeaturedPrintersSection() {
+  const featured = (await getFeaturedProducts()).filter((p) => p.category === "printers");
 
   return (
     <section className="container-page py-20 sm:py-28">

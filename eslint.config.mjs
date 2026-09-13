@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Third-party plugin skill scripts, not part of this app's source.
     ".claude/**",
+    // Generated Prisma client — rebuilt via `prisma generate`, not source.
+    "src/generated/**",
   ]),
 ]);
 

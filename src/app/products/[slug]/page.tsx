@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Star, CheckCircle } from "@phosphor-icons/react/ssr";
 import {
-  products,
+  getAllProducts,
   getProductBySlug,
   getRelatedProducts,
   getAccessories,
@@ -14,10 +13,14 @@ import { ProductVisual } from "@/components/product/product-visual";
 import { ProductCard } from "@/components/product/product-card";
 import { AddToCartPanel } from "@/components/product/add-to-cart-panel";
 import { CompareToggle } from "@/components/compare/compare-toggle";
+import { AvailabilityStatus } from "@/components/product/availability-badge";
 import { formatPKR } from "@/lib/format";
 import { Faq } from "@/components/product/faq";
+import { Star } from "@phosphor-icons/react/ssr";
+import type { Product } from "@/lib/types";
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const products = await getAllProducts();
   return products.map((p) => ({ slug: p.slug }));
 }
 
@@ -27,7 +30,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProductBySlug(slug);
   if (!product) return {};
   const brand = getBrandById(product.brandId);
   return {
@@ -41,7 +44,7 @@ export async function generateMetadata({
   };
 }
 
-const statFields: { label: string; get: (p: (typeof products)[number]) => string | null }[] = [
+const statFields: { label: string; get: (p: Product) => string | null }[] = [
   {
     label: "Build volume",
     get: (p) => (p.buildVolume ? `${p.buildVolume.x} × ${p.buildVolume.y} × ${p.buildVolume.z} mm` : null),
@@ -53,13 +56,15 @@ const statFields: { label: string; get: (p: (typeof products)[number]) => string
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProductBySlug(slug);
   if (!product) notFound();
 
   const brand = getBrandById(product.brandId);
-  const related = getRelatedProducts(product);
-  const accessories = getAccessories(product);
-  const compatibleFilaments = getCompatibleFilaments(product);
+  const [related, accessories, compatibleFilaments] = await Promise.all([
+    getRelatedProducts(product),
+    getAccessories(product),
+    getCompatibleFilaments(product),
+  ]);
   const stats = statFields.map((f) => ({ label: f.label, value: f.get(product) })).filter((s) => s.value);
 
   const jsonLd = {
@@ -72,7 +77,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       "@type": "Offer",
       priceCurrency: "PKR",
       price: product.price,
-      availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      availability: schemaAvailability(product.availability),
     },
     ...(product.rating
       ? {
@@ -154,10 +159,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </div>
           <p className="mt-1 text-xs text-ink-faint">Estimated price — confirmed at checkout</p>
 
-          <p className="mt-3 flex items-center gap-1.5 text-sm text-pk-green">
-            <CheckCircle size={16} weight="fill" />
-            {product.stock > 0 ? `In stock — ${product.stock} available` : "Currently unavailable"}
-          </p>
+          <div className="mt-3">
+            <AvailabilityStatus availability={product.availability} stock={product.stock} />
+          </div>
 
           <AddToCartPanel product={product} brandName={brand?.name ?? ""} />
 
@@ -279,7 +283,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   );
 }
 
-function categorySlugFor(category: (typeof products)[number]["category"]) {
+function schemaAvailability(availability: Product["availability"]) {
+  switch (availability) {
+    case "in-stock":
+      return "https://schema.org/InStock";
+    case "preorder":
+      return "https://schema.org/PreOrder";
+    case "out-of-stock":
+      return "https://schema.org/OutOfStock";
+  }
+}
+
+function categorySlugFor(category: Product["category"]) {
   switch (category) {
     case "printers":
       return "3d-printers";

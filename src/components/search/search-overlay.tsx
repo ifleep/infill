@@ -4,9 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MagnifyingGlass, X } from "@phosphor-icons/react";
-import { products } from "@/lib/data/products";
-import { brands } from "@/lib/data/brands";
-import { getBrandById } from "@/lib/data";
+import type { Product } from "@/lib/types";
+import { brands, getBrandById } from "@/lib/data/brands";
 
 const suggestions = [
   "3D printers",
@@ -21,8 +20,16 @@ const suggestions = [
 export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState("");
   const [prevOpen, setPrevOpen] = useState(open);
+  const [products, setProducts] = useState<Product[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then(setProducts)
+      .catch(() => setProducts([]));
+  }, []);
 
   // Clear the query when the overlay transitions to closed — adjusting
   // state during render (rather than in an effect) so it takes effect in

@@ -58,6 +58,8 @@ export interface Specification {
   value: string;
 }
 
+export type Availability = "in-stock" | "out-of-stock" | "preorder";
+
 export interface Product {
   id: string;
   slug: string;
@@ -73,6 +75,8 @@ export interface Product {
   compareAtPrice?: number;
   currency: "PKR";
   stock: number;
+  /** Set directly by an admin — not derived from `stock`, so a preorder or a temporarily out-of-stock item can be flagged independently of the count. */
+  availability: Availability;
   quoteOnly?: boolean;
   images: string[];
   shortDescription: string;

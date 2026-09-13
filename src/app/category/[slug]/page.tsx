@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCategoryDef, categoryDefs } from "@/components/category/category-config";
-import { products } from "@/lib/data/products";
+import { getProductsByCategory } from "@/lib/data/products";
 import { brands } from "@/lib/data/brands";
 import { ProductCard } from "@/components/product/product-card";
 import { CategoryFilters, type ActiveFilters } from "@/components/category/category-filters";
@@ -49,7 +49,7 @@ export default async function CategoryPage({
     sub: firstParam(sp.sub),
   };
 
-  const productsInCategory = products.filter((p) => p.category === def.productCategory);
+  const productsInCategory = await getProductsByCategory(def.productCategory);
 
   const filtered = productsInCategory.filter((p) => {
     if (current.tech && p.technology !== current.tech) return false;

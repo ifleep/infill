@@ -24,3 +24,7 @@ export const categories: Category[] = [
   { id: "machines-uv", slug: "uv-printing", name: "UV Printing", parent: "machines" },
   { id: "machines-laser", slug: "laser", name: "Laser", parent: "machines" },
 ];
+
+export function getCategoryBySlug(slug: string) {
+  return categories.find((c) => c.slug === slug);
+}

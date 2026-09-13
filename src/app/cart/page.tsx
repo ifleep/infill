@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Minus, Plus, ShoppingBagOpen } from "@phosphor-icons/react";
 import { useCartStore, useCartTotal } from "@/components/cart/cart-store";
 import { formatPKR } from "@/lib/format";
 import { LinkButton } from "@/components/ui/button";
-import { products } from "@/lib/data/products";
+import type { Product } from "@/lib/types";
 import { ProductCard } from "@/components/product/product-card";
 
 export default function CartPage() {
@@ -15,10 +15,18 @@ export default function CartPage() {
   const setQuantity = useCartStore((s) => s.setQuantity);
   const removeItem = useCartStore((s) => s.removeItem);
   const total = useCartTotal();
+  const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     hydrate();
   }, [hydrate]);
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then(setProducts)
+      .catch(() => setProducts([]));
+  }, []);
 
   const recommendations = products
     .filter((p) => (p.category === "filament" || p.category === "parts") && !lines.some((l) => l.productId === p.id))

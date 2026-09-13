@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -43,3 +44,10 @@ next-env.d.ts
 # Python cache from ui-ux-pro-max skill scripts
 __pycache__/
 *.pyc
+
+# Prisma: generated client is rebuilt via `prisma generate` (runs
+# automatically on `npm install` via postinstall); the SQLite database
+# file is runtime data, not source.
+/src/generated/prisma/
+/data/*.db
+/data/*.db-journal
