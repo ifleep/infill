@@ -50,14 +50,18 @@ whichever matches your plan.
    - `DATABASE_URL` — `file:./data/app.db` (only read by the Prisma CLI for migrate/seed; the running
      app talks to that same file directly via `src/lib/db.ts`).
    - `NODE_ENV=production`
-4. **Install, build, migrate:** Hostinger's Node.js app screen has an "Run NPM Install" button and a
-   terminal/SSH option — either way, from the app's root run:
+4. **Install, migrate, seed, build:** Hostinger's Node.js app screen has an "Run NPM Install" button
+   and a terminal/SSH option — either way, from the app's root run, **in this order**:
    ```bash
    npm install
-   npm run build
    npm run db:migrate:deploy
    npm run db:seed        # first deploy only — reseeds/upserts the demo catalog
+   npm run build
    ```
+   `npm run build` also runs `prisma migrate deploy` automatically first (a `prebuild` hook), so an
+   automated pipeline that only runs `npm install && npm run build` still won't crash — but running
+   `db:seed` before `build` is still worth doing manually so the product pages are pre-rendered with
+   real data instead of generated empty and filled in on first visit.
 5. **Start (or restart) the application** from the same hPanel screen.
 6. Visit your domain — you should see the homepage — then `/admin` to confirm login works.
 
