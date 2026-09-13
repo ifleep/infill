@@ -1,6 +1,7 @@
 import { getAllProducts } from "@/lib/data/products";
 import { brands } from "@/lib/data/brands";
 import { AdminProductTable } from "@/components/admin/admin-product-table";
+import { SeedCatalogButton } from "@/components/admin/seed-catalog-button";
 import { LinkButton } from "@/components/ui/button";
 
 export default async function AdminDashboardPage() {
@@ -16,7 +17,10 @@ export default async function AdminDashboardPage() {
             automatically as you edit them.
           </p>
         </div>
-        <LinkButton href="/admin/products/new">Add Product</LinkButton>
+        <div className="flex items-center gap-3">
+          <SeedCatalogButton />
+          <LinkButton href="/admin/products/new">Add Product</LinkButton>
+        </div>
       </div>
 
       <AdminProductTable initialProducts={products} brands={brands} />
