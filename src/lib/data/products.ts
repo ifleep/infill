@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import type { Product } from "@/lib/types";
+import { parseContentBlocks, type ContentBlock } from "@/lib/content-blocks/types";
 import type {
   Product as ProductRow,
   ProductMedia as ProductMediaRow,
@@ -63,6 +64,7 @@ function fromRow(row: ProductWithMedia): Product {
     images: row.media.map((pm) => pm.media.url),
     shortDescription: row.shortDescription,
     description: row.description,
+    contentBlocks: parseContentBlocks(row.contentBlocks),
     specifications: parseJson(row.specifications, []),
     materials: row.materials ? parseJson(row.materials, []) : undefined,
     buildVolume: hasBuildVolume
@@ -189,6 +191,8 @@ export interface ProductInput {
   shortDescription: string;
   description: string;
   featured: boolean;
+  /** `undefined` leaves the product's existing content blocks untouched (same reasoning as mediaIds below). */
+  contentBlocks?: ContentBlock[];
   /**
    * Ordered Media Library ids — the first becomes the primary photo.
    * `undefined` means "leave the product's existing photos alone" (the
@@ -214,6 +218,12 @@ function toDbInput(input: ProductInput) {
     shortDescription: input.shortDescription,
     description: input.description,
     featured: input.featured,
+    // Prisma's Json input type wants an index-signature-bearing object, which
+    // a concrete discriminated-union interface like ContentBlock doesn't
+    // structurally have — cast through unknown, the runtime shape is plain JSON.
+    ...(input.contentBlocks !== undefined
+      ? { contentBlocks: input.contentBlocks as unknown as Prisma.InputJsonValue }
+      : {}),
   };
 }
 

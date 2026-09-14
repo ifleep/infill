@@ -1,3 +1,5 @@
+import type { ContentBlock } from "@/lib/content-blocks/types";
+
 export type PrinterTechnology =
   | "FDM"
   | "Resin"
@@ -81,6 +83,8 @@ export interface Product {
   images: string[];
   shortDescription: string;
   description: string;
+  /** Rich block-based body — when present, takes over from `description` on the product page. */
+  contentBlocks?: ContentBlock[];
   specifications: Specification[];
   materials?: string[];
   buildVolume?: BuildVolume;

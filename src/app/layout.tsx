@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { Outfit, Inter } from "next/font/google";
 import "./globals.css";
-import { SiteHeader } from "@/components/layout/site-header";
-import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteChrome } from "@/components/layout/site-chrome";
 import { CartProvider } from "@/components/cart/cart-store";
-import { WhatsAppButton } from "@/components/layout/whatsapp-button";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -91,12 +89,7 @@ export default function RootLayout({
           Skip to main content
         </a>
         <CartProvider>
-          <SiteHeader />
-          <main id="main-content" className="flex-1">
-            {children}
-          </main>
-          <SiteFooter />
-          <WhatsAppButton />
+          <SiteChrome>{children}</SiteChrome>
         </CartProvider>
       </body>
     </html>

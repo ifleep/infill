@@ -1,4 +1,5 @@
 import { slugify, type ProductInput } from "@/lib/data/products";
+import { parseContentBlocks } from "@/lib/content-blocks/types";
 
 export function validateProductInput(body: unknown, fallbackSlug?: string): { input: ProductInput } | { error: string } {
   if (typeof body !== "object" || body === null) return { error: "Invalid request body." };
@@ -23,6 +24,8 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
   const mediaIds = Array.isArray(b.mediaIds)
     ? b.mediaIds.filter((i): i is string => typeof i === "string")
     : undefined;
+  // Same "absent => leave alone" convention as mediaIds.
+  const contentBlocks = "contentBlocks" in b ? parseContentBlocks(b.contentBlocks) : undefined;
 
   if (!name) return { error: "Name is required." };
   if (!brandId) return { error: "Brand is required." };
@@ -61,6 +64,7 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
       description,
       featured,
       mediaIds,
+      contentBlocks,
     },
   };
 }

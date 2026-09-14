@@ -18,6 +18,7 @@ import { formatPKR } from "@/lib/format";
 import { Faq } from "@/components/product/faq";
 import { Star } from "@phosphor-icons/react/ssr";
 import type { Product } from "@/lib/types";
+import { ContentRenderer } from "@/components/content-blocks/content-renderer";
 
 export async function generateStaticParams() {
   const products = await getAllProducts();
@@ -185,7 +186,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <div className="mt-16 grid grid-cols-1 gap-12 lg:grid-cols-[1fr_320px]">
         <div>
           <h2 className="font-display text-xl font-semibold text-ink">Overview</h2>
-          <p className="mt-3 max-w-2xl text-ink-muted">{product.description}</p>
+          {product.contentBlocks && product.contentBlocks.length > 0 ? (
+            <div className="mt-4">
+              <ContentRenderer blocks={product.contentBlocks} />
+            </div>
+          ) : (
+            <p className="mt-3 max-w-2xl text-ink-muted">{product.description}</p>
+          )}
 
           <h2 className="font-display mt-10 text-xl font-semibold text-ink">Specifications</h2>
           <div className="mt-4 overflow-hidden rounded-lg border border-border">

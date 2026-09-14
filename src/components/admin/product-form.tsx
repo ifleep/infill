@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Brand, Product } from "@/lib/types";
+import type { ContentBlock } from "@/lib/content-blocks/types";
 import type { MediaItem } from "@/lib/admin/media-types";
 import { Button } from "@/components/ui/button";
 import { ImageUploader } from "@/components/admin/image-uploader";
+import { ContentBlockEditor } from "@/components/admin/content-block-editor";
 
 const categories: { value: Product["category"]; label: string }[] = [
   { value: "printers", label: "3D Printer" },
@@ -78,6 +80,7 @@ export function ProductForm({
 }) {
   const [values, setValues] = useState<ProductFormValues>(product ? fromProduct(product) : empty);
   const [photos, setPhotos] = useState<MediaItem[]>(mediaItems ?? []);
+  const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>(product?.contentBlocks ?? []);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const router = useRouter();
@@ -97,6 +100,7 @@ export function ProductForm({
       compareAtPrice: values.compareAtPrice === "" ? null : values.compareAtPrice,
       stock: values.stock === "" ? 0 : values.stock,
       mediaIds: photos.map((p) => p.id),
+      contentBlocks,
     };
 
     try {
@@ -120,7 +124,7 @@ export function ProductForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-2xl space-y-5 rounded-xl border border-border bg-surface p-6">
+    <form onSubmit={handleSubmit} className="max-w-4xl space-y-5 rounded-xl border border-border bg-surface p-6">
       {error && (
         <p className="rounded-md bg-destructive-tint px-3 py-2 text-sm text-destructive">{error}</p>
       )}
@@ -265,7 +269,7 @@ export function ProductForm({
         />
       </Field>
 
-      <Field label="Full description" required>
+      <Field label="Full description" required hint="Fallback text shown when no content blocks are added below">
         <textarea
           required
           rows={5}
@@ -274,6 +278,15 @@ export function ProductForm({
           className={inputClass}
         />
       </Field>
+
+      <div>
+        <span className="mb-1.5 block text-sm font-medium text-ink">Product content</span>
+        <p className="mb-3 text-xs text-ink-faint">
+          Build a richer page out of blocks — images, feature grids, spec tables, FAQs and more. When blocks are
+          added here, they replace the full description above on the product page.
+        </p>
+        <ContentBlockEditor blocks={contentBlocks} onChange={setContentBlocks} />
+      </div>
 
       <div className="flex gap-3 pt-2">
         <Button type="submit" size="lg" disabled={saving}>

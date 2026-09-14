@@ -36,7 +36,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="flex min-h-[70vh] items-center justify-center px-4">
+    <div id="main-content" className="flex min-h-[70vh] items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex justify-center">
           <Wordmark />
