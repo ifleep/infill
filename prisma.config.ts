@@ -8,19 +8,22 @@ import { defineConfig } from "prisma/config";
 // which connects with a plain connection string via `datasource.url`
 // instead.
 //
-// No silent fallback here on purpose: an earlier version of this file fell
-// back to a hardcoded `mysql://root@127.0.0.1:3306/infillpk` when
-// DATABASE_URL wasn't set, which meant a deploy that forgot to configure
-// the env var failed with a confusing "root" authentication error instead
-// of a clear "you forgot to set DATABASE_URL" one — set a real
-// DATABASE_URL (see .env.example / README) before running any `prisma`
-// command.
+// `prisma generate` (which runs on every `npm install` via the postinstall
+// script) only needs the schema — it never opens a database connection —
+// so this must NOT throw just because DATABASE_URL isn't set yet at
+// install time; an earlier version of this file did throw unconditionally
+// here and broke `npm install` on Hostinger before the env var was even
+// configurable. `datasource` is omitted entirely when DATABASE_URL is
+// unset, so `generate` still succeeds; `migrate`/`db seed`, which do need
+// a real connection, fail with Prisma's own clear
+// "datasource.url property is required in your Prisma config file"
+// message when actually run without one.
+//
+// (No silent fallback to a hardcoded connection string either — an even
+// earlier version defaulted to mysql://root@127.0.0.1:3306/infillpk,
+// which turned a missing env var into a confusing MySQL auth error
+// instead of pointing at the real problem.)
 const connectionString = process.env["DATABASE_URL"];
-if (!connectionString) {
-  throw new Error(
-    "DATABASE_URL is not set. Add it to your environment before running Prisma CLI commands (see .env.example)."
-  );
-}
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
@@ -28,7 +31,5 @@ export default defineConfig({
     path: "prisma/migrations",
     seed: "tsx prisma/seed.ts",
   },
-  datasource: {
-    url: connectionString,
-  },
+  ...(connectionString ? { datasource: { url: connectionString } } : {}),
 });
