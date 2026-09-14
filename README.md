@@ -1,8 +1,9 @@
 # INFiLLPK
 
-Modern 3D printing and digital fabrication technology for Pakistan. Next.js 16 + Tailwind v4, with a
-Prisma/SQLite-backed product catalog and a password-protected `/admin` dashboard for managing
-products, pricing, sales, and stock/availability.
+Modern 3D printing and digital fabrication technology for Pakistan. Next.js 16 + Tailwind v4, a
+MySQL-backed catalog and CMS (Prisma 7), and a password-protected `/admin` dashboard for managing
+products, product photos, rich product content, homepage promotions, pages, the INFiLL Lab, and
+site settings — all without a code change or redeploy.
 
 > A WordPress + WooCommerce + Elementor version was also explored and is kept at
 > [`archive/wordpress-theme/`](archive/wordpress-theme/) in case that direction is revisited — it is
@@ -12,14 +13,44 @@ products, pricing, sales, and stock/availability.
 
 ```bash
 npm install
-cp .env.example .env   # set ADMIN_PASSWORD / ADMIN_SESSION_SECRET
+cp .env.example .env   # set DATABASE_URL / ADMIN_PASSWORD / ADMIN_SESSION_SECRET
 npm run db:migrate
 npm run db:seed
 npm run dev
 ```
 
+`db:migrate`/`db:seed` need a running MySQL or MariaDB server reachable at `DATABASE_URL` — for
+local development that's usually `mysql://root@127.0.0.1:3306/infillpk` against a MySQL/MariaDB
+install on your machine (or a Docker container). Create the empty database first if it doesn't
+exist yet (`mysql -e "CREATE DATABASE infillpk"`); `db:migrate` creates the tables inside it.
+
 Visit `http://localhost:3000` for the site and `http://localhost:3000/admin` for the dashboard
 (login with the `ADMIN_PASSWORD` you set).
+
+## What's in `/admin`
+
+- **Products** — full catalog CRUD: pricing, stock, availability, featured flag, photos (via the
+  Media Library, below), a block-based content editor for the product page body, and SEO fields.
+- **Media Library** (`/admin/media`) — every uploaded image in one place, reused across products,
+  homepage sections, pages and articles instead of re-uploading. Products/homepage/pages/articles
+  all open the same picker to select existing media.
+- **Homepage** (`/admin/homepage`) — promotional banners and image sections shown on the homepage
+  (between the featured printers and materials sections). The 3D hero, printer finder and Pakistan
+  map stay hand-built custom components and aren't editable here, by design.
+- **Pages** (`/admin/pages`) — new content pages (e.g. a Warranty Policy) created here are reachable
+  at their URL slug automatically. This does not touch the existing hand-built About/Contact/Services
+  pages, which keep their own custom design.
+- **INFiLL Lab** (`/admin/lab`) — buying guides and articles: featured image, block-based content,
+  author, publish status (draft/published/scheduled), SEO.
+- **Orders / Customers** — read-only for now. No payment gateway is connected yet (see Known
+  limitations below), so these are empty until a real checkout flow is wired up; the schema and
+  admin views are ready for that.
+- **Settings** — currently just the WhatsApp contact button's number and pre-filled message; more
+  can be added to the same `SiteSetting` key-value store later without a migration.
+
+Every admin save calls Next.js's on-demand revalidation, so changes appear on the live site
+immediately — **no redeploy needed for content changes** (price/stock/photos/homepage
+promos/articles/pages/SEO). A redeploy is only needed for actual code changes.
 
 ## Deploying to Hostinger
 
@@ -31,67 +62,85 @@ in that file). If you're on a **VPS/Cloud plan** with full shell access instead,
 `server.js` and just run `npm run build && npm run start` under `pm2` or a systemd service — use
 whichever matches your plan.
 
-### Steps (shared/Business hosting, Node.js App Manager)
+### 1. Create the MySQL database
 
-1. **Push this repo to GitHub** (if not already) and connect it in hPanel → **Advanced → Node.js** →
-   **Create Application**, or upload the files via File Manager/SFTP if you'd rather not connect Git.
-2. **Application settings:**
-   - **Node.js version**: 20 or newer.
-   - **Application root**: the folder you deployed this repo into.
-   - **Application startup file**: `server.js`.
-   - **Application mode**: Production.
-3. **Environment variables** (in the same Node.js app settings screen — don't commit real secrets to
-   `.env`):
-   - `ADMIN_PASSWORD` — a strong, unique password for `/admin`.
-   - `ADMIN_SESSION_SECRET` — random string. Generate one with:
-     ```bash
-     node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-     ```
-   - `DATABASE_URL` — `file:./data/app.db` (only read by the Prisma CLI for migrate/seed; the running
-     app talks to that same file directly via `src/lib/db.ts`).
-   - `NODE_ENV=production`
-4. **Install, migrate, seed, build:** Hostinger's Node.js app screen has an "Run NPM Install" button
-   and a terminal/SSH option — either way, from the app's root run, **in this order**:
-   ```bash
-   npm install
-   npm run db:migrate:deploy
-   npm run db:seed        # first deploy only — reseeds/upserts the demo catalog
-   npm run build
-   ```
-   `npm run build` also runs `prisma migrate deploy` automatically first (a `prebuild` hook), so an
-   automated pipeline that only runs `npm install && npm run build` still won't crash — but running
-   `db:seed` before `build` is still worth doing manually so the product pages are pre-rendered with
-   real data instead of generated empty and filled in on first visit.
-5. **Start (or restart) the application** from the same hPanel screen.
-6. Visit your domain — you should see the homepage — then `/admin` to confirm login works.
+hPanel → **Databases → MySQL Databases** → create a database and a user, and note the hostname,
+database name, username and password it gives you (Hostinger's shared MySQL is usually reachable at
+`localhost` from the same account's Node app, not a public host). Build the connection string:
 
-### A real risk worth knowing about: `better-sqlite3`
+```
+mysql://<user>:<password>@<host>:3306/<database>
+```
 
-This project uses `better-sqlite3`, a native (compiled) module, via Prisma's driver adapter. `npm
-install` needs to compile it **on the server itself** (matching Hostinger's exact Node version/OS) —
-never `npm install` locally and upload `node_modules`, that will fail at runtime with an ABI
-mismatch. If `npm install` errors while building `better-sqlite3` specifically, that usually means
-the plan's Node.js environment is missing build tools; contact Hostinger support or ask about
-Node.js version compatibility for native modules on your plan.
+### 2. Application settings (hPanel → Advanced → Node.js)
 
-### SQLite persistence — the thing to plan around
+- **Node.js version**: 20 or newer.
+- **Application root**: the folder you deployed this repo into.
+- **Application startup file**: `server.js`.
+- **Application mode**: Production.
 
-`data/app.db` lives on disk right in the app folder — normal file edits and redeploys that update
-files in place (git pull, SFTP upload) leave it untouched, so your catalog/admin edits persist across
-deploys exactly like any other file on the server. The one thing that *would* wipe it: any deploy
-process that does a **fresh clone into a new directory** each time (some CI/CD "auto-deploy from
-GitHub" setups work this way). If you're using one of those:
+### 3. Environment variables
 
-- Either point it at a data directory *outside* the freshly-cloned folder (set `DATABASE_URL` to an
-  absolute path outside the repo, e.g. `file:/home/<user>/data/app.db`, and update `src/lib/db.ts` to
-  match), or
-- Migrate to a real MySQL database instead (Hostinger gives you one free with every hosting plan —
-  hPanel → **Databases → MySQL Databases**). This needs a small Prisma change: swap the
-  `@prisma/adapter-better-sqlite3` driver adapter for `@prisma/adapter-mariadb` (or plain
-  `provider = "mysql"` in `prisma/schema.prisma` without a driver adapter), point `DATABASE_URL` at
-  the MySQL credentials Hostinger gives you, then `npm run db:migrate:deploy`. Ask me to make this
-  change if you want to go this route — it's a bounded, well-defined swap.
+Set these in the same Node.js app settings screen — don't commit real secrets to `.env`:
 
-For a single-admin small catalog site, plain file-based SQLite (the default here) is genuinely fine
-and simpler — only move to MySQL if you hit the redeploy-wipes-the-folder scenario above or outgrow
-single-file SQLite's concurrency limits.
+- `DATABASE_URL` — the MySQL connection string from step 1.
+- `ADMIN_PASSWORD` — a strong, unique password for `/admin`.
+- `ADMIN_SESSION_SECRET` — random string. Generate one with:
+  ```bash
+  node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  ```
+- `NODE_ENV=production`
+
+### 4. Install, migrate, seed, build
+
+Hostinger's Node.js app screen has a "Run NPM Install" button and a terminal/SSH option — either
+way, from the app's root run, **in this order**:
+
+```bash
+npm install
+npm run db:migrate:deploy
+npm run db:seed        # first deploy only — loads the demo catalog (34 products, 18 brands, 6 articles)
+npm run build
+```
+
+`npm run build` also runs `prisma migrate deploy` automatically first (a `prebuild` hook), so an
+automated pipeline that only runs `npm install && npm run build` still won't crash — but running
+`db:seed` before `build` is still worth doing manually so the product pages are pre-rendered with
+real data instead of generated empty and filled in on first visit.
+
+**No SSH/terminal access on your plan?** Skip `npm run db:seed` above and instead log into `/admin`
+after the first deploy and click **Seed Demo Catalog** on the dashboard — it does the same thing
+through the app itself.
+
+### 5. Start (or restart) the application
+
+From the same hPanel screen, then visit your domain — you should see the homepage — then `/admin`
+to confirm login works.
+
+## Image uploads and persistence
+
+Uploaded product/media images are written to `public/uploads/` and served back out through a
+dedicated route (`src/app/uploads/[filename]/route.ts`) rather than relying on Next.js's normal
+static file serving — Next only serves `public/` files that existed at `next build` time, so a file
+uploaded after the build would otherwise 404. This works as long as the deployed app folder persists
+across restarts (which it does on Hostinger's Node.js App Manager — it doesn't re-clone into a new
+directory each time). If you move to a deploy process that *does* re-clone into a fresh directory
+per deploy, uploaded files need to move to external object storage (e.g. S3-compatible storage) —
+the Media Library's data model (a `Media.url` string) already supports that without a schema change,
+only the upload route itself would need to change where it writes files.
+
+## Known limitations / not yet built
+
+- **Checkout is still a mock** — no payment gateway is connected. The `Order`/`OrderItem`/`Customer`
+  schema and admin visibility exist so a real Pakistani payment gateway can be wired in later without
+  another migration, but nothing currently creates a real order.
+- **Customer accounts don't exist yet** — same reasoning: the schema is ready (`Customer`,
+  `CustomerAddress`), but there's no register/login flow, intentionally, rather than a hand-rolled
+  insecure one.
+- **Admin authentication is still a single shared password** (`ADMIN_PASSWORD`) — the `AdminUser`
+  model exists in the schema for future per-user accounts and roles, but nothing reads it yet; the
+  admin sidebar's "Admin Users" entry is a placeholder for that.
+- **Categories, Brands and Inventory** don't have dedicated admin pages yet — brands are still a
+  static list (`src/lib/data/brands.ts`) and stock is edited from the product editor itself; a
+  standalone low-stock/inventory view would sit on top of the existing `Product.stock` /
+  `lowStockThreshold` columns without a schema change.
