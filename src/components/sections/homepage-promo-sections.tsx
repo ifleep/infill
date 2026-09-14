@@ -36,12 +36,16 @@ function PromoBannerView({ config }: { config: PromoBannerConfig }) {
           src={config.mobileImage?.url ?? config.desktopImage.url}
           alt={config.desktopImage.alt}
           className="h-full w-full object-cover sm:hidden"
+          loading="lazy"
+          decoding="async"
         />
         {/* eslint-disable-next-line @next/next/no-img-element -- CMS-managed image, not a static import */}
         <img
           src={config.desktopImage.url}
           alt={config.desktopImage.alt}
           className="hidden h-full w-full object-cover sm:block"
+          loading="lazy"
+          decoding="async"
         />
         <div className="absolute inset-0 flex flex-col justify-center bg-gradient-to-r from-ink/80 via-ink/40 to-transparent px-8 py-10 sm:px-14">
           <h3 className="font-display max-w-md text-2xl font-semibold text-white sm:text-3xl">{config.heading}</h3>
@@ -66,7 +70,7 @@ function PromoImageView({ config }: { config: PromoImageConfig }) {
           {config.images.map((img, i) => (
             <div key={img.mediaId || i} className="aspect-square overflow-hidden rounded-xl bg-surface-sunken">
               {/* eslint-disable-next-line @next/next/no-img-element -- CMS-managed image, not a static import */}
-              <img src={img.url} alt={img.alt} className="h-full w-full object-cover" />
+              <img src={img.url} alt={img.alt} className="h-full w-full object-cover" loading="lazy" decoding="async" />
             </div>
           ))}
         </div>
@@ -81,7 +85,13 @@ function PromoImageView({ config }: { config: PromoImageConfig }) {
       <section className="container-page">
         <div className="relative overflow-hidden rounded-2xl">
           {/* eslint-disable-next-line @next/next/no-img-element -- CMS-managed image, not a static import */}
-          <img src={config.image.url} alt={config.image.alt} className="aspect-[21/9] w-full object-cover" />
+          <img
+            src={config.image.url}
+            alt={config.image.alt}
+            className="aspect-[21/9] w-full object-cover"
+            loading="lazy"
+            decoding="async"
+          />
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-ink/40 px-6 text-center">
             {config.heading && <h3 className="font-display text-2xl font-semibold text-white sm:text-3xl">{config.heading}</h3>}
             {config.text && <p className="mt-2 max-w-lg text-sm text-white/85">{config.text}</p>}
@@ -103,7 +113,13 @@ function PromoImageView({ config }: { config: PromoImageConfig }) {
         <div className="grid grid-cols-1 items-center gap-8 sm:grid-cols-2">
           <div className={imageFirst ? "order-1" : "order-2"}>
             {/* eslint-disable-next-line @next/next/no-img-element -- CMS-managed image, not a static import */}
-            <img src={config.image.url} alt={config.image.alt} className="w-full rounded-2xl object-cover" />
+            <img
+              src={config.image.url}
+              alt={config.image.alt}
+              className="w-full rounded-2xl object-cover"
+              loading="lazy"
+              decoding="async"
+            />
           </div>
           <div className={imageFirst ? "order-2" : "order-1"}>
             {config.heading && <h3 className="font-display text-2xl font-semibold text-ink sm:text-3xl">{config.heading}</h3>}
@@ -124,7 +140,13 @@ function PromoImageView({ config }: { config: PromoImageConfig }) {
     <section className="container-page">
       <div className="overflow-hidden rounded-2xl">
         {/* eslint-disable-next-line @next/next/no-img-element -- CMS-managed image, not a static import */}
-        <img src={config.image.url} alt={config.image.alt} className="w-full object-cover" />
+        <img
+          src={config.image.url}
+          alt={config.image.alt}
+          className="w-full object-cover"
+          loading="lazy"
+          decoding="async"
+        />
       </div>
       {(config.heading || config.buttonText) && (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">

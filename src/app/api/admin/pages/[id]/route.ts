@@ -4,6 +4,7 @@ import { getPageById, updatePage, deletePage } from "@/lib/data/pages";
 import { validatePageInput } from "@/lib/admin-validate-page";
 import { prisma } from "@/lib/db";
 import { revalidateSite } from "@/lib/revalidate";
+import { recordSlugRedirect } from "@/lib/data/redirects";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await hasValidAdminSession())) {
@@ -35,6 +36,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
   }
   const page = await updatePage(id, result.input);
+  if (result.input.slug !== existing.slug) {
+    await recordSlugRedirect(`/${existing.slug}`, `/${result.input.slug}`);
+  }
   revalidateSite();
   return NextResponse.json(page);
 }

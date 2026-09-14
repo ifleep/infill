@@ -4,6 +4,7 @@ import { getArticleById, updateArticle, deleteArticle } from "@/lib/data/article
 import { validateArticleInput } from "@/lib/admin-validate-article";
 import { prisma } from "@/lib/db";
 import { revalidateSite } from "@/lib/revalidate";
+import { recordSlugRedirect } from "@/lib/data/redirects";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await hasValidAdminSession())) {
@@ -35,6 +36,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
   }
   const article = await updateArticle(id, result.input);
+  if (result.input.slug !== existing.slug) {
+    await recordSlugRedirect(`/lab/${existing.slug}`, `/lab/${result.input.slug}`);
+  }
   revalidateSite();
   return NextResponse.json(article);
 }

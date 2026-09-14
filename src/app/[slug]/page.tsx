@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getPublishedPageBySlug } from "@/lib/data/pages";
+import { getRedirectTarget } from "@/lib/data/redirects";
 import { ContentRenderer } from "@/components/content-blocks/content-renderer";
 
 // Admin-created content pages (About/Warranty/FAQ/etc. — requirement #10)
@@ -29,7 +30,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function CmsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const page = await getPublishedPageBySlug(slug);
-  if (!page) notFound();
+  if (!page) {
+    const target = await getRedirectTarget(`/${slug}`);
+    if (target) redirect(target);
+    notFound();
+  }
 
   return (
     <div className="container-page py-14 sm:py-20">

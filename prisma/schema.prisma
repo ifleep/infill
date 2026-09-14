@@ -125,6 +125,7 @@ model Product {
   media      ProductMedia[]
   reviews    ProductReview[]
   orderItems OrderItem[]
+  quoteRequests QuoteRequest[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -381,4 +382,33 @@ model SiteSetting {
   key       String   @id
   value     Json
   updatedAt DateTime @updatedAt
+}
+
+// A search engine or an external link that indexed an old product/page/
+// article URL shouldn't just 404 the moment someone renames its slug —
+// every slug-changing update writes a row here, and the corresponding
+// public route checks it before giving up and calling notFound().
+model Redirect {
+  id        String   @id @default(cuid())
+  fromPath  String   @unique
+  toPath    String
+  createdAt DateTime @default(now())
+}
+
+// The "Request a Quote" form on a quoteOnly product — deliberately not
+// folded into Order (a quote isn't a sale yet, has no price/payment
+// status), just an inbox the admin dashboard surfaces.
+model QuoteRequest {
+  id          String   @id @default(cuid())
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id])
+  productName String
+  name        String
+  phone       String
+  email       String?
+  message     String?  @db.Text
+  status      String   @default("new") // "new" | "contacted" | "closed"
+  createdAt   DateTime @default(now())
+
+  @@index([status])
 }

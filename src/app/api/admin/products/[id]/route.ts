@@ -4,6 +4,7 @@ import { getProductAdminById, updateProduct, deleteProduct } from "@/lib/data/pr
 import { validateProductInput } from "@/lib/admin-validate-product";
 import { prisma } from "@/lib/db";
 import { revalidateSite } from "@/lib/revalidate";
+import { recordSlugRedirect } from "@/lib/data/redirects";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await hasValidAdminSession())) {
@@ -38,6 +39,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   const product = await updateProduct(id, result.input);
+  if (result.input.slug !== existing.slug) {
+    await recordSlugRedirect(`/products/${existing.slug}`, `/products/${result.input.slug}`);
+  }
   revalidateSite();
   return NextResponse.json(product);
 }

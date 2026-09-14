@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { WhatsAppButton } from "@/components/layout/whatsapp-button";
 import { CartProvider } from "@/components/cart/cart-store";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -63,6 +64,12 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.svg",
   },
+  // Set GOOGLE_SITE_VERIFICATION once you add the site in Google Search
+  // Console (Settings → Ownership verification → HTML tag → copy just the
+  // content="..." value, not the whole tag).
+  ...(process.env.GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }
+    : {}),
 };
 
 const organizationJsonLd = {
@@ -85,6 +92,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
+        <GoogleAnalytics />
         <a
           href="#main-content"
           className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:left-4 focus-visible:top-4 focus-visible:z-[100] focus-visible:rounded focus-visible:bg-blue-900 focus-visible:px-4 focus-visible:py-2 focus-visible:text-white"

@@ -76,6 +76,8 @@ function ImageBlockView({ block }: { block: Extract<ContentBlock, { type: "image
         src={block.image.url}
         alt={block.image.alt}
         className="w-full rounded-lg object-cover"
+        loading="lazy"
+        decoding="async"
       />
       {block.image.caption && <figcaption className="mt-2 text-xs text-ink-faint">{block.image.caption}</figcaption>}
     </figure>
@@ -89,7 +91,13 @@ function ImageTextBlockView({ block }: { block: Extract<ContentBlock, { type: "i
       <div className={imageFirst ? "order-1" : "order-2"}>
         {block.image.url && (
           // eslint-disable-next-line @next/next/no-img-element -- uploaded files, not a static import
-          <img src={block.image.url} alt={block.image.alt} className="w-full rounded-lg object-cover" />
+          <img
+            src={block.image.url}
+            alt={block.image.alt}
+            className="w-full rounded-lg object-cover"
+            loading="lazy"
+            decoding="async"
+          />
         )}
       </div>
       <div className={imageFirst ? "order-2" : "order-1"}>
@@ -112,7 +120,7 @@ function GalleryBlockView({ block }: { block: Extract<ContentBlock, { type: "gal
       {block.images.map((img, i) => (
         <figure key={img.mediaId || i} className="overflow-hidden rounded-lg bg-surface-sunken">
           {/* eslint-disable-next-line @next/next/no-img-element -- uploaded files, not a static import */}
-          <img src={img.url} alt={img.alt} className="aspect-square w-full object-cover" />
+          <img src={img.url} alt={img.alt} className="aspect-square w-full object-cover" loading="lazy" decoding="async" />
         </figure>
       ))}
     </div>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   getAllProducts,
   getProductBySlug,
@@ -19,6 +19,7 @@ import { Faq } from "@/components/product/faq";
 import { Star } from "@phosphor-icons/react/ssr";
 import type { Product } from "@/lib/types";
 import { ContentRenderer } from "@/components/content-blocks/content-renderer";
+import { getRedirectTarget } from "@/lib/data/redirects";
 
 export async function generateStaticParams() {
   const products = await getAllProducts();
@@ -63,7 +64,11 @@ const statFields: { label: string; get: (p: Product) => string | null }[] = [
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
-  if (!product) notFound();
+  if (!product) {
+    const target = await getRedirectTarget(`/products/${slug}`);
+    if (target) redirect(target);
+    notFound();
+  }
 
   const brand = getBrandById(product.brandId);
   const [related, accessories, compatibleFilaments] = await Promise.all([

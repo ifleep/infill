@@ -41,9 +41,14 @@ const gradients = [
 export function ProductVisual({
   product,
   className,
+  eager = false,
 }: {
   product: Product;
   className?: string;
+  /** Set true when this is the largest-contentful-paint candidate (e.g. the
+   * imageless fallback standing in for the main product-page gallery) —
+   * everywhere else (product-card grids) this should stay lazy. */
+  eager?: boolean;
 }) {
   const seed = hashSeed(product.id);
   const gradient = gradients[seed % gradients.length];
@@ -53,7 +58,13 @@ export function ProductVisual({
     return (
       <div className={`aspect-square overflow-hidden rounded-xl bg-surface-sunken ${className ?? ""}`}>
         {/* eslint-disable-next-line @next/next/no-img-element -- uploaded files, not a static import */}
-        <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
+        <img
+          src={product.images[0]}
+          alt={product.name}
+          className="h-full w-full object-cover"
+          loading={eager ? "eager" : "lazy"}
+          decoding="async"
+        />
       </div>
     );
   }

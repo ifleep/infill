@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getPublishedArticleBySlug, getPublishedArticles } from "@/lib/data/articles";
 import { ContentRenderer } from "@/components/content-blocks/content-renderer";
+import { getRedirectTarget } from "@/lib/data/redirects";
 
 export async function generateStaticParams() {
   const articles = await getPublishedArticles();
@@ -35,7 +36,11 @@ export async function generateMetadata({
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const article = await getPublishedArticleBySlug(slug);
-  if (!article) notFound();
+  if (!article) {
+    const target = await getRedirectTarget(`/lab/${slug}`);
+    if (target) redirect(target);
+    notFound();
+  }
 
   const jsonLd = {
     "@context": "https://schema.org",
