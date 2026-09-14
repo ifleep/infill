@@ -62,7 +62,20 @@ export interface Specification {
 
 export type Availability = "in-stock" | "out-of-stock" | "preorder";
 
-export interface Product {
+// Shared by Product/Page/Article — see requirement #12: every product/CMS
+// page needs editable SEO fields, all optional with sensible fallbacks
+// (e.g. product name + shortDescription) when left blank.
+export interface SeoFields {
+  seoTitle?: string;
+  metaDescription?: string;
+  canonicalUrl?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  noindex?: boolean;
+  includeInSitemap?: boolean;
+}
+
+export interface Product extends SeoFields {
   id: string;
   slug: string;
   name: string;

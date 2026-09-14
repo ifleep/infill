@@ -27,6 +27,18 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
   // Same "absent => leave alone" convention as mediaIds.
   const contentBlocks = "contentBlocks" in b ? parseContentBlocks(b.contentBlocks) : undefined;
 
+  // Same "absent => leave alone" convention as mediaIds/contentBlocks — the
+  // quick-edit table never sends these, and must not blank out SEO fields
+  // set from the full product editor on every price/stock save.
+  const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+  const seoTitle = "seoTitle" in b ? str(b.seoTitle) : undefined;
+  const metaDescription = "metaDescription" in b ? str(b.metaDescription) : undefined;
+  const canonicalUrl = "canonicalUrl" in b ? str(b.canonicalUrl) : undefined;
+  const ogTitle = "ogTitle" in b ? str(b.ogTitle) : undefined;
+  const ogDescription = "ogDescription" in b ? str(b.ogDescription) : undefined;
+  const noindex = "noindex" in b ? Boolean(b.noindex) : undefined;
+  const includeInSitemap = "includeInSitemap" in b ? Boolean(b.includeInSitemap) : undefined;
+
   if (!name) return { error: "Name is required." };
   if (!brandId) return { error: "Brand is required." };
   if (!["printers", "filament", "resin", "parts", "machines"].includes(category)) {
@@ -65,6 +77,13 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
       featured,
       mediaIds,
       contentBlocks,
+      seoTitle,
+      metaDescription,
+      canonicalUrl,
+      ogTitle,
+      ogDescription,
+      noindex,
+      includeInSitemap,
     },
   };
 }

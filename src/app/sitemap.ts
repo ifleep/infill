@@ -26,11 +26,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const productRoutes = products.map((p) => ({
-    url: `${BASE_URL}/products/${p.slug}`,
-    changeFrequency: "weekly" as const,
-    priority: 0.6,
-  }));
+  const productRoutes = products
+    .filter((p) => p.includeInSitemap !== false)
+    .map((p) => ({
+      url: `${BASE_URL}/products/${p.slug}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    }));
 
   const articleRoutes = articles.map((a) => ({
     url: `${BASE_URL}/lab/${a.slug}`,

@@ -31,6 +31,13 @@ export interface ProductFormValues {
   featured: boolean;
   shortDescription: string;
   description: string;
+  seoTitle: string;
+  metaDescription: string;
+  canonicalUrl: string;
+  ogTitle: string;
+  ogDescription: string;
+  noindex: boolean;
+  includeInSitemap: boolean;
 }
 
 function fromProduct(p: Product): ProductFormValues {
@@ -48,6 +55,13 @@ function fromProduct(p: Product): ProductFormValues {
     featured: p.featured ?? false,
     shortDescription: p.shortDescription,
     description: p.description,
+    seoTitle: p.seoTitle ?? "",
+    metaDescription: p.metaDescription ?? "",
+    canonicalUrl: p.canonicalUrl ?? "",
+    ogTitle: p.ogTitle ?? "",
+    ogDescription: p.ogDescription ?? "",
+    noindex: p.noindex ?? false,
+    includeInSitemap: p.includeInSitemap ?? true,
   };
 }
 
@@ -65,6 +79,13 @@ const empty: ProductFormValues = {
   featured: false,
   shortDescription: "",
   description: "",
+  seoTitle: "",
+  metaDescription: "",
+  canonicalUrl: "",
+  ogTitle: "",
+  ogDescription: "",
+  noindex: false,
+  includeInSitemap: true,
 };
 
 export function ProductForm({
@@ -286,6 +307,72 @@ export function ProductForm({
           added here, they replace the full description above on the product page.
         </p>
         <ContentBlockEditor blocks={contentBlocks} onChange={setContentBlocks} />
+      </div>
+
+      <div className="border-t border-border pt-5">
+        <span className="mb-1.5 block text-sm font-medium text-ink">SEO</span>
+        <p className="mb-3 text-xs text-ink-faint">
+          Leave blank to fall back to the product name and short description above.
+        </p>
+        <div className="space-y-3">
+          <Field label="SEO title" hint="Shown in search results and browser tabs">
+            <input
+              value={values.seoTitle}
+              onChange={(e) => set("seoTitle", e.target.value)}
+              placeholder={values.name}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Meta description">
+            <textarea
+              rows={2}
+              value={values.metaDescription}
+              onChange={(e) => set("metaDescription", e.target.value)}
+              placeholder={values.shortDescription}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Canonical URL" hint="Only needed if this content is duplicated elsewhere">
+            <input
+              value={values.canonicalUrl}
+              onChange={(e) => set("canonicalUrl", e.target.value)}
+              placeholder={`https://infillpk.com/products/${values.slug || "..."}`}
+              className={inputClass}
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Social share title (og:title)">
+              <input
+                value={values.ogTitle}
+                onChange={(e) => set("ogTitle", e.target.value)}
+                placeholder={values.seoTitle || values.name}
+                className={inputClass}
+              />
+            </Field>
+            <Field label="Social share description (og:description)">
+              <input
+                value={values.ogDescription}
+                onChange={(e) => set("ogDescription", e.target.value)}
+                placeholder={values.metaDescription || values.shortDescription}
+                className={inputClass}
+              />
+            </Field>
+          </div>
+          <div className="flex gap-6">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+              <input type="checkbox" checked={values.noindex} onChange={(e) => set("noindex", e.target.checked)} />
+              Hide from search engines (noindex)
+            </label>
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+              <input
+                type="checkbox"
+                checked={values.includeInSitemap}
+                onChange={(e) => set("includeInSitemap", e.target.checked)}
+              />
+              Include in sitemap.xml
+            </label>
+          </div>
+        </div>
       </div>
 
       <div className="flex gap-3 pt-2">

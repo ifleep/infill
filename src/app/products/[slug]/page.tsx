@@ -34,13 +34,18 @@ export async function generateMetadata({
   const product = await getProductBySlug(slug);
   if (!product) return {};
   const brand = getBrandById(product.brandId);
+  const defaultTitle = `${brand?.name ?? ""} ${product.name}`.trim();
+  const title = product.seoTitle || defaultTitle;
+  const description = product.metaDescription || product.shortDescription;
   return {
-    title: `${brand?.name ?? ""} ${product.name}`.trim(),
-    description: product.shortDescription,
-    alternates: { canonical: `/products/${product.slug}` },
+    title,
+    description,
+    alternates: { canonical: product.canonicalUrl || `/products/${product.slug}` },
+    robots: product.noindex ? { index: false, follow: true } : undefined,
     openGraph: {
-      title: `${brand?.name ?? ""} ${product.name}`.trim(),
-      description: product.shortDescription,
+      title: product.ogTitle || title,
+      description: product.ogDescription || description,
+      images: product.images[0] ? [{ url: product.images[0] }] : undefined,
     },
   };
 }

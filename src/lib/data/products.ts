@@ -83,6 +83,13 @@ function fromRow(row: ProductWithMedia): Product {
     rating: row.rating ?? undefined,
     reviewCount: row.reviewCount ?? undefined,
     featured: row.featured,
+    seoTitle: row.seoTitle ?? undefined,
+    metaDescription: row.metaDescription ?? undefined,
+    canonicalUrl: row.canonicalUrl ?? undefined,
+    ogTitle: row.ogTitle ?? undefined,
+    ogDescription: row.ogDescription ?? undefined,
+    noindex: row.noindex,
+    includeInSitemap: row.includeInSitemap,
   };
 }
 
@@ -201,6 +208,13 @@ export interface ProductInput {
    * photos"). Pass `[]` explicitly to remove all photos.
    */
   mediaIds?: string[];
+  seoTitle?: string | null;
+  metaDescription?: string | null;
+  canonicalUrl?: string | null;
+  ogTitle?: string | null;
+  ogDescription?: string | null;
+  noindex?: boolean;
+  includeInSitemap?: boolean;
 }
 
 function toDbInput(input: ProductInput) {
@@ -218,6 +232,16 @@ function toDbInput(input: ProductInput) {
     shortDescription: input.shortDescription,
     description: input.description,
     featured: input.featured,
+    // undefined => omit the key entirely, so Prisma leaves the existing
+    // column untouched on a partial update (see ProductInput.mediaIds for
+    // why: the dashboard's quick-edit row never sends these fields).
+    ...(input.seoTitle !== undefined ? { seoTitle: input.seoTitle } : {}),
+    ...(input.metaDescription !== undefined ? { metaDescription: input.metaDescription } : {}),
+    ...(input.canonicalUrl !== undefined ? { canonicalUrl: input.canonicalUrl } : {}),
+    ...(input.ogTitle !== undefined ? { ogTitle: input.ogTitle } : {}),
+    ...(input.ogDescription !== undefined ? { ogDescription: input.ogDescription } : {}),
+    ...(input.noindex !== undefined ? { noindex: input.noindex } : {}),
+    ...(input.includeInSitemap !== undefined ? { includeInSitemap: input.includeInSitemap } : {}),
     // Prisma's Json input type wants an index-signature-bearing object, which
     // a concrete discriminated-union interface like ContentBlock doesn't
     // structurally have — cast through unknown, the runtime shape is plain JSON.
