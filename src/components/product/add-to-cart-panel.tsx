@@ -6,6 +6,7 @@ import { Minus, Plus } from "@phosphor-icons/react";
 import type { Product } from "@/lib/types";
 import { useCartStore } from "@/components/cart/cart-store";
 import { Button } from "@/components/ui/button";
+import { StockUrgency } from "@/components/product/stock-urgency";
 
 export function AddToCartPanel({ product, brandName }: { product: Product; brandName: string }) {
   const [qty, setQty] = useState(1);
@@ -83,6 +84,7 @@ export function AddToCartPanel({ product, brandName }: { product: Product; brand
       {product.availability === "preorder" && (
         <p className="w-full text-xs text-ink-faint">This item ships once new stock arrives.</p>
       )}
+      <StockUrgency product={product} className="w-full" />
     </div>
   );
 }

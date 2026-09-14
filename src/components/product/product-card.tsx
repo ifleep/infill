@@ -5,6 +5,7 @@ import { Star, Plus } from "@phosphor-icons/react";
 import type { Product } from "@/lib/types";
 import { ProductVisual } from "@/components/product/product-visual";
 import { AvailabilityBadge } from "@/components/product/availability-badge";
+import { StockUrgency } from "@/components/product/stock-urgency";
 import { formatPKR } from "@/lib/format";
 import { getBrandById } from "@/lib/data/brands";
 import { useCartStore } from "@/components/cart/cart-store";
@@ -49,6 +50,7 @@ export function ProductCard({ product }: { product: Product }) {
             <AvailabilityBadge availability={product.availability} />
           </div>
         )}
+        <StockUrgency product={product} className="mt-1.5" />
 
         {product.rating && (
           <div className="mt-1.5 flex items-center gap-1 text-xs text-ink-muted">

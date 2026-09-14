@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Envelope, Phone, MapPin, WhatsappLogo } from "@phosphor-icons/react/ssr";
 import { ContactForm } from "@/components/contact/contact-form";
+import { getProductBySlug } from "@/lib/data/products";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -37,9 +38,10 @@ const channels = [
 export default async function ContactPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string }>;
+  searchParams: Promise<{ type?: string; product?: string }>;
 }) {
-  const { type } = await searchParams;
+  const { type, product: productSlug } = await searchParams;
+  const product = productSlug ? await getProductBySlug(productSlug) : null;
 
   return (
     <div className="container-page py-12 sm:py-16">
@@ -50,7 +52,7 @@ export default async function ContactPage({
       </p>
 
       <div className="mt-10 grid grid-cols-1 gap-12 lg:grid-cols-[1fr_360px]">
-        <ContactForm defaultTopic={type ?? "sales"} />
+        <ContactForm defaultTopic={type ?? "sales"} productSlug={product?.slug} productName={product?.name} />
 
         <div className="space-y-6">
           {channels.map((c) => (

@@ -8,8 +8,7 @@ export default async function AdminOrdersPage() {
     <div>
       <h1 className="font-display mb-2 text-2xl font-semibold text-ink">Orders</h1>
       <p className="mb-6 text-sm text-ink-muted">
-        Checkout doesn&rsquo;t place real orders yet — no payment provider is connected. This list is ready for when
-        one is: orders created through the store will appear here automatically.
+        Orders placed at checkout (Cash on Delivery or Bank Transfer) appear here automatically.
       </p>
 
       <div className="overflow-hidden rounded-xl border border-border bg-surface">

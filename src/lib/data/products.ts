@@ -59,6 +59,7 @@ function fromRow(row: ProductWithMedia): Product {
     compareAtPrice: row.compareAtPrice ?? undefined,
     currency: "PKR",
     stock: row.stock,
+    lowStockThreshold: row.lowStockThreshold ?? undefined,
     availability: row.availability as Product["availability"],
     quoteOnly: row.quoteOnly,
     images: row.media.map((pm) => pm.media.url),
@@ -193,6 +194,7 @@ export interface ProductInput {
   price: number;
   compareAtPrice: number | null;
   stock: number;
+  lowStockThreshold?: number | null;
   availability: Product["availability"];
   quoteOnly: boolean;
   shortDescription: string;
@@ -227,6 +229,7 @@ function toDbInput(input: ProductInput) {
     price: input.price,
     compareAtPrice: input.compareAtPrice,
     stock: input.stock,
+    ...(input.lowStockThreshold !== undefined ? { lowStockThreshold: input.lowStockThreshold } : {}),
     availability: input.availability,
     quoteOnly: input.quoteOnly,
     shortDescription: input.shortDescription,

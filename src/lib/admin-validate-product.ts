@@ -13,6 +13,13 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
   const description = typeof b.description === "string" ? b.description.trim() : "";
   const price = Number(b.price);
   const stock = Number(b.stock);
+  // Same "absent => leave alone" convention as mediaIds/contentBlocks.
+  const lowStockThreshold =
+    "lowStockThreshold" in b
+      ? b.lowStockThreshold === null || b.lowStockThreshold === ""
+        ? null
+        : Number(b.lowStockThreshold)
+      : undefined;
   const compareAtPrice =
     b.compareAtPrice === null || b.compareAtPrice === undefined || b.compareAtPrice === ""
       ? null
@@ -49,6 +56,13 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
   if (!description) return { error: "Description is required." };
   if (!Number.isFinite(price) || price < 0) return { error: "Price must be a non-negative number." };
   if (!Number.isFinite(stock) || stock < 0) return { error: "Stock must be a non-negative number." };
+  if (
+    lowStockThreshold !== undefined &&
+    lowStockThreshold !== null &&
+    (!Number.isFinite(lowStockThreshold) || lowStockThreshold < 1)
+  ) {
+    return { error: "Low stock warning must be a positive number." };
+  }
   if (compareAtPrice !== null && (!Number.isFinite(compareAtPrice) || compareAtPrice < 0)) {
     return { error: "Compare-at price must be a non-negative number." };
   }
@@ -70,6 +84,7 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
       price,
       compareAtPrice,
       stock,
+      lowStockThreshold,
       availability: availability as ProductInput["availability"],
       quoteOnly,
       shortDescription,

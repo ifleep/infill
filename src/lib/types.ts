@@ -90,6 +90,8 @@ export interface Product extends SeoFields {
   compareAtPrice?: number;
   currency: "PKR";
   stock: number;
+  /** Below this stock count, product cards/pages show a "only N left" urgency badge. Unset disables it. */
+  lowStockThreshold?: number;
   /** Set directly by an admin — not derived from `stock`, so a preorder or a temporarily out-of-stock item can be flagged independently of the count. */
   availability: Availability;
   quoteOnly?: boolean;

@@ -26,6 +26,7 @@ export interface ProductFormValues {
   price: number | "";
   compareAtPrice: number | "";
   stock: number | "";
+  lowStockThreshold: number | "";
   availability: Product["availability"];
   quoteOnly: boolean;
   featured: boolean;
@@ -50,6 +51,7 @@ function fromProduct(p: Product): ProductFormValues {
     price: p.price,
     compareAtPrice: p.compareAtPrice ?? "",
     stock: p.stock,
+    lowStockThreshold: p.lowStockThreshold ?? "",
     availability: p.availability,
     quoteOnly: p.quoteOnly ?? false,
     featured: p.featured ?? false,
@@ -74,6 +76,7 @@ const empty: ProductFormValues = {
   price: "",
   compareAtPrice: "",
   stock: 0,
+  lowStockThreshold: "",
   availability: "in-stock",
   quoteOnly: false,
   featured: false,
@@ -120,6 +123,7 @@ export function ProductForm({
       price: values.price === "" ? 0 : values.price,
       compareAtPrice: values.compareAtPrice === "" ? null : values.compareAtPrice,
       stock: values.stock === "" ? 0 : values.stock,
+      lowStockThreshold: values.lowStockThreshold === "" ? null : values.lowStockThreshold,
       mediaIds: photos.map((p) => p.id),
       contentBlocks,
     };
@@ -239,6 +243,15 @@ export function ProductForm({
             required
             value={values.stock}
             onChange={(e) => set("stock", e.target.value === "" ? "" : Number(e.target.value))}
+            className={inputClass}
+          />
+        </Field>
+        <Field label="Low stock warning" hint="Show 'Only N left' below this count. Leave blank to disable.">
+          <input
+            type="number"
+            min={1}
+            value={values.lowStockThreshold}
+            onChange={(e) => set("lowStockThreshold", e.target.value === "" ? "" : Number(e.target.value))}
             className={inputClass}
           />
         </Field>

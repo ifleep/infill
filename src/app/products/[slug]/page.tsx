@@ -16,6 +16,7 @@ import { CompareToggle } from "@/components/compare/compare-toggle";
 import { AvailabilityStatus } from "@/components/product/availability-badge";
 import { formatPKR } from "@/lib/format";
 import { Faq } from "@/components/product/faq";
+import { ReviewSection } from "@/components/product/review-section";
 import { Star } from "@phosphor-icons/react/ssr";
 import type { Product } from "@/lib/types";
 import { ContentRenderer } from "@/components/content-blocks/content-renderer";
@@ -232,6 +233,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
           <h2 className="font-display mt-10 text-xl font-semibold text-ink">FAQs</h2>
           <Faq />
+
+          <ReviewSection productId={product.id} productSlug={product.slug} />
         </div>
 
         <div className="space-y-8">

@@ -7,7 +7,7 @@ export default async function AdminCustomersPage() {
     <div>
       <h1 className="font-display mb-2 text-2xl font-semibold text-ink">Customers</h1>
       <p className="mb-6 text-sm text-ink-muted">
-        No customer registration flow exists yet — this list is ready for when one does.
+        Everyone who has created an account or placed an order appears here.
       </p>
 
       <div className="overflow-hidden rounded-xl border border-border bg-surface">
