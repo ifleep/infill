@@ -1,12 +1,13 @@
 import type { MetadataRoute } from "next";
 import { getAllProducts } from "@/lib/data/products";
+import { getAllPublishedPages } from "@/lib/data/pages";
 import { articles } from "@/lib/data/articles";
 import { categoryDefs } from "@/components/category/category-config";
 
 const BASE_URL = "https://infillpk.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const products = await getAllProducts();
+  const [products, cmsPages] = await Promise.all([getAllProducts(), getAllPublishedPages()]);
   const staticRoutes = [
     "",
     "/about",
@@ -40,5 +41,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  return [...staticRoutes, ...categoryRoutes, ...productRoutes, ...articleRoutes];
+  const cmsPageRoutes = cmsPages
+    .filter((p) => !p.noindex)
+    .map((p) => ({
+      url: `${BASE_URL}/${p.slug}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.4,
+    }));
+
+  return [...staticRoutes, ...categoryRoutes, ...productRoutes, ...articleRoutes, ...cmsPageRoutes];
 }
