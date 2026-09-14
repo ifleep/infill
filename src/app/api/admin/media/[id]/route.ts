@@ -3,6 +3,7 @@ import path from "node:path";
 import { NextResponse } from "next/server";
 import { hasValidAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
+import { revalidateSite } from "@/lib/revalidate";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await hasValidAdminSession())) {
@@ -19,6 +20,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if ("caption" in body) data.caption = typeof body.caption === "string" ? body.caption : null;
 
   const media = await prisma.media.update({ where: { id }, data });
+  revalidateSite();
   return NextResponse.json(media);
 }
 
@@ -53,5 +55,6 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     await unlink(filePath).catch(() => {});
   }
 
+  revalidateSite();
   return NextResponse.json({ ok: true });
 }

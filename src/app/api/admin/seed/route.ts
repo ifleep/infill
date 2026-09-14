@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { seedProductToRow } from "@/lib/seed-shared";
 import { seedProducts } from "../../../../../prisma/seed-data";
 import { brands } from "@/lib/data/brands";
+import { revalidateSite } from "@/lib/revalidate";
 
 // For hosts that give no shell/SSH access (so `npm run db:seed` can never be
 // run directly) — lets an already-logged-in admin load the demo catalog with
@@ -34,5 +35,6 @@ export async function POST() {
     count++;
   }
 
+  revalidateSite();
   return NextResponse.json({ seeded: count });
 }

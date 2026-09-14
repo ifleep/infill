@@ -3,6 +3,7 @@ import { hasValidAdminSession } from "@/lib/admin-auth";
 import { getAllProducts, createProduct } from "@/lib/data/products";
 import { validateProductInput } from "@/lib/admin-validate-product";
 import { prisma } from "@/lib/db";
+import { revalidateSite } from "@/lib/revalidate";
 
 export async function GET() {
   if (!(await hasValidAdminSession())) {
@@ -29,5 +30,6 @@ export async function POST(request: Request) {
   }
 
   const product = await createProduct(result.input);
+  revalidateSite();
   return NextResponse.json(product, { status: 201 });
 }

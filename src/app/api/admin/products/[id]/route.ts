@@ -3,6 +3,7 @@ import { hasValidAdminSession } from "@/lib/admin-auth";
 import { getProductAdminById, updateProduct, deleteProduct } from "@/lib/data/products";
 import { validateProductInput } from "@/lib/admin-validate-product";
 import { prisma } from "@/lib/db";
+import { revalidateSite } from "@/lib/revalidate";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await hasValidAdminSession())) {
@@ -37,6 +38,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   const product = await updateProduct(id, result.input);
+  revalidateSite();
   return NextResponse.json(product);
 }
 
@@ -50,5 +52,6 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   await deleteProduct(id);
+  revalidateSite();
   return NextResponse.json({ ok: true });
 }
