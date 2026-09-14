@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Envelope, Phone, MapPin, WhatsappLogo } from "@phosphor-icons/react/ssr";
 import { ContactForm } from "@/components/contact/contact-form";
 import { getProductBySlug } from "@/lib/data/products";
+import { RegionalMotifEdge } from "@/components/patterns/regional-motif-edge";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -45,6 +46,8 @@ export default async function ContactPage({
 
   return (
     <div className="container-page py-12 sm:py-16">
+      <RegionalMotifEdge motif="punjab" side="left" />
+      <RegionalMotifEdge motif="sindh" side="right" />
       <h1 className="font-display text-3xl font-semibold text-ink sm:text-4xl">Get in touch</h1>
       <p className="mt-2 max-w-xl text-ink-muted">
         Sales, support, or a partnership inquiry — tell us what you need and we&rsquo;ll route it to

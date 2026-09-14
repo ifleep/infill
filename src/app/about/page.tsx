@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { LinkButton } from "@/components/ui/button";
+import { RegionalMotifEdge } from "@/components/patterns/regional-motif-edge";
 
 export const metadata: Metadata = {
   title: "About",
@@ -10,6 +11,8 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <div>
+      <RegionalMotifEdge motif="balochistan" side="left" />
+      <RegionalMotifEdge motif="kp" side="right" />
       <section className="bg-navy-900 py-20 text-on-navy sm:py-28">
         <div className="container-page">
           <SectionHeading

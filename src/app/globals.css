@@ -1,24 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  /* Warm, quiet base — Apple-adjacent, never stark or cold */
-  --color-paper: #f7f5f1;
+  /* Cool, quiet base — neutral off-white, no yellow cast */
+  --color-paper: #f5f6f7;
   --color-surface: #ffffff;
-  --color-surface-sunken: #f0ede6;
+  --color-surface-sunken: #eef0f2;
 
   /* Ink (text) — deep charcoal, never pure black */
   --color-ink: #15181d;
   --color-ink-muted: #565f6a;
   --color-ink-faint: #5f6b7a;
 
-  /* Precision Blue — dominant technology accent */
-  --color-blue-50: #eef2fb;
-  --color-blue-100: #d9e3f6;
-  --color-blue-300: #85a3de;
-  --color-blue-500: #2f58ae;
-  --color-blue-600: #1f3f8a;
-  --color-blue-700: #17316b;
-  --color-blue-900: #0b1731;
+  /* Precision Blue — muted, used deliberately rather than everywhere */
+  --color-blue-50: #eef1f6;
+  --color-blue-100: #dbe2ec;
+  --color-blue-300: #8fa0c2;
+  --color-blue-500: #3c5a8f;
+  --color-blue-600: #2c4770;
+  --color-blue-700: #233658;
+  --color-blue-900: #0d1a2e;
 
   /* Deep Navy — secondary, dark sections (hero, footer) */
   --color-navy-900: #0a1526;
@@ -31,8 +31,8 @@
   --color-pk-green-tint: #e6f2ea;
 
   /* Semantic */
-  --color-border: #e4e1da;
-  --color-border-strong: #cfcbc2;
+  --color-border: #e2e4e7;
+  --color-border-strong: #c8cdd3;
   --color-destructive: #b3261e;
   --color-destructive-tint: #fbeae9;
   --color-ring: var(--color-blue-500);

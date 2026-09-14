@@ -5,10 +5,10 @@ import { FeaturedPrintersSection } from "@/components/sections/featured-printers
 import { HomepagePromoSections } from "@/components/sections/homepage-promo-sections";
 import { MaterialsSection } from "@/components/sections/materials-section";
 import { DigitalFabricationSection } from "@/components/sections/digital-fabrication-section";
-import { PakistanMapSection } from "@/components/pakistan/pakistan-map-section";
 import { ServicesSection } from "@/components/sections/services-section";
 import { LearnSection } from "@/components/sections/learn-section";
 import { FinalCtaSection } from "@/components/sections/final-cta-section";
+import { RegionalMotifEdge } from "@/components/patterns/regional-motif-edge";
 import { getProductsByCategory } from "@/lib/data/products";
 
 export default async function Home() {
@@ -16,6 +16,8 @@ export default async function Home() {
 
   return (
     <>
+      <RegionalMotifEdge motif="sindh" side="left" />
+      <RegionalMotifEdge motif="punjab" side="right" />
       <CinematicHero />
       <PrintingDiscoverySection />
       <FindYourPrinterSection printers={printers} />
@@ -23,7 +25,6 @@ export default async function Home() {
       <HomepagePromoSections />
       <MaterialsSection />
       <DigitalFabricationSection />
-      <PakistanMapSection />
       <ServicesSection />
       <LearnSection />
       <FinalCtaSection />
