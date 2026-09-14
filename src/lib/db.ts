@@ -1,25 +1,18 @@
-import fs from "node:fs";
-import path from "node:path";
 import { PrismaClient } from "@/generated/prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
-// Statically scoped (not derived from an env var at runtime) so Next's
-// build tracing can see exactly what's accessed, instead of pulling the
-// whole project into the server output. Keep the database file at
-// data/app.db — see .env.example / README for the deployment note on
-// this path needing to persist across restarts.
-const dataDir = path.join(process.cwd(), "data");
-const absoluteUrl = `file:${path.join(dataDir, "app.db")}`;
-
+// Prisma 7 requires a driver adapter for every provider — see prisma.config.ts
+// for the same setup on the CLI (migrate/seed) side. Unlike that file, the
+// running app has no sensible fallback: DATABASE_URL must be a real MySQL
+// connection string set in the environment (see README's Hostinger notes).
 function createClient() {
-  // data/ is gitignored (it holds the SQLite file), so a fresh checkout or
-  // upload never has it — better-sqlite3 errors with "Cannot open database
-  // because the directory does not exist" if this isn't created first,
-  // which previously surfaced as a `next build` failure (generateStaticParams
-  // for /products/[slug] connects to the DB at build time, before any
-  // deploy script had a chance to run `prisma migrate deploy`).
-  fs.mkdirSync(dataDir, { recursive: true });
-  const adapter = new PrismaBetterSqlite3({ url: absoluteUrl });
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error(
+      "DATABASE_URL is not set. Add it to your environment before starting the app (see .env.example)."
+    );
+  }
+  const adapter = new PrismaMariaDb(connectionString);
   return new PrismaClient({ adapter });
 }
 

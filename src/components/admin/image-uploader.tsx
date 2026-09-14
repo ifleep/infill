@@ -1,21 +1,26 @@
 "use client";
 
 import { useRef, useState } from "react";
+import type { MediaItem } from "@/lib/admin/media-types";
+import { MediaPicker } from "@/components/admin/media-picker";
 
 /**
- * Multi-image uploader for the product form. Files upload immediately on
- * selection (POST /api/admin/upload) — the returned URLs are what actually
- * get saved with the product when the form itself is submitted.
+ * Product photo manager. New files upload immediately on selection
+ * (POST /api/admin/upload), which creates a Media Library row — existing
+ * photos can also be added via "Choose from Library" instead of
+ * re-uploading. The ordered list of Media ids is what actually gets saved
+ * with the product when the form is submitted (first = primary photo).
  */
 export function ImageUploader({
-  images,
+  items,
   onChange,
 }: {
-  images: string[];
-  onChange: (images: string[]) => void;
+  items: MediaItem[];
+  onChange: (items: MediaItem[]) => void;
 }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function handleFiles(fileList: FileList | null) {
@@ -35,7 +40,8 @@ export function ImageUploader({
         setError(data.error ?? "Upload failed.");
         return;
       }
-      onChange([...images, ...data.urls]);
+      const uploaded: MediaItem[] = data.media ?? [];
+      onChange([...items, ...uploaded]);
     } catch {
       setError("Network error while uploading — please try again.");
     } finally {
@@ -45,17 +51,26 @@ export function ImageUploader({
   }
 
   function removeAt(index: number) {
-    onChange(images.filter((_, i) => i !== index));
+    onChange(items.filter((_, i) => i !== index));
+  }
+
+  function addFromLibrary(picked: MediaItem[]) {
+    const existingIds = new Set(items.map((i) => i.id));
+    const additions = picked.filter((p) => !existingIds.has(p.id));
+    if (additions.length > 0) onChange([...items, ...additions]);
   }
 
   return (
     <div>
-      {images.length > 0 && (
+      {items.length > 0 && (
         <div className="mb-3 grid grid-cols-4 gap-3 sm:grid-cols-6">
-          {images.map((src, i) => (
+          {items.map((item, i) => (
             // eslint-disable-next-line @next/next/no-img-element -- uploaded files, not a static import
-            <div key={src} className="group relative aspect-square overflow-hidden rounded-md border border-border bg-surface-sunken">
-              <img src={src} alt="" className="h-full w-full object-cover" />
+            <div
+              key={item.id}
+              className="group relative aspect-square overflow-hidden rounded-md border border-border bg-surface-sunken"
+            >
+              <img src={item.url} alt={item.alt ?? ""} className="h-full w-full object-cover" />
               <button
                 type="button"
                 onClick={() => removeAt(i)}
@@ -74,20 +89,31 @@ export function ImageUploader({
         </div>
       )}
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        multiple
-        onChange={(e) => handleFiles(e.target.files)}
-        disabled={uploading}
-        className="block text-sm text-ink-muted file:mr-3 file:cursor-pointer file:rounded file:border-0 file:bg-surface-sunken file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink hover:file:bg-border"
-      />
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={(e) => handleFiles(e.target.files)}
+          disabled={uploading}
+          className="block text-sm text-ink-muted file:mr-3 file:cursor-pointer file:rounded file:border-0 file:bg-surface-sunken file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink hover:file:bg-border"
+        />
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          className="focus-ring cursor-pointer whitespace-nowrap rounded-md border border-border-strong px-3 py-1.5 text-sm font-medium text-ink hover:bg-surface-sunken"
+        >
+          Choose from Library
+        </button>
+      </div>
       {uploading && <p className="mt-1.5 text-xs text-ink-muted">Uploading…</p>}
       {error && <p className="mt-1.5 text-xs text-destructive">{error}</p>}
       <p className="mt-1.5 text-xs text-ink-faint">
         JPEG, PNG, WebP, AVIF or GIF, up to 8MB each. The first image is used as the main photo.
       </p>
+
+      <MediaPicker open={pickerOpen} onClose={() => setPickerOpen(false)} onSelect={addFromLibrary} multiple />
     </div>
   );
 }

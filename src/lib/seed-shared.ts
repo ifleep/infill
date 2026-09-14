@@ -14,15 +14,21 @@ export function seedProductToRow(p: Omit<Product, "availability">) {
     subcategory: p.subcategory,
     machineCategory: p.machineCategory ?? null,
     technology: p.technology ?? null,
-    experienceLevel: JSON.stringify(p.experienceLevel ?? []),
-    useCases: JSON.stringify(p.useCases ?? []),
+    // experienceLevel/useCases/accessoryIds/relatedProductIds/
+    // compatibleFilamentTags/tags are native Prisma Json columns — pass the
+    // arrays directly, no JSON.stringify (unlike specifications/materials
+    // below, which are still plain Text columns holding JSON strings).
+    experienceLevel: p.experienceLevel ?? [],
+    useCases: p.useCases ?? [],
     price: p.price,
     compareAtPrice: p.compareAtPrice ?? null,
     currency: p.currency,
     stock: p.stock,
     availability: (p.stock > 0 ? "in-stock" : "out-of-stock") as string,
     quoteOnly: p.quoteOnly ?? false,
-    images: JSON.stringify(p.images ?? []),
+    // p.images (demo placeholder strings, not real files) intentionally
+    // dropped — the product photo gallery now lives in ProductMedia/Media,
+    // seeded separately (or left empty, falling back to the icon visual).
     shortDescription: p.shortDescription,
     description: p.description,
     specifications: JSON.stringify(p.specifications ?? []),
@@ -36,10 +42,13 @@ export function seedProductToRow(p: Omit<Product, "availability">) {
     dimDepth: p.dimensions?.depth ?? null,
     dimHeight: p.dimensions?.height ?? null,
     warrantyMonths: p.warrantyMonths,
-    accessoryIds: p.accessoryIds ? JSON.stringify(p.accessoryIds) : null,
-    relatedProductIds: p.relatedProductIds ? JSON.stringify(p.relatedProductIds) : null,
-    compatibleFilamentTags: p.compatibleFilamentTags ? JSON.stringify(p.compatibleFilamentTags) : null,
-    tags: JSON.stringify(p.tags ?? []),
+    // Prisma's Json input type doesn't accept a plain `null` (only
+    // `Prisma.JsonNull`/`Prisma.DbNull`) — `undefined` (field omitted) is
+    // what actually maps to a SQL NULL for an optional Json column here.
+    accessoryIds: p.accessoryIds ?? undefined,
+    relatedProductIds: p.relatedProductIds ?? undefined,
+    compatibleFilamentTags: p.compatibleFilamentTags ?? undefined,
+    tags: p.tags ?? [],
     rating: p.rating ?? null,
     reviewCount: p.reviewCount ?? null,
     featured: p.featured ?? false,

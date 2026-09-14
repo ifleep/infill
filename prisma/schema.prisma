@@ -3,63 +3,382 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
+// Prisma 7: no `url` here — the connection comes from a driver adapter
+// (see prisma.config.ts for the CLI/migrate side, src/lib/db.ts for the app).
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
 }
 
-// Products are the only part of the catalog backed by a real database —
-// brands, categories, articles, services and Pakistan-region content stay
-// as static code (src/lib/data) since they change rarely. Arrays are
-// stored as JSON-encoded strings for SQLite simplicity and are
-// serialized/deserialized in src/lib/data/products.ts, which is the only
-// place that should import this Prisma model directly.
+// ============================================================================
+// CATALOG — Brand, Category, Product, ProductMedia, ProductReview
+// ============================================================================
+
+model Brand {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  country     String?
+  description String? @db.Text
+  logoMediaId String?
+  logo        Media?  @relation("BrandLogo", fields: [logoMediaId], references: [id])
+
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// Hierarchical, admin-manageable categories (new). Product.category below is
+// kept as a plain string in parallel — it's the five-value enum
+// ("printers"|"filament"|"resin"|"parts"|"machines") the existing frontend's
+// routing/filtering logic already switches on; not worth risking a frontend
+// rewrite to remove it. categoryId is the CMS-facing relation going forward.
+model Category {
+  id       String     @id @default(cuid())
+  name     String
+  slug     String     @unique
+  parentId String?
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([parentId])
+}
+
+// Products are the core of the catalog. Field names/shapes here are kept in
+// lockstep with src/lib/types.ts's `Product` interface — src/lib/data/products.ts
+// is the only place that should import this model directly and is
+// responsible for mapping row <-> the frontend's Product type, so every
+// existing component (product cards, product page, compare, search, the
+// printer-finder quiz) keeps working unchanged.
 model Product {
-  id              String  @id @default(cuid())
-  slug            String  @unique
-  name            String
-  brandId         String
-  category        String // "printers" | "filament" | "resin" | "parts" | "machines"
+  id         String    @id @default(cuid())
+  slug       String    @unique
+  sku        String?   @unique
+  name       String
+  brandId    String
+  brand      Brand     @relation(fields: [brandId], references: [id])
+  categoryId String?
+  categoryRef Category? @relation(fields: [categoryId], references: [id])
+
+  category        String // legacy enum string — see Category model comment above
   subcategory     String
   machineCategory String?
   technology      String?
-  experienceLevel String  @default("[]") // JSON string[]
-  useCases        String  @default("[]") // JSON string[]
+  experienceLevel Json    @default("[]") // string[]
+  useCases        Json    @default("[]") // string[]
 
-  price          Int
-  compareAtPrice Int?
-  currency       String @default("PKR")
-  stock          Int    @default(0)
-  availability   String @default("in-stock") // "in-stock" | "out-of-stock" | "preorder"
-  quoteOnly      Boolean @default(false)
+  price             Int
+  compareAtPrice    Int?
+  currency          String   @default("PKR")
+  stock             Int      @default(0)
+  lowStockThreshold Int?
+  /** Set directly by an admin — not derived from `stock`, so a preorder or a temporarily out-of-stock item can be flagged independently of the count. */
+  availability      String   @default("in-stock") // "in-stock" | "out-of-stock" | "preorder"
+  quoteOnly         Boolean  @default(false)
+  badges            Json? // string[], e.g. ["New", "Best Seller"]
 
-  images            String @default("[]") // JSON string[]
-  shortDescription  String
-  description       String
-  specifications    String @default("[]") // JSON {label,value}[]
-  materials         String? // JSON string[]
+  // Legacy simple content (kept — used as the card/SEO-description fallback
+  // and as the source of truth for products with no rich content yet).
+  shortDescription String @db.Text
+  description      String @db.Text
+  specifications   String @default("[]") @db.Text // JSON {label,value}[]
 
-  buildVolumeX Float?
-  buildVolumeY Float?
-  buildVolumeZ Float?
+  // New: block-based rich content (see src/lib/content-blocks/types.ts).
+  // Null/empty means "fall back to the legacy description above."
+  contentBlocks Json?
+
+  materials String? @db.Text // JSON string[]
+
+  buildVolumeX  Float?
+  buildVolumeY  Float?
+  buildVolumeZ  Float?
   speedMmPerSec Float?
   weightKg      Float?
   dimWidth      Float?
   dimDepth      Float?
   dimHeight     Float?
-  warrantyMonths Int    @default(0)
 
-  accessoryIds            String? // JSON string[] of product ids
-  relatedProductIds       String? // JSON string[] of product ids
-  compatibleFilamentTags  String? // JSON string[]
-  tags                    String  @default("[]") // JSON string[]
+  warrantyMonths Int @default(0)
+
+  accessoryIds           Json? // string[] of product ids
+  relatedProductIds      Json? // string[] of product ids
+  compatibleFilamentTags Json? // string[]
+  tags                   Json  @default("[]") // string[]
 
   rating      Float?
   reviewCount Int?
   featured    Boolean @default(false)
+
+  // SEO
+  seoTitle        String?
+  metaDescription String? @db.Text
+  canonicalUrl    String?
+  ogTitle         String?
+  ogDescription   String? @db.Text
+  ogImageMediaId  String?
+  noindex         Boolean @default(false)
+  includeInSitemap Boolean @default(true)
+
+  media      ProductMedia[]
+  reviews    ProductReview[]
+  orderItems OrderItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([category])
   @@index([brandId])
+  @@index([categoryId])
+  @@index([featured])
+}
+
+// The product photo gallery — a join table (not just Product.images JSON)
+// so the same uploaded Media can be reused, reordered, and given a
+// product-specific caption/alt without duplicating the file.
+model ProductMedia {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  mediaId   String
+  media     Media   @relation(fields: [mediaId], references: [id])
+  position  Int     @default(0)
+  isPrimary Boolean @default(false)
+  caption   String?
+  alt       String?
+
+  @@index([productId])
+  @@index([mediaId])
+}
+
+model ProductReview {
+  id         String    @id @default(cuid())
+  productId  String
+  product    Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  authorName String
+  rating     Int
+  title      String?
+  body       String?   @db.Text
+  status     String    @default("pending") // "pending" | "approved" | "rejected"
+  createdAt  DateTime  @default(now())
+
+  @@index([productId])
+  @@index([status])
+}
+
+// ============================================================================
+// MEDIA LIBRARY — single source of truth for every uploaded file, reused
+// across product galleries, content blocks (referenced by id inside the
+// block JSON), homepage sections, articles and pages.
+// ============================================================================
+
+model Media {
+  id       String  @id @default(cuid())
+  url      String  @db.VarChar(512)
+  filename String
+  mimeType String
+  size     Int // bytes
+  width    Int?
+  height   Int?
+  alt      String?
+  caption  String?
+
+  productMedia   ProductMedia[]
+  brandLogoOf    Brand[]        @relation("BrandLogo")
+  articleFeature Article[]      @relation("ArticleFeaturedImage")
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// ============================================================================
+// CONTENT — Page, Article (INFiLL Lab), HomepageSection
+// ============================================================================
+
+model Page {
+  id     String @id @default(cuid())
+  slug   String @unique
+  title  String
+  status String @default("published") // "draft" | "published"
+
+  contentBlocks Json?
+
+  seoTitle        String?
+  metaDescription String? @db.Text
+  canonicalUrl    String?
+  ogTitle         String?
+  ogDescription   String? @db.Text
+  ogImageMediaId  String?
+  noindex         Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Article {
+  id                String    @id @default(cuid())
+  slug              String    @unique
+  title             String
+  excerpt           String?   @db.Text
+  category          String? // "Buying Guide" | "Comparison" | "Materials" | "Maintenance" | "Technology"
+  featuredImageId   String?
+  featuredImage     Media?    @relation("ArticleFeaturedImage", fields: [featuredImageId], references: [id])
+  contentBlocks     Json?
+  author            String?
+  status            String    @default("draft") // "draft" | "published" | "scheduled"
+  publishedAt       DateTime?
+  readingMinutes    Int?
+  relatedProductIds Json? // string[]
+
+  seoTitle        String?
+  metaDescription String? @db.Text
+  canonicalUrl    String?
+  ogTitle         String?
+  ogDescription   String? @db.Text
+  ogImageMediaId  String?
+  noindex         Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([category])
+}
+
+// Homepage promotional content — NOT the hero, quiz, or Pakistan map (those
+// stay hand-built custom components per explicit instruction). This is
+// specifically the "20% off filaments" banner-type content an owner needs
+// to change often without touching code.
+model HomepageSection {
+  id       String    @id @default(cuid())
+  type     String // "promo_banner" | "promo_image" | "image_text" | "gallery"
+  title    String? // admin-facing label only, not shown on the site
+  config   Json // type-specific fields — see src/lib/content-blocks/types.ts HomepageSectionConfig
+  enabled  Boolean   @default(true)
+  position Int       @default(0)
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([enabled, position])
+}
+
+// ============================================================================
+// COMMERCE FOUNDATION — Customer, CustomerAddress, Order, OrderItem
+// No payment gateway integration yet (explicitly deferred) — this is the
+// data model + admin visibility layer so real checkout can be wired in later
+// without another schema migration.
+// ============================================================================
+
+model Customer {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  name         String?
+  phone        String?
+  passwordHash String? // null until real customer auth is implemented
+
+  addresses CustomerAddress[]
+  orders    Order[]
+  reviews   ProductReview[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CustomerAddress {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  label      String? // "Home", "Office"
+  fullName   String
+  phone      String
+  line1      String
+  line2      String?
+  city       String
+  province   String?
+  postalCode String?
+  country    String   @default("Pakistan")
+  isDefault  Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([customerId])
+}
+
+model Order {
+  id          String    @id @default(cuid())
+  orderNumber String    @unique
+  customerId  String?
+  customer    Customer? @relation(fields: [customerId], references: [id])
+  guestEmail  String?
+  guestName   String?
+  guestPhone  String?
+
+  status        String @default("pending") // "pending" | "processing" | "shipped" | "delivered" | "cancelled"
+  paymentStatus String @default("unpaid") // "unpaid" | "paid" | "refunded"
+  paymentMethod String? // "cod" | "bank_transfer" | future gateway keys
+
+  shippingAddress Json?
+  billingAddress  Json?
+
+  subtotal     Int
+  shippingCost Int @default(0)
+  discount     Int @default(0)
+  total        Int
+
+  notes String? @db.Text
+
+  items OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([status])
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id])
+  productName String // snapshot at time of order — survives product edits/deletion
+  sku         String?
+  unitPrice   Int
+  quantity    Int
+  total       Int
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+// ============================================================================
+// ADMIN — AdminUser (schema-ready for roles; current auth still uses the
+// single ADMIN_PASSWORD env var — see src/lib/admin-auth.ts), SiteSetting
+// ============================================================================
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  role         String   @default("owner") // "owner" | "store_manager" | "content_manager" | "sales"
+  active       Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
 }

@@ -1,14 +1,28 @@
+import "dotenv/config";
 import { PrismaClient } from "../src/generated/prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
-import path from "node:path";
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { seedProducts } from "./seed-data";
 import { seedProductToRow } from "../src/lib/seed-shared";
+import { brands } from "../src/lib/data/brands";
 
-const rawUrl = process.env.DATABASE_URL ?? "file:./data/app.db";
-const absoluteUrl = `file:${path.resolve(process.cwd(), rawUrl.replace(/^file:/, ""))}`;
-const prisma = new PrismaClient({ adapter: new PrismaBetterSqlite3({ url: absoluteUrl }) });
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("DATABASE_URL is not set. Add it to your environment before seeding (see .env.example).");
+}
+const prisma = new PrismaClient({ adapter: new PrismaMariaDb(connectionString) });
 
 async function main() {
+  // Product.brandId is a foreign key into Brand — these ids must exist
+  // first, or every product upsert below fails with a constraint error.
+  console.log(`Seeding ${brands.length} brands...`);
+  for (const b of brands) {
+    await prisma.brand.upsert({
+      where: { id: b.id },
+      create: { id: b.id, name: b.name, slug: b.slug, country: b.country, description: b.description },
+      update: { name: b.name, slug: b.slug, country: b.country, description: b.description },
+    });
+  }
+
   console.log(`Seeding ${seedProducts.length} products...`);
   for (const p of seedProducts) {
     const row = seedProductToRow(p);
