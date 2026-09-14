@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Outfit, Inter } from "next/font/google";
 import "./globals.css";
 import { SiteChrome } from "@/components/layout/site-chrome";
+import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { WhatsAppButton } from "@/components/layout/whatsapp-button";
 import { CartProvider } from "@/components/cart/cart-store";
 
 const outfit = Outfit({
@@ -89,7 +92,9 @@ export default function RootLayout({
           Skip to main content
         </a>
         <CartProvider>
-          <SiteChrome>{children}</SiteChrome>
+          <SiteChrome header={<SiteHeader />} footer={<SiteFooter />} whatsapp={<WhatsAppButton />}>
+            {children}
+          </SiteChrome>
         </CartProvider>
       </body>
     </html>

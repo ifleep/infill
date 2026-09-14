@@ -1,14 +1,12 @@
 import { WhatsappLogo } from "@phosphor-icons/react/ssr";
+import { getSiteSettings } from "@/lib/data/settings";
 
-// Placeholder business number — replace with INFiLLPK's real WhatsApp Business number.
-const WHATSAPP_NUMBER = "923000000000";
+export async function WhatsAppButton() {
+  const { whatsappNumber, whatsappMessage } = await getSiteSettings();
 
-export function WhatsAppButton() {
   return (
     <a
-      href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-        "Hi INFiLLPK, I have a question about "
-      )}`}
+      href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with INFiLLPK on WhatsApp"

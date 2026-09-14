@@ -23,8 +23,8 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   {
     label: "Sales",
     items: [
-      { href: "/admin/orders", label: "Orders", available: false },
-      { href: "/admin/customers", label: "Customers", available: false },
+      { href: "/admin/orders", label: "Orders", available: true },
+      { href: "/admin/customers", label: "Customers", available: true },
     ],
   },
   {
@@ -39,7 +39,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   {
     label: "System",
     items: [
-      { href: "/admin/settings", label: "Settings", available: false },
+      { href: "/admin/settings", label: "Settings", available: true },
       { href: "/admin/users", label: "Admin Users", available: false },
     ],
   },
