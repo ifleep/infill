@@ -32,7 +32,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     items: [
       { href: "/admin/homepage", label: "Homepage", available: true },
       { href: "/admin/pages", label: "Pages", available: true },
-      { href: "/admin/lab", label: "INFiLL Lab", available: false },
+      { href: "/admin/lab", label: "INFiLL Lab", available: true },
       { href: "/admin/media", label: "Media Library", available: true },
     ],
   },

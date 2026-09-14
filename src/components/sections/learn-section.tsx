@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { ArrowRight, BookOpen } from "@phosphor-icons/react/ssr";
-import { articles } from "@/lib/data/articles";
+import { getPublishedArticles } from "@/lib/data/articles";
 import { SectionHeading } from "@/components/ui/section-heading";
 
-export function LearnSection() {
+export async function LearnSection() {
+  const articles = await getPublishedArticles();
   const latest = articles.slice(0, 3);
+  if (latest.length === 0) return null;
 
   return (
     <section className="container-page py-20 sm:py-28">

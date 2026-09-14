@@ -114,7 +114,7 @@ export interface Product extends SeoFields {
   featured?: boolean;
 }
 
-export interface Article {
+export interface Article extends SeoFields {
   id: string;
   slug: string;
   title: string;
@@ -122,7 +122,11 @@ export interface Article {
   category: "Buying Guide" | "Comparison" | "Materials" | "Maintenance" | "Technology";
   readingMinutes: number;
   publishedAt: string;
-  body: string[];
+  contentBlocks: ContentBlock[];
+  author?: string;
+  featuredImageUrl?: string;
+  status: "draft" | "published" | "scheduled";
+  relatedProductIds?: string[];
 }
 
 export interface ServiceOffering {

@@ -2,8 +2,10 @@ import "dotenv/config";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { seedProducts } from "./seed-data";
-import { seedProductToRow } from "../src/lib/seed-shared";
+import { seedArticles } from "./seed-articles-data";
+import { seedProductToRow, seedArticleToRow } from "../src/lib/seed-shared";
 import { brands } from "../src/lib/data/brands";
+import type { Prisma } from "../src/generated/prisma/client";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
@@ -32,6 +34,18 @@ async function main() {
       update: row,
     });
   }
+
+  console.log(`Seeding ${seedArticles.length} articles...`);
+  for (const a of seedArticles) {
+    const row = seedArticleToRow(a);
+    const contentBlocks = row.contentBlocks as unknown as Prisma.InputJsonValue;
+    await prisma.article.upsert({
+      where: { slug: row.slug },
+      create: { ...row, contentBlocks },
+      update: { ...row, contentBlocks },
+    });
+  }
+
   console.log("Done.");
 }
 

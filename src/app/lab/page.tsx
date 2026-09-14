@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BookOpen } from "@phosphor-icons/react/ssr";
-import { articles } from "@/lib/data/articles";
+import { getPublishedArticles } from "@/lib/data/articles";
 
 export const metadata: Metadata = {
   title: "INFiLL Lab",
@@ -18,6 +18,7 @@ export default async function LabPage({
   const { category } = await searchParams;
   const active = category && categories.includes(category as (typeof categories)[number]) ? category : "All";
 
+  const articles = await getPublishedArticles();
   const filtered = active === "All" ? articles : articles.filter((a) => a.category === active);
 
   return (
@@ -51,7 +52,12 @@ export default async function LabPage({
             href={`/lab/${a.slug}`}
             className="focus-ring group flex flex-col rounded-xl border border-border bg-surface p-6 transition-colors hover:border-blue-300"
           >
-            <BookOpen size={20} className="text-blue-700" />
+            {a.featuredImageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- uploaded files, not a static import
+              <img src={a.featuredImageUrl} alt="" className="-mx-6 -mt-6 mb-4 aspect-[16/9] rounded-t-xl object-cover" />
+            ) : (
+              <BookOpen size={20} className="text-blue-700" />
+            )}
             <p className="mt-3 text-xs font-medium uppercase tracking-wide text-ink-faint">
               {a.category} · {a.readingMinutes} min read
             </p>
@@ -61,6 +67,7 @@ export default async function LabPage({
             <p className="mt-2 text-sm text-ink-muted">{a.excerpt}</p>
           </Link>
         ))}
+        {filtered.length === 0 && <p className="text-sm text-ink-faint">No articles yet.</p>}
       </div>
     </div>
   );

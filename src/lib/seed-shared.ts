@@ -1,4 +1,8 @@
 import type { Product } from "@/lib/types";
+import { newBlockId } from "@/lib/content-blocks/types";
+import type { seedArticles } from "../../prisma/seed-articles-data";
+
+type SeedArticle = (typeof seedArticles)[number];
 
 // Shared between prisma/seed.ts (CLI, `npm run db:seed`) and the /admin
 // "Seed Demo Catalog" action (src/app/api/admin/seed/route.ts) — hosts that
@@ -52,5 +56,18 @@ export function seedProductToRow(p: Omit<Product, "availability">) {
     rating: p.rating ?? null,
     reviewCount: p.reviewCount ?? null,
     featured: p.featured ?? false,
+  };
+}
+
+export function seedArticleToRow(a: SeedArticle) {
+  return {
+    slug: a.slug,
+    title: a.title,
+    excerpt: a.excerpt,
+    category: a.category,
+    readingMinutes: a.readingMinutes,
+    publishedAt: new Date(a.publishedAt),
+    status: "published",
+    contentBlocks: a.paragraphs.map((html) => ({ id: newBlockId(), type: "richText" as const, html: `<p>${html}</p>` })),
   };
 }

@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { hasValidAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
-import { seedProductToRow } from "@/lib/seed-shared";
+import { seedProductToRow, seedArticleToRow } from "@/lib/seed-shared";
 import { seedProducts } from "../../../../../prisma/seed-data";
+import { seedArticles } from "../../../../../prisma/seed-articles-data";
 import { brands } from "@/lib/data/brands";
 import { revalidateSite } from "@/lib/revalidate";
+import type { Prisma } from "@/generated/prisma/client";
 
 // For hosts that give no shell/SSH access (so `npm run db:seed` can never be
 // run directly) — lets an already-logged-in admin load the demo catalog with
@@ -33,6 +35,16 @@ export async function POST() {
       update: row,
     });
     count++;
+  }
+
+  for (const a of seedArticles) {
+    const row = seedArticleToRow(a);
+    const contentBlocks = row.contentBlocks as unknown as Prisma.InputJsonValue;
+    await prisma.article.upsert({
+      where: { slug: row.slug },
+      create: { ...row, contentBlocks },
+      update: { ...row, contentBlocks },
+    });
   }
 
   revalidateSite();

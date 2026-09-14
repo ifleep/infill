@@ -1,13 +1,17 @@
 import type { MetadataRoute } from "next";
 import { getAllProducts } from "@/lib/data/products";
 import { getAllPublishedPages } from "@/lib/data/pages";
-import { articles } from "@/lib/data/articles";
+import { getPublishedArticles } from "@/lib/data/articles";
 import { categoryDefs } from "@/components/category/category-config";
 
 const BASE_URL = "https://infillpk.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [products, cmsPages] = await Promise.all([getAllProducts(), getAllPublishedPages()]);
+  const [products, cmsPages, articles] = await Promise.all([
+    getAllProducts(),
+    getAllPublishedPages(),
+    getPublishedArticles(),
+  ]);
   const staticRoutes = [
     "",
     "/about",
@@ -35,11 +39,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
-  const articleRoutes = articles.map((a) => ({
-    url: `${BASE_URL}/lab/${a.slug}`,
-    changeFrequency: "monthly" as const,
-    priority: 0.5,
-  }));
+  const articleRoutes = articles
+    .filter((a) => !a.noindex)
+    .map((a) => ({
+      url: `${BASE_URL}/lab/${a.slug}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    }));
 
   const cmsPageRoutes = cmsPages
     .filter((p) => !p.noindex)

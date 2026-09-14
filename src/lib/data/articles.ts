@@ -1,95 +1,120 @@
+import { prisma } from "@/lib/db";
 import type { Article } from "@/lib/types";
+import { parseContentBlocks, type ContentBlock } from "@/lib/content-blocks/types";
+import type { Article as ArticleRow, Media as MediaRow, Prisma } from "@/generated/prisma/client";
 
-export const articles: Article[] = [
-  {
-    id: "art-which-printer",
-    slug: "which-3d-printer-should-i-buy",
-    title: "Which 3D printer should I buy?",
-    excerpt: "A practical way to narrow hundreds of options down to two or three, based on what you're actually making.",
-    category: "Buying Guide",
-    readingMinutes: 7,
-    publishedAt: "2025-01-14",
-    body: [
-      "Most buying guides start with specs. Start with the object instead: what do you actually want to hold in your hand in two weeks?",
-      "If the honest answer is 'I don't know yet, I just want to learn,' an entry-level FDM printer with automatic bed leveling removes the single biggest source of first-print frustration.",
-      "If you already know you need fine detail — miniatures, jewelry masters, dental models — resin printing is usually the better starting technology, not a later upgrade.",
-      "If your parts need to survive outdoors, high temperatures, or mechanical stress, plan your printer choice around ASA, ABS, or nylon compatibility from day one, since a cold-end-only machine will hit a ceiling quickly.",
-      "Budget matters, but the more useful question is total cost over your first year, including a spare nozzle, a second build plate, and enough filament to get through the learning curve.",
-    ],
-  },
-  {
-    id: "art-fdm-vs-resin",
-    slug: "fdm-vs-resin",
-    title: "FDM vs resin: which technology fits your project?",
-    excerpt: "Two fundamentally different processes, and the actual tradeoffs that matter once you get past the marketing.",
-    category: "Technology",
-    readingMinutes: 6,
-    publishedAt: "2025-02-03",
-    body: [
-      "FDM builds parts by extruding melted filament layer by layer. Resin builds parts by curing liquid photopolymer with light, layer by layer, in a very different way.",
-      "FDM wins on part strength, material variety, and running cost per part. Most engineering and functional prints are still FDM for good reason.",
-      "Resin wins on surface finish and fine detail — text, small features, and smooth curves that would show visible layer lines on an FDM machine.",
-      "Post-processing is the part beginners underestimate with resin: isopropyl alcohol washing, UV curing, and careful handling of uncured resin are real, ongoing steps, not one-time setup.",
-      "A working shop often ends up with both: FDM for functional parts and enclosures, resin for detail parts and masters.",
-    ],
-  },
-  {
-    id: "art-pla-vs-petg",
-    slug: "pla-vs-petg",
-    title: "PLA vs PETG: choosing your everyday filament",
-    excerpt: "The two materials that will cover most of what you print — and where each one falls short.",
-    category: "Materials",
-    readingMinutes: 5,
-    publishedAt: "2025-02-20",
-    body: [
-      "PLA is the easiest material to print well: low warping, no enclosure required, and forgiving of imperfect cooling and speed settings.",
-      "PETG trades some of that ease for real toughness and moisture resistance, at the cost of stringing more easily and needing slightly more tuning.",
-      "If a part just needs to look good on a shelf, PLA is usually the right default. If it needs to survive being dropped, sat on, or left in a hot car, PETG is the safer choice.",
-      "Neither material tolerates prolonged outdoor UV exposure well — for that, look at ASA instead.",
-    ],
-  },
-  {
-    id: "art-corexy",
-    slug: "what-is-corexy",
-    title: "What is CoreXY, and why does it matter for print speed?",
-    excerpt: "The motion system behind most of today's fast enclosed printers, explained without the mechanical-engineering jargon.",
-    category: "Technology",
-    readingMinutes: 4,
-    publishedAt: "2025-03-11",
-    body: [
-      "In a CoreXY printer, two stationary motors drive the print head across both the X and Y axes together through a crossed belt system, instead of one motor per axis moving a heavier gantry.",
-      "The practical result is a lighter, stiffer moving assembly, which lets the machine accelerate and change direction faster without shaking itself apart or blurring fine details.",
-      "That's a big part of why most of today's genuinely fast enclosed printers — the kind that print in under an hour what used to take four — use a CoreXY layout rather than a traditional bed-slinger design.",
-    ],
-  },
-  {
-    id: "art-maintenance",
-    slug: "how-to-maintain-your-printer",
-    title: "How to maintain your 3D printer",
-    excerpt: "A short, unglamorous maintenance routine that prevents most of the common failures.",
-    category: "Maintenance",
-    readingMinutes: 5,
-    publishedAt: "2025-04-02",
-    body: [
-      "Most avoidable printer problems come from three things: a dirty nozzle, a worn build surface, and loose belts — not firmware or slicer settings.",
-      "Wipe the nozzle at temperature every few prints, and keep a spare on hand since replacing one takes minutes but a clogged one can ruin a print halfway through.",
-      "Re-level the bed and clean the build surface with isopropyl alcohol whenever adhesion gets inconsistent, rather than compensating with more first-layer squish.",
-      "Check belt tension and frame fasteners every few weeks on machines that move quickly — a loose gantry shows up as ringing artifacts long before it becomes an obvious mechanical problem.",
-    ],
-  },
-  {
-    id: "art-print-speed",
-    slug: "how-fast-can-modern-3d-printers-print",
-    title: "How fast can modern 3D printers actually print?",
-    excerpt: "Headline speed numbers versus what you'll really see on a typical part.",
-    category: "Comparison",
-    readingMinutes: 4,
-    publishedAt: "2025-04-22",
-    body: [
-      "Marketing speed figures describe the fastest the toolhead ever moves in a straight line — not the speed you'll see across an entire real print.",
-      "Small, detailed parts with lots of direction changes rarely reach headline speeds, since acceleration and cornering dominate the time budget more than top speed does.",
-      "Input shaping and vibration compensation, now common on CoreXY machines, matter more for real-world speed than the peak mm/s number alone, because they let a printer hold quality at higher accelerations.",
-      "A fair comparison looks at total print time for the same real object across machines, not the spec sheet's top speed figure.",
-    ],
-  },
-];
+function jsonStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
+}
+
+type ArticleWithMedia = ArticleRow & { featuredImage: MediaRow | null };
+
+const articleInclude = { featuredImage: true } satisfies Prisma.ArticleInclude;
+
+function fromRow(row: ArticleWithMedia): Article {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    excerpt: row.excerpt ?? "",
+    category: (row.category as Article["category"]) ?? "Technology",
+    readingMinutes: row.readingMinutes ?? 4,
+    publishedAt: (row.publishedAt ?? row.createdAt).toISOString().slice(0, 10),
+    contentBlocks: parseContentBlocks(row.contentBlocks),
+    author: row.author ?? undefined,
+    featuredImageUrl: row.featuredImage?.url,
+    status: row.status as Article["status"],
+    relatedProductIds: row.relatedProductIds ? jsonStringArray(row.relatedProductIds) : undefined,
+    seoTitle: row.seoTitle ?? undefined,
+    metaDescription: row.metaDescription ?? undefined,
+    canonicalUrl: row.canonicalUrl ?? undefined,
+    ogTitle: row.ogTitle ?? undefined,
+    ogDescription: row.ogDescription ?? undefined,
+    noindex: row.noindex,
+  };
+}
+
+// ---------------------------------------------------------------- Public reads
+
+export async function getPublishedArticles(): Promise<Article[]> {
+  const rows = await prisma.article.findMany({
+    where: { status: "published" },
+    orderBy: { publishedAt: "desc" },
+    include: articleInclude,
+  });
+  return rows.map(fromRow);
+}
+
+export async function getPublishedArticleBySlug(slug: string): Promise<Article | null> {
+  const row = await prisma.article.findUnique({ where: { slug }, include: articleInclude });
+  if (!row || row.status !== "published") return null;
+  return fromRow(row);
+}
+
+// ---------------------------------------------------------------- Admin
+
+export async function getAllArticles(): Promise<Article[]> {
+  const rows = await prisma.article.findMany({ orderBy: { createdAt: "desc" }, include: articleInclude });
+  return rows.map(fromRow);
+}
+
+export async function getArticleById(id: string): Promise<Article | null> {
+  const row = await prisma.article.findUnique({ where: { id }, include: articleInclude });
+  return row ? fromRow(row) : null;
+}
+
+export interface ArticleInput {
+  slug: string;
+  title: string;
+  excerpt: string;
+  category: Article["category"];
+  readingMinutes: number;
+  publishedAt: string | null;
+  contentBlocks: ContentBlock[];
+  author: string | null;
+  featuredImageId: string | null;
+  status: Article["status"];
+  relatedProductIds: string[];
+  seoTitle: string | null;
+  metaDescription: string | null;
+  canonicalUrl: string | null;
+  ogTitle: string | null;
+  ogDescription: string | null;
+  noindex: boolean;
+}
+
+function toDbInput(input: ArticleInput) {
+  return {
+    slug: input.slug,
+    title: input.title,
+    excerpt: input.excerpt,
+    category: input.category,
+    readingMinutes: input.readingMinutes,
+    publishedAt: input.publishedAt ? new Date(input.publishedAt) : input.status === "published" ? new Date() : null,
+    contentBlocks: input.contentBlocks as unknown as Prisma.InputJsonValue,
+    author: input.author,
+    featuredImageId: input.featuredImageId,
+    status: input.status,
+    relatedProductIds: input.relatedProductIds,
+    seoTitle: input.seoTitle,
+    metaDescription: input.metaDescription,
+    canonicalUrl: input.canonicalUrl,
+    ogTitle: input.ogTitle,
+    ogDescription: input.ogDescription,
+    noindex: input.noindex,
+  };
+}
+
+export async function createArticle(input: ArticleInput): Promise<Article> {
+  const row = await prisma.article.create({ data: toDbInput(input), include: articleInclude });
+  return fromRow(row);
+}
+
+export async function updateArticle(id: string, input: ArticleInput): Promise<Article> {
+  const row = await prisma.article.update({ where: { id }, data: toDbInput(input), include: articleInclude });
+  return fromRow(row);
+}
+
+export async function deleteArticle(id: string): Promise<void> {
+  await prisma.article.delete({ where: { id } });
+}
