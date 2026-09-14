@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Brand, Product } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { ImageUploader } from "@/components/admin/image-uploader";
 
 const categories: { value: Product["category"]; label: string }[] = [
   { value: "printers", label: "3D Printer" },
@@ -27,6 +28,7 @@ export interface ProductFormValues {
   featured: boolean;
   shortDescription: string;
   description: string;
+  images: string[];
 }
 
 function fromProduct(p: Product): ProductFormValues {
@@ -44,6 +46,7 @@ function fromProduct(p: Product): ProductFormValues {
     featured: p.featured ?? false,
     shortDescription: p.shortDescription,
     description: p.description,
+    images: p.images ?? [],
   };
 }
 
@@ -61,6 +64,7 @@ const empty: ProductFormValues = {
   featured: false,
   shortDescription: "",
   description: "",
+  images: [],
 };
 
 export function ProductForm({
@@ -244,6 +248,10 @@ export function ProductForm({
           Featured on homepage
         </label>
       </div>
+
+      <Field label="Photos" hint="Upload photos from the supplier — the first one becomes the main product image">
+        <ImageUploader images={values.images} onChange={(images) => set("images", images)} />
+      </Field>
 
       <Field label="Short description" required hint="Shown on product cards and at the top of the product page">
         <textarea

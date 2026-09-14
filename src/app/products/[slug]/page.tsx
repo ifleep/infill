@@ -9,7 +9,7 @@ import {
   getCompatibleFilaments,
 } from "@/lib/data/products";
 import { getBrandById } from "@/lib/data";
-import { ProductVisual } from "@/components/product/product-visual";
+import { ProductGallery } from "@/components/product/product-gallery";
 import { ProductCard } from "@/components/product/product-card";
 import { AddToCartPanel } from "@/components/product/add-to-cart-panel";
 import { CompareToggle } from "@/components/compare/compare-toggle";
@@ -132,7 +132,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
         <div>
-          <ProductVisual product={product} className="w-full" />
+          <ProductGallery product={product} />
         </div>
 
         <div>

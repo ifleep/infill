@@ -19,6 +19,7 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
   const availability = typeof b.availability === "string" ? b.availability : "in-stock";
   const quoteOnly = Boolean(b.quoteOnly);
   const featured = Boolean(b.featured);
+  const images = Array.isArray(b.images) ? b.images.filter((i): i is string => typeof i === "string") : [];
 
   if (!name) return { error: "Name is required." };
   if (!brandId) return { error: "Brand is required." };
@@ -56,6 +57,7 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
       shortDescription,
       description,
       featured,
+      images,
     },
   };
 }

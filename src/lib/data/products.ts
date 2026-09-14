@@ -131,6 +131,7 @@ export interface ProductInput {
   shortDescription: string;
   description: string;
   featured: boolean;
+  images: string[];
 }
 
 function toDbInput(input: ProductInput) {
@@ -148,6 +149,7 @@ function toDbInput(input: ProductInput) {
     shortDescription: input.shortDescription,
     description: input.description,
     featured: input.featured,
+    images: JSON.stringify(input.images),
   };
 }
 
@@ -169,7 +171,6 @@ export async function createProduct(input: ProductInput): Promise<Product> {
       experienceLevel: "[]",
       useCases: "[]",
       currency: "PKR",
-      images: "[]",
       specifications: "[]",
       tags: "[]",
       warrantyMonths: 12,

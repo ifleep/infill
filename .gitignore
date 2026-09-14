@@ -8,6 +8,8 @@ coverage/
 next-env.d.ts
 data/*.db
 data/*.db-journal
+public/uploads/*
+!public/uploads/.gitkeep
 src/generated/prisma/
 .env*
 !.env.example

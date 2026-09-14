@@ -49,6 +49,15 @@ export function ProductVisual({
   const gradient = gradients[seed % gradients.length];
   const rotate = (seed % 12) - 6;
 
+  if (product.images.length > 0) {
+    return (
+      <div className={`aspect-square overflow-hidden rounded-xl bg-surface-sunken ${className ?? ""}`}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- uploaded files, not a static import */}
+        <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
+      </div>
+    );
+  }
+
   return (
     <div
       className={`relative flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-linear-to-br ${gradient} ${className ?? ""}`}
