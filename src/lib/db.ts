@@ -12,7 +12,16 @@ function createClient() {
       "DATABASE_URL is not set. Add it to your environment before starting the app (see .env.example)."
     );
   }
-  const adapter = new PrismaMariaDb(connectionString);
+  // connectionLimit is capped explicitly rather than left at the mariadb
+  // driver's default (10) — each server/build-worker process gets its own
+  // pool, so an uncapped default multiplies fast against a shared MySQL
+  // plan's connection limit. Paired with next.config.ts's experimental.cpus
+  // cap during build; this also covers the running production server.
+  // The mariadb driver reads connection options straight out of the URI's
+  // query string, so this is appended rather than parsing the string apart.
+  const pooledConnectionString =
+    connectionString + (connectionString.includes("?") ? "&" : "?") + "connectionLimit=5";
+  const adapter = new PrismaMariaDb(pooledConnectionString);
   return new PrismaClient({ adapter });
 }
 
