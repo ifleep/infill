@@ -1,6 +1,7 @@
 import { getActiveHomepageSections } from "@/lib/data/homepage-sections";
 import type { HomepageSection, PromoBannerConfig, PromoImageConfig } from "@/lib/content-blocks/homepage-types";
 import { LinkButton } from "@/components/ui/button";
+import { PhotoCarousel } from "@/components/sections/photo-carousel";
 
 // Renders the admin-managed promotional content from /admin/homepage
 // (requirement #8/9) — explicitly separate from the hand-built hero,
@@ -62,6 +63,21 @@ function PromoBannerView({ config }: { config: PromoBannerConfig }) {
 }
 
 function PromoImageView({ config }: { config: PromoImageConfig }) {
+  if (config.variant === "carousel") {
+    if (!config.images || config.images.length === 0) return null;
+    return (
+      <section className="container-page">
+        {(config.heading || config.text) && (
+          <div className="mb-6 text-center">
+            {config.heading && <h3 className="font-display text-2xl font-semibold text-ink sm:text-3xl">{config.heading}</h3>}
+            {config.text && <p className="mt-2 text-sm text-ink-muted">{config.text}</p>}
+          </div>
+        )}
+        <PhotoCarousel images={config.images} />
+      </section>
+    );
+  }
+
   if (config.variant === "gallery") {
     if (!config.images || config.images.length === 0) return null;
     return (

@@ -15,7 +15,7 @@ export interface PromoBannerConfig {
   buttonUrl?: string;
 }
 
-export type PromoImageVariant = "full-width" | "image-text" | "overlay-text" | "gallery";
+export type PromoImageVariant = "full-width" | "image-text" | "overlay-text" | "gallery" | "carousel";
 
 export interface PromoImageConfig {
   variant: PromoImageVariant;

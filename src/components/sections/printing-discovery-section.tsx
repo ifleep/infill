@@ -41,10 +41,12 @@ export function PrintingDiscoverySection() {
           <Link
             key={t.label}
             href={t.href}
-            className="focus-ring group rounded-xl border border-border bg-surface p-6 transition-colors hover:border-blue-300 hover:bg-blue-50"
+            className="focus-ring group flex flex-col items-center rounded-xl border border-border bg-surface p-6 text-center transition-colors hover:border-blue-300 hover:bg-blue-50"
           >
-            <t.Icon size={24} className="text-blue-700" />
-            <h3 className="font-display mt-3 text-lg font-semibold text-ink">{t.label}</h3>
+            <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-blue-50 text-blue-700 transition-colors group-hover:bg-white">
+              <t.Icon size={68} />
+            </div>
+            <h3 className="font-display mt-4 text-lg font-semibold text-ink">{t.label}</h3>
             <p className="mt-2 text-sm text-ink-muted">{t.copy}</p>
             <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-blue-700 opacity-0 transition-opacity group-hover:opacity-100">
               Explore <ArrowRight size={14} />

@@ -76,7 +76,7 @@ export function PrinterRig({ progressRef }: { progressRef: RefObject<number> }) 
       );
 
       const mat = mesh.material as THREE.MeshStandardMaterial;
-      if (mat) mat.opacity = 0.35 + 0.65 * eased;
+      if (mat) mat.opacity = (part.finalOpacity ?? 1) * (0.35 + 0.65 * eased);
     }
 
     if (groupRef.current) {
@@ -114,7 +114,10 @@ export function PrinterRig({ progressRef }: { progressRef: RefObject<number> }) 
             color={part.color}
             metalness={part.metalness ?? 0.15}
             roughness={part.roughness ?? 0.55}
+            emissive={part.emissive}
+            emissiveIntensity={part.emissiveIntensity ?? 0}
             transparent
+            side={part.finalOpacity !== undefined ? THREE.DoubleSide : THREE.FrontSide}
           />
         </mesh>
       ))}
@@ -124,13 +127,13 @@ export function PrinterRig({ progressRef }: { progressRef: RefObject<number> }) 
           emissiveIntensity ramps up during the print phase (see useFrame
           above) — a literal bright base color would show as a stray orange
           dot even outside the print phase. */}
-      <mesh ref={nozzleGlowRef} position={[0, 1.62, 0]}>
+      <mesh ref={nozzleGlowRef} position={[0, 1.73, 0.15]}>
         <sphereGeometry args={[0.045, 12, 12]} />
         <meshStandardMaterial color="#3a3f48" emissive="#ff8a3d" emissiveIntensity={0} roughness={0.4} />
       </mesh>
 
       {/* The printed object: a small rocket, built up as the printer "prints" */}
-      <group ref={printGroupRef} position={[0, 0.38, 0]}>
+      <group ref={printGroupRef} position={[0, 0.62, 0.15]}>
         {/* Engine nozzle */}
         <mesh position={[0, 0.02, 0]}>
           <coneGeometry args={[0.07, 0.07, 20]} />
@@ -149,7 +152,7 @@ export function PrinterRig({ progressRef }: { progressRef: RefObject<number> }) 
         {/* Cockpit window */}
         <mesh position={[0, 0.3, 0.075]}>
           <sphereGeometry args={[0.032, 16, 16]} />
-          <meshStandardMaterial color="#3b74f0" metalness={0.5} roughness={0.15} emissive="#3b74f0" emissiveIntensity={0.25} />
+          <meshStandardMaterial color="#3c5a8f" metalness={0.5} roughness={0.15} emissive="#3c5a8f" emissiveIntensity={0.25} />
         </mesh>
         {/* Nose cone */}
         <mesh position={[0, 0.44, 0]}>
@@ -169,7 +172,7 @@ export function PrinterRig({ progressRef }: { progressRef: RefObject<number> }) 
         ))}
       </group>
 
-      <ContactShadows position={[0, -0.01, 0]} opacity={0.5} scale={6} blur={2.2} far={2.4} color="#142645" />
+      <ContactShadows position={[0, -0.01, 0]} opacity={0.5} scale={6.5} blur={2.2} far={2.4} color="#142645" />
     </group>
   );
 }

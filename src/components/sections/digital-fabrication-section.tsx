@@ -24,10 +24,12 @@ export function DigitalFabricationSection() {
             <Link
               key={label}
               href={href}
-              className="focus-ring group rounded-xl border border-border-on-navy p-6 transition-colors hover:border-blue-300 hover:bg-white/5"
+              className="focus-ring group flex flex-col items-center rounded-xl border border-border-on-navy p-6 text-center transition-colors hover:border-blue-300 hover:bg-white/5"
             >
-              <Icon size={24} className="text-blue-300" />
-              <h3 className="font-display mt-3 text-lg font-semibold text-on-navy">{label}</h3>
+              <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-white/5 text-blue-300 transition-colors group-hover:bg-white/10">
+                <Icon size={68} />
+              </div>
+              <h3 className="font-display mt-4 text-lg font-semibold text-on-navy">{label}</h3>
               <p className="mt-2 text-sm text-on-navy-muted">{copy}</p>
               <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-blue-300 opacity-0 transition-opacity group-hover:opacity-100">
                 Explore <ArrowRight size={14} />

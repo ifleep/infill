@@ -34,7 +34,7 @@ export function HeroScene({ progressRef }: { progressRef: RefObject<number> }) {
       <directionalLight position={[-4, 2, -2]} intensity={0.5} color="#6d9bf7" />
       {/* Warm accent light, opposite the cool rim — adds dimension instead of flat blue-on-blue */}
       <pointLight position={[2.2, 1.2, 2.4]} intensity={0.9} color="#f2a24a" distance={7} />
-      <pointLight position={[0, 1.8, 1.5]} intensity={0.5} color="#3b74f0" distance={6} />
+      <pointLight position={[0, 1.8, 1.5]} intensity={0.5} color="#3c5a8f" distance={6} />
       <CameraAim />
       {/* Procedural environment (a few soft light panels) for realistic
           metal reflections — built entirely in-scene rather than a

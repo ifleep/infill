@@ -1,120 +1,142 @@
-// Small original line-icon set for the print/fabrication technology types
-// listed on the homepage — drawn to match the existing Phosphor "regular"
-// icon language already used across the site (24x24, ~1.5 stroke, rounded
-// joins) rather than mixing in an unrelated icon pack or sourcing from
-// online libraries with unclear licensing.
+// Original line-art illustrations for the print/fabrication technology
+// types shown on the homepage — detailed enough to stand alone as a large
+// icon (not a tiny 24px glyph), drawn in the site's own stroke-based style
+// rather than sourced from an icon pack or traced from a reference.
 interface IconProps {
   size?: number;
   className?: string;
 }
 
 const base = {
-  viewBox: "0 0 24 24",
+  viewBox: "0 0 100 100",
   fill: "none",
   stroke: "currentColor",
-  strokeWidth: 1.5,
+  strokeWidth: 3,
   strokeLinecap: "round" as const,
   strokeLinejoin: "round" as const,
 };
 
-export function FdmIcon({ size = 24, className }: IconProps) {
+export function FdmIcon({ size = 96, className }: IconProps) {
   return (
     <svg {...base} width={size} height={size} className={className} aria-hidden="true">
-      <path d="M12 2.5v3.3" />
-      <path d="M9.2 5.8h5.6l-1.7 3.4h-2.2z" />
-      <line x1="6" y1="13.5" x2="18" y2="13.5" />
-      <line x1="7" y1="16.7" x2="17" y2="16.7" />
-      <line x1="8" y1="19.9" x2="16" y2="19.9" />
+      <path d="M22 20 22 80" />
+      <path d="M78 20 78 80" />
+      <path d="M22 20 78 20" />
+      <path d="M22 80 78 80" />
+      <path d="M30 36 70 36" />
+      <path d="M50 36 50 44" />
+      <path d="M43 44 57 44 52 52 48 52z" fill="currentColor" stroke="none" />
+      <path d="M32 76c4-10 10-4 14-10s10-8 14-2" />
+      <circle cx="22" cy="82" r="3" />
+      <circle cx="78" cy="82" r="3" />
     </svg>
   );
 }
 
-export function ResinIcon({ size = 24, className }: IconProps) {
+export function ResinIcon({ size = 96, className }: IconProps) {
   return (
     <svg {...base} width={size} height={size} className={className} aria-hidden="true">
-      <path d="M12 2.8c2.1 2.9 3.6 5.1 3.6 7.1a3.6 3.6 0 1 1-7.2 0c0-2 1.5-4.2 3.6-7.1z" />
-      <path d="M4.5 15.5h15l-1.6 5.2H6.1z" />
+      <path d="M32 14 68 14 68 30 32 30z" />
+      <path d="M46 30 46 46" />
+      <path d="M54 30 54 46" />
+      <path d="M28 46 72 46 66 62 34 62z" />
+      <path d="M38 50 62 50M40 55 60 55" opacity="0.6" />
+      <path d="M20 66 80 66 76 84 24 84z" />
+      <circle cx="30" cy="75" r="3" />
+      <circle cx="42" cy="75" r="3" />
     </svg>
   );
 }
 
-export function CoreXYIcon({ size = 24, className }: IconProps) {
+export function CoreXYIcon({ size = 96, className }: IconProps) {
   return (
     <svg {...base} width={size} height={size} className={className} aria-hidden="true">
-      <circle cx="5" cy="5" r="1.6" />
-      <circle cx="19" cy="5" r="1.6" />
-      <circle cx="5" cy="19" r="1.6" />
-      <circle cx="19" cy="19" r="1.6" />
-      <path d="M6.3 5.9 17.7 18.1" />
-      <path d="M17.7 5.9 6.3 18.1" />
-      <rect x="10" y="10" width="4" height="4" rx="0.6" fill="currentColor" stroke="none" />
+      <rect x="16" y="16" width="68" height="68" rx="4" />
+      <circle cx="24" cy="24" r="4" />
+      <circle cx="76" cy="24" r="4" />
+      <circle cx="24" cy="76" r="4" />
+      <circle cx="76" cy="76" r="4" />
+      <path d="M28 28 72 72" />
+      <path d="M72 28 28 72" />
+      <rect x="42" y="42" width="16" height="16" rx="2" fill="currentColor" stroke="none" />
+      <path d="M50 84 50 92M42 92 58 92" />
     </svg>
   );
 }
 
-export function LargeFormatIcon({ size = 24, className }: IconProps) {
+export function LargeFormatIcon({ size = 96, className }: IconProps) {
   return (
     <svg {...base} width={size} height={size} className={className} aria-hidden="true">
-      <path d="M4 9.5V4h5.5" />
-      <path d="M14.5 4H20v5.5" />
-      <path d="M20 14.5V20h-5.5" />
-      <path d="M9.5 20H4v-5.5" />
+      <path d="M14 30 14 14 30 14" />
+      <path d="M70 14 86 14 86 30" />
+      <path d="M86 70 86 86 70 86" />
+      <path d="M30 86 14 86 14 70" />
+      <rect x="32" y="32" width="36" height="36" rx="2" opacity="0.55" />
+      <path d="M40 50 60 50M50 40 50 60" opacity="0.55" />
     </svg>
   );
 }
 
-export function IndustrialIcon({ size = 24, className }: IconProps) {
+export function IndustrialIcon({ size = 96, className }: IconProps) {
   return (
     <svg {...base} width={size} height={size} className={className} aria-hidden="true">
-      <circle cx="12" cy="12" r="3.1" />
-      <path d="M12 2.6v2.7M12 18.7v2.7M21.4 12h-2.7M5.3 12H2.6M18.3 5.7l-1.9 1.9M7.6 16.4l-1.9 1.9M18.3 18.3l-1.9-1.9M7.6 7.6 5.7 5.7" />
+      <path d="M50 20a20 20 0 0 1 17.3 10l7-1 2 7-6 4a20 20 0 0 1 0 10l6 4-2 7-7-1a20 20 0 0 1-17.3 10 20 20 0 0 1-17.3-10l-7 1-2-7 6-4a20 20 0 0 1 0-10l-6-4 2-7 7 1A20 20 0 0 1 50 20z" />
+      <circle cx="50" cy="50" r="9" />
     </svg>
   );
 }
 
-export function EducationalIcon({ size = 24, className }: IconProps) {
+export function EducationalIcon({ size = 96, className }: IconProps) {
   return (
     <svg {...base} width={size} height={size} className={className} aria-hidden="true">
-      <path d="M12 4 2.5 9l9.5 5 9.5-5z" />
-      <path d="M6.3 11.4v5.1c0 1.5 2.6 2.7 5.7 2.7s5.7-1.2 5.7-2.7v-5.1" />
-      <path d="M21.5 9v6.2" />
+      <path d="M12 38 50 20 88 38 50 56z" />
+      <path d="M28 46 28 66c0 6 10 11 22 11s22-5 22-11V46" />
+      <path d="M88 38 88 62" />
+      <circle cx="88" cy="66" r="3" />
+      <path d="M50 56 50 76" opacity="0.5" />
     </svg>
   );
 }
 
-export function CncIcon({ size = 24, className }: IconProps) {
+export function CncIcon({ size = 96, className }: IconProps) {
   return (
     <svg {...base} width={size} height={size} className={className} aria-hidden="true">
-      <circle cx="12" cy="4" r="1.3" />
-      <path d="M12 5.3v6" />
-      <path d="M10.2 11.3 12 13.1l1.8-1.8M10.2 13.3 12 15.1l1.8-1.8" />
-      <line x1="12" y1="15.1" x2="12" y2="18.5" />
-      <line x1="5" y1="18.5" x2="19" y2="18.5" />
+      <circle cx="50" cy="16" r="5" />
+      <path d="M50 21 50 46" />
+      <path d="M42 46 58 46 54 58 46 58z" />
+      <path d="M50 58 50 66" />
+      <path d="M18 66 82 82 18 82z" opacity="0.5" />
+      <path d="M18 66 82 66 82 82 18 82z" />
+      <path d="M30 66 30 82M46 66 46 82M62 66 62 82" opacity="0.4" />
     </svg>
   );
 }
 
-export function LaserIcon({ size = 24, className }: IconProps) {
+export function LaserIcon({ size = 96, className }: IconProps) {
   return (
     <svg {...base} width={size} height={size} className={className} aria-hidden="true">
-      <circle cx="5.5" cy="4.5" r="1.5" fill="currentColor" stroke="none" />
-      <path d="M6.6 5.6 14 13" />
-      <path d="M17 10.2 15.8 13M13 11.8l1.2 3.2M17.4 13.4 14 13" />
-      <line x1="4" y1="20" x2="20" y2="20" />
+      <path d="M18 42 82 42" />
+      <path d="M18 42 18 34M82 42 82 34" />
+      <rect x="40" y="42" width="20" height="12" rx="2" />
+      <path d="M50 54 50 66" />
+      <path d="M42 68 58 68 50 78z" fill="currentColor" stroke="none" />
+      <rect x="14" y="68" width="72" height="16" rx="2" />
+      <path d="M26 76 34 76M66 76 74 76" opacity="0.6" />
     </svg>
   );
 }
 
-export function UvPrintingIcon({ size = 24, className }: IconProps) {
+export function UvPrintingIcon({ size = 96, className }: IconProps) {
   return (
     <svg {...base} width={size} height={size} className={className} aria-hidden="true">
-      <rect x="5" y="4" width="14" height="4" rx="0.8" />
-      <line x1="9" y1="8" x2="9" y2="11" />
-      <line x1="15" y1="8" x2="15" y2="11" />
-      <line x1="4" y1="19" x2="20" y2="19" />
-      <path d="M8 15.3 9 12.8" />
-      <path d="M12 15.3v-2.6" />
-      <path d="M16 15.3 15 12.8" />
+      <rect x="18" y="16" width="64" height="20" rx="3" />
+      <circle cx="30" cy="26" r="2.5" fill="currentColor" stroke="none" />
+      <circle cx="50" cy="26" r="2.5" fill="currentColor" stroke="none" />
+      <circle cx="70" cy="26" r="2.5" fill="currentColor" stroke="none" />
+      <path d="M30 36 30 46M50 36 50 46M70 36 70 46" />
+      <path d="M14 82 86 82" />
+      <path d="M24 62 20 74M38 58 36 74M50 56 50 74M62 58 64 74M76 62 80 74" opacity="0.6" />
+      <rect x="34" y="74" width="32" height="8" rx="1" opacity="0.55" />
     </svg>
   );
 }

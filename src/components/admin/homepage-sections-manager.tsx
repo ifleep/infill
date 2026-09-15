@@ -423,9 +423,10 @@ function PromoImageFields({
         <option value="image-text">Image + text</option>
         <option value="overlay-text">Image with overlay text</option>
         <option value="gallery">Image gallery</option>
+        <option value="carousel">Photo carousel (dot navigation)</option>
       </select>
 
-      {config.variant === "gallery" ? (
+      {config.variant === "gallery" || config.variant === "carousel" ? (
         <div>
           {config.images && config.images.length > 0 && (
             <div className="mb-2 grid grid-cols-4 gap-2">
