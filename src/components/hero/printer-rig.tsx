@@ -25,6 +25,7 @@ export function PrinterRig({ progressRef }: { progressRef: RefObject<number> }) 
   const groupRef = useRef<THREE.Group>(null);
   const printGroupRef = useRef<THREE.Group>(null);
   const meshRefs = useRef<Record<string, THREE.Mesh | null>>({});
+  const nozzleGlowRef = useRef<THREE.Mesh>(null);
   const gantryRidersOffset = useRef(0);
 
   const geometries = useMemo(
@@ -86,6 +87,15 @@ export function PrinterRig({ progressRef }: { progressRef: RefObject<number> }) 
       const s = Math.max(0.001, print);
       printGroupRef.current.scale.set(1, s, 1);
     }
+
+    // Hot nozzle glow while actively "printing" — pulses subtly rather than
+    // holding a flat brightness, reads as heat rather than a plain light bulb.
+    if (nozzleGlowRef.current) {
+      const mat = nozzleGlowRef.current.material as THREE.MeshStandardMaterial;
+      const active = print > 0.02 && print < 1 ? 1 : print >= 1 ? 0.5 : 0;
+      const pulse = active > 0 ? 0.75 + Math.sin(clock.elapsedTime * 8) * 0.25 : 0;
+      mat.emissiveIntensity = active * pulse * 1.4;
+    }
   });
 
   return (
@@ -109,23 +119,57 @@ export function PrinterRig({ progressRef }: { progressRef: RefObject<number> }) 
         </mesh>
       ))}
 
-      {/* Small object the printer "prints" once assembly + sweep complete */}
+      {/* Nozzle heat glow — a small sphere tucked just above the tip, dark
+          like the surrounding metal at rest and only reading as "lit" once
+          emissiveIntensity ramps up during the print phase (see useFrame
+          above) — a literal bright base color would show as a stray orange
+          dot even outside the print phase. */}
+      <mesh ref={nozzleGlowRef} position={[0, 1.62, 0]}>
+        <sphereGeometry args={[0.045, 12, 12]} />
+        <meshStandardMaterial color="#3a3f48" emissive="#ff8a3d" emissiveIntensity={0} roughness={0.4} />
+      </mesh>
+
+      {/* The printed object: a small rocket, built up as the printer "prints" */}
       <group ref={printGroupRef} position={[0, 0.38, 0]}>
-        <mesh position={[0, 0.03, 0]}>
-          <cylinderGeometry args={[0.16, 0.18, 0.06, 6]} />
-          <meshStandardMaterial color="#2f58ae" roughness={0.4} />
+        {/* Engine nozzle */}
+        <mesh position={[0, 0.02, 0]}>
+          <coneGeometry args={[0.07, 0.07, 20]} />
+          <meshStandardMaterial color="#2a2f38" metalness={0.6} roughness={0.35} />
         </mesh>
-        <mesh position={[0, 0.11, 0]}>
-          <cylinderGeometry args={[0.12, 0.16, 0.1, 6]} />
-          <meshStandardMaterial color="#2f58ae" roughness={0.4} />
+        {/* Body */}
+        <mesh position={[0, 0.2, 0]}>
+          <cylinderGeometry args={[0.1, 0.11, 0.3, 24]} />
+          <meshStandardMaterial color="#e8ebef" metalness={0.25} roughness={0.35} />
         </mesh>
-        <mesh position={[0, 0.21, 0]}>
-          <coneGeometry args={[0.11, 0.14, 6]} />
-          <meshStandardMaterial color="#2f58ae" roughness={0.4} />
+        {/* Accent stripe */}
+        <mesh position={[0, 0.14, 0]}>
+          <cylinderGeometry args={[0.104, 0.104, 0.045, 24]} />
+          <meshStandardMaterial color="#f2622e" metalness={0.3} roughness={0.4} />
         </mesh>
+        {/* Cockpit window */}
+        <mesh position={[0, 0.3, 0.075]}>
+          <sphereGeometry args={[0.032, 16, 16]} />
+          <meshStandardMaterial color="#3b74f0" metalness={0.5} roughness={0.15} emissive="#3b74f0" emissiveIntensity={0.25} />
+        </mesh>
+        {/* Nose cone */}
+        <mesh position={[0, 0.44, 0]}>
+          <coneGeometry args={[0.1, 0.22, 24]} />
+          <meshStandardMaterial color="#f2622e" metalness={0.3} roughness={0.35} />
+        </mesh>
+        {/* Fins */}
+        {[0, 120, 240].map((deg) => (
+          <mesh
+            key={deg}
+            position={[Math.sin((deg * Math.PI) / 180) * 0.12, 0.06, Math.cos((deg * Math.PI) / 180) * 0.12]}
+            rotation={[0, (-deg * Math.PI) / 180, 0]}
+          >
+            <boxGeometry args={[0.018, 0.14, 0.09]} />
+            <meshStandardMaterial color="#c7cbd1" metalness={0.3} roughness={0.5} />
+          </mesh>
+        ))}
       </group>
 
-      <ContactShadows position={[0, -0.01, 0]} opacity={0.45} scale={6} blur={2.2} far={2.4} color="#0a1526" />
+      <ContactShadows position={[0, -0.01, 0]} opacity={0.5} scale={6} blur={2.2} far={2.4} color="#142645" />
     </group>
   );
 }

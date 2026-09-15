@@ -1,11 +1,11 @@
 export function HeroStaticVisual() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center overflow-hidden bg-navy-900">
+    <div className="absolute inset-0 flex items-center justify-center overflow-hidden bg-hero-bg">
       <div
-        className="absolute inset-0 opacity-40"
+        className="absolute inset-0 opacity-50"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 30% 20%, rgba(47,88,174,0.35), transparent 55%), radial-gradient(circle at 75% 70%, rgba(31,63,138,0.3), transparent 50%)",
+            "radial-gradient(circle at 30% 20%, rgba(59,116,240,0.4), transparent 55%), radial-gradient(circle at 75% 70%, rgba(230,138,58,0.22), transparent 50%)",
         }}
       />
       <svg

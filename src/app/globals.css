@@ -11,19 +11,25 @@
   --color-ink-muted: #565f6a;
   --color-ink-faint: #5f6b7a;
 
-  /* Precision Blue — muted, used deliberately rather than everywhere */
-  --color-blue-50: #eef1f6;
-  --color-blue-100: #dbe2ec;
-  --color-blue-300: #8fa0c2;
-  --color-blue-500: #3c5a8f;
-  --color-blue-600: #2c4770;
-  --color-blue-700: #233658;
-  --color-blue-900: #0d1a2e;
+  /* Precision Blue — bright, confident tech blue */
+  --color-blue-50: #eef4ff;
+  --color-blue-100: #dbe6fe;
+  --color-blue-300: #8db0f7;
+  --color-blue-500: #3b74f0;
+  --color-blue-600: #2f62e0;
+  --color-blue-700: #2451c7;
+  --color-blue-900: #16305e;
 
-  /* Deep Navy — secondary, dark sections (hero, footer) */
+  /* Deep Navy — secondary, dark sections (footer, CTA bands) */
   --color-navy-900: #0a1526;
   --color-navy-800: #0f1e35;
   --color-navy-700: #152a47;
+
+  /* Hero-only background — deliberately lighter than --color-navy-900 so the
+     3D scene reads brighter; kept separate so footer/CTA sections elsewhere
+     on the site aren't affected by this. */
+  --color-hero-bg: #1c3560;
+  --color-hero-bg-deep: #142645;
 
   /* Pakistan Green — sparing accent only */
   --color-pk-green: #0f6b3f;
@@ -63,6 +69,9 @@
   --color-navy-900: var(--color-navy-900);
   --color-navy-800: var(--color-navy-800);
   --color-navy-700: var(--color-navy-700);
+
+  --color-hero-bg: var(--color-hero-bg);
+  --color-hero-bg-deep: var(--color-hero-bg-deep);
 
   --color-pk-green: var(--color-pk-green);
   --color-pk-green-deep: var(--color-pk-green-deep);

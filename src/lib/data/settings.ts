@@ -19,7 +19,7 @@ export interface SiteSettings {
 }
 
 const DEFAULTS: SiteSettings = {
-  whatsappNumber: "923000000000",
+  whatsappNumber: "8616621610013",
   whatsappMessage: "Hi INFiLLPK, I have a question about ",
   shippingRates: [
     { city: "Karachi", cost: 300, etaDays: 2 },
@@ -29,7 +29,7 @@ const DEFAULTS: SiteSettings = {
     { city: "Faisalabad", cost: 350, etaDays: 3 },
   ],
   defaultShippingCost: 450,
-  storeNotificationEmail: "",
+  storeNotificationEmail: "sales@infillpk.com",
 };
 
 export async function getSiteSettings(): Promise<SiteSettings> {

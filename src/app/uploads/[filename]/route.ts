@@ -1,6 +1,6 @@
-import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
+import { readLocalUpload } from "@/lib/storage";
 
 // Next.js's production server only serves files under public/ that existed
 // at build time — it builds a static manifest at `next build` and doesn't
@@ -9,6 +9,10 @@ import { NextResponse } from "next/server";
 // served the normal public/ way. This route handler reads the file from
 // disk on every request instead, so newly uploaded files are servable
 // immediately without a rebuild.
+//
+// Only reached for files stored on local disk — once S3-compatible storage
+// is configured (see src/lib/storage.ts), new uploads get a full external
+// URL and are served directly by the storage provider instead.
 const MIME_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
@@ -17,8 +21,6 @@ const MIME_TYPES: Record<string, string> = {
   ".avif": "image/avif",
   ".gif": "image/gif",
 };
-
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
 
 export async function GET(_request: Request, { params }: { params: Promise<{ filename: string }> }) {
   const { filename } = await params;
@@ -35,7 +37,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ fil
   }
 
   try {
-    const data = await readFile(path.join(UPLOAD_DIR, filename));
+    const data = await readLocalUpload(filename);
     return new NextResponse(new Uint8Array(data), {
       headers: {
         "Content-Type": contentType,

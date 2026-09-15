@@ -106,7 +106,7 @@ export function CinematicHero() {
           {isCinematic ? <HeroScene progressRef={progressRef} /> : <HeroStaticVisual />}
         </div>
 
-        <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-navy-900/75 to-navy-900/5" />
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-hero-bg-deep/70 to-hero-bg-deep/5" />
 
         <div className="container-page relative z-10 flex h-full items-center pointer-events-none">
           <div className="max-w-xl pointer-events-auto">
