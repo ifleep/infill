@@ -84,7 +84,7 @@ export function InstantQuoteSection({
               inverted
               eyebrow="3D Printing Service"
               title="Yes — we 3D print your design. Upload it and see the price now."
-              description="No one else in Pakistan gives you a live price like this. Upload your STL, OBJ, or G-code file and we'll show you the cost in every material, instantly — free, no account, no waiting for a reply."
+              description="Upload your STL, OBJ, or G-code file and we'll show you the cost in every material, instantly — free, no account, no waiting for a reply."
             />
             <ul className="mt-6 space-y-2 text-sm text-on-navy-muted">
               <li className="flex items-center gap-2">

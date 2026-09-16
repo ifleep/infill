@@ -18,7 +18,7 @@ export default function ServicesPage() {
             inverted
             eyebrow="3D Printing Services"
             title="Need something 3D printed? We'll print it for you."
-            description="Upload your file and get an instant price online — the first live 3D printing calculator in Pakistan. Not sure where to start? We can help with the design too."
+            description="Upload your file and get an instant price online. Not sure where to start? We can help with the design too."
           />
           <LinkButton href="/print-price-calculator" size="lg" className="mt-6">
             Get an instant price
