@@ -136,6 +136,7 @@ export const megaMenus: MegaMenuConfig[] = [
 ];
 
 export const simpleNavLinks = [
+  { label: "Instant Quote", href: "/print-price-calculator" },
   { label: "Services", href: "/services" },
   { label: "Learn", href: "/lab" },
 ];

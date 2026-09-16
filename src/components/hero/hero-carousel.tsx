@@ -26,6 +26,7 @@ export function HeroCarousel({ photos, progressRef }: { photos: BlockImageRef[];
   const slides: Slide[] = [{ kind: "animation" }, ...photos.map((image) => ({ kind: "image" as const, image }))];
   const [index, setIndex] = useState(0);
   const [printerProgress, setPrinterProgress] = useState(0);
+  const [paused, setPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const lastProgressRef = useRef(0);
 
@@ -44,12 +45,30 @@ export function HeroCarousel({ photos, progressRef }: { photos: BlockImageRef[];
     return () => cancelAnimationFrame(raf);
   }, [progressRef]);
 
+  // Auto-advance through the slides, same as a normal carousel — scrolling
+  // still overrides this instantly (the tick above forces index back to 0
+  // on any real scroll movement), so this only matters while the visitor
+  // isn't actively scrolling.
+  useEffect(() => {
+    if (paused || slides.length <= 1) return;
+    const id = setInterval(() => {
+      setIndex((prev) => (prev + 1) % slides.length);
+    }, 6000);
+    return () => clearInterval(id);
+  }, [paused, slides.length]);
+
   function goTo(i: number) {
     setIndex(((i % slides.length) + slides.length) % slides.length);
   }
 
   return (
-    <div className="relative h-full">
+    <div
+      className="relative h-full"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+    >
       <div
         className="h-full w-full overflow-hidden"
         onTouchStart={(e) => {

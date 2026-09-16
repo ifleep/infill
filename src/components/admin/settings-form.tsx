@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { CaretUp, CaretDown } from "@phosphor-icons/react";
+import { CaretUp, CaretDown, Plus, Trash } from "@phosphor-icons/react";
 import type { SiteSettings } from "@/lib/data/settings";
 import type { BlockImageRef } from "@/lib/content-blocks/types";
+import type { PrintMaterial } from "@/lib/print-estimate";
 import type { MediaItem } from "@/lib/admin/media-types";
 import { MediaPicker } from "@/components/admin/media-picker";
 
@@ -49,6 +50,25 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
       [images[index], images[target]] = [images[target], images[index]];
       return { ...v, heroImages: images };
     });
+  }
+
+  function updateMaterial(index: number, patch: Partial<PrintMaterial>) {
+    setValues((v) => {
+      const materials = [...v.printMaterials];
+      materials[index] = { ...materials[index], ...patch };
+      return { ...v, printMaterials: materials };
+    });
+  }
+
+  function addMaterial() {
+    setValues((v) => ({
+      ...v,
+      printMaterials: [...v.printMaterials, { name: "", densityGCm3: 1.24, pricePerKgPkr: 0 }],
+    }));
+  }
+
+  function removeMaterial(index: number) {
+    setValues((v) => ({ ...v, printMaterials: v.printMaterials.filter((_, i) => i !== index) }));
   }
 
   return (
@@ -183,6 +203,95 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
           placeholder="What our customers are saying"
           className={inputClass}
         />
+      </label>
+
+      <div className="border-t border-border pt-5">
+        <h2 className="font-display text-base font-semibold text-ink">Print price calculator</h2>
+        <p className="mt-1 text-sm text-ink-muted">
+          Materials and pricing used to estimate 3D-printing quotes. Prices are per kilogram — set these to your
+          real costs before customers rely on the quotes.
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        {values.printMaterials.map((material, i) => (
+          <div key={i} className="flex items-center gap-2 rounded-md border border-border p-2">
+            <input
+              value={material.name}
+              onChange={(e) => updateMaterial(i, { name: e.target.value })}
+              placeholder="Name (e.g. PLA)"
+              className={`${inputClass} w-28`}
+            />
+            <label className="flex items-center gap-1 text-xs text-ink-muted">
+              Density
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={material.densityGCm3}
+                onChange={(e) => updateMaterial(i, { densityGCm3: Number(e.target.value) })}
+                placeholder="g/cm³"
+                className={`${inputClass} w-20`}
+              />
+              g/cm³
+            </label>
+            <label className="flex flex-1 items-center gap-1 text-xs text-ink-muted">
+              Price
+              <input
+                type="number"
+                step="1"
+                min="0"
+                value={material.pricePerKgPkr}
+                onChange={(e) => updateMaterial(i, { pricePerKgPkr: Number(e.target.value) })}
+                placeholder="PKR/kg"
+                className={`${inputClass} w-24`}
+              />
+              PKR/kg
+            </label>
+            <button
+              type="button"
+              onClick={() => removeMaterial(i)}
+              aria-label="Remove material"
+              className="focus-ring cursor-pointer rounded p-1 text-ink-faint hover:text-destructive"
+            >
+              <Trash size={14} />
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={addMaterial}
+          className="focus-ring flex cursor-pointer items-center gap-1 rounded-md border border-dashed border-border-strong px-3 py-2 text-xs font-medium text-ink-muted hover:text-ink"
+        >
+          <Plus size={14} />
+          Add material
+        </button>
+      </div>
+
+      <label className="block text-sm">
+        <span className="mb-1.5 block font-medium text-ink">Support material overhead (%)</span>
+        <input
+          type="number"
+          min="0"
+          value={values.printSupportOverheadPercent}
+          onChange={(e) => setValues((v) => ({ ...v, printSupportOverheadPercent: Number(e.target.value) }))}
+          className={inputClass}
+        />
+        <span className="mt-1 block text-xs text-ink-faint">
+          Extra material assumed for supports, added on top of the estimated part weight.
+        </span>
+      </label>
+
+      <label className="block text-sm">
+        <span className="mb-1.5 block font-medium text-ink">Service fee (PKR)</span>
+        <input
+          type="number"
+          min="0"
+          value={values.printServiceFeePkr}
+          onChange={(e) => setValues((v) => ({ ...v, printServiceFeePkr: Number(e.target.value) }))}
+          className={inputClass}
+        />
+        <span className="mt-1 block text-xs text-ink-faint">Flat handling fee added to every quote.</span>
       </label>
 
       <div className="flex items-center gap-3">

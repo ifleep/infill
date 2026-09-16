@@ -1,4 +1,5 @@
 import { HomepageHero } from "@/components/hero/homepage-hero";
+import { InstantQuoteSection } from "@/components/sections/instant-quote-section";
 import { PrintingDiscoverySection } from "@/components/sections/printing-discovery-section";
 import { FindYourPrinterSection } from "@/components/sections/find-your-printer-section";
 import { FeaturedPrintersSection } from "@/components/sections/featured-printers-section";
@@ -21,6 +22,11 @@ export default async function Home() {
       <RegionalMotifEdge motif="sindh" side="left" />
       <RegionalMotifEdge motif="punjab" side="right" />
       <HomepageHero heroImages={settings.heroImages} />
+      <InstantQuoteSection
+        materials={settings.printMaterials}
+        supportOverheadPercent={settings.printSupportOverheadPercent}
+        serviceFeePkr={settings.printServiceFeePkr}
+      />
       <PrintingDiscoverySection />
       <FindYourPrinterSection printers={printers} />
       <FeaturedPrintersSection />
