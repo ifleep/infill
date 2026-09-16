@@ -1,44 +1,55 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import type { BlockImageRef } from "@/lib/content-blocks/types";
 import { PrinterAssemblySlide } from "@/components/hero/printer-assembly-slide";
 
 type Slide = { kind: "animation" } | { kind: "image"; image: BlockImageRef };
 
+const PROGRESS_EPSILON = 0.002;
+
 /**
- * The hero's full-bleed carousel — same dot-nav/swipe/autoplay behavior as
- * the general PhotoCarousel, but with one fixed slide (the printer
- * assembly animation) mixed in ahead of the admin-managed photos, which
- * PhotoCarousel's plain BlockImageRef[] contract has no way to express.
+ * The hero's full-bleed carousel. Slide 0 is the printer assembly, driven
+ * live by scroll progress (0-1, written into progressRef by HomepageHero's
+ * sticky-pin scroll math) rather than an internal timer — scroll down to
+ * assemble, scroll up to explode, exactly like the last verified-working
+ * version. The rest are the admin's photos from Settings.
+ *
+ * Dots let you jump to a photo at any time, but scrolling always takes
+ * back control of slide 0: any detected scroll movement snaps back to the
+ * live scroll-progress view. That's deliberate — trying to let a manually
+ * picked photo coexist with an active scroll gesture is exactly the kind
+ * of two-interactions-fighting-each-other bug earlier attempts at this
+ * hero ran into, so scroll simply always wins.
  */
-export function HeroCarousel({ photos }: { photos: BlockImageRef[] }) {
+export function HeroCarousel({ photos, progressRef }: { photos: BlockImageRef[]; progressRef: RefObject<number> }) {
   const slides: Slide[] = [{ kind: "animation" }, ...photos.map((image) => ({ kind: "image" as const, image }))];
   const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
+  const [printerProgress, setPrinterProgress] = useState(0);
   const touchStartX = useRef<number | null>(null);
-
-  const goTo = useCallback(
-    (i: number) => {
-      setIndex(((i % slides.length) + slides.length) % slides.length);
-    },
-    [slides.length]
-  );
+  const lastProgressRef = useRef(0);
 
   useEffect(() => {
-    if (paused || slides.length <= 1) return;
-    const t = setInterval(() => goTo(index + 1), 6000);
-    return () => clearInterval(t);
-  }, [index, paused, slides.length, goTo]);
+    let raf: number;
+    const tick = () => {
+      const progress = progressRef.current ?? 0;
+      if (Math.abs(progress - lastProgressRef.current) > PROGRESS_EPSILON) {
+        lastProgressRef.current = progress;
+        setPrinterProgress(progress);
+        setIndex(0); // scrolling always reclaims the printer slide
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [progressRef]);
+
+  function goTo(i: number) {
+    setIndex(((i % slides.length) + slides.length) % slides.length);
+  }
 
   return (
-    <div
-      className="relative h-full"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocus={() => setPaused(true)}
-      onBlur={() => setPaused(false)}
-    >
+    <div className="relative h-full">
       <div
         className="h-full w-full overflow-hidden"
         onTouchStart={(e) => {
@@ -57,7 +68,7 @@ export function HeroCarousel({ photos }: { photos: BlockImageRef[] }) {
         >
           {slides.map((slide, i) =>
             slide.kind === "animation" ? (
-              <PrinterAssemblySlide key="animation" active={index === i} />
+              <PrinterAssemblySlide key="animation" progress={printerProgress} />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element -- CMS-managed image, not a static import
               <img

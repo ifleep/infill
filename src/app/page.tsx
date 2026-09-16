@@ -11,15 +11,16 @@ import { LearnSection } from "@/components/sections/learn-section";
 import { FinalCtaSection } from "@/components/sections/final-cta-section";
 import { RegionalMotifEdge } from "@/components/patterns/regional-motif-edge";
 import { getProductsByCategory } from "@/lib/data/products";
+import { getSiteSettings } from "@/lib/data/settings";
 
 export default async function Home() {
-  const printers = await getProductsByCategory("printers");
+  const [printers, settings] = await Promise.all([getProductsByCategory("printers"), getSiteSettings()]);
 
   return (
     <>
       <RegionalMotifEdge motif="sindh" side="left" />
       <RegionalMotifEdge motif="punjab" side="right" />
-      <HomepageHero />
+      <HomepageHero heroImages={settings.heroImages} />
       <PrintingDiscoverySection />
       <FindYourPrinterSection printers={printers} />
       <FeaturedPrintersSection />
