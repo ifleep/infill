@@ -6,6 +6,9 @@ import type { Product } from "@/lib/types";
 import { ProductVisual } from "@/components/product/product-visual";
 import { AvailabilityBadge } from "@/components/product/availability-badge";
 import { StockUrgency } from "@/components/product/stock-urgency";
+import { LimitedStockBadge } from "@/components/product/limited-stock-badge";
+import { SaleTimer } from "@/components/product/sale-timer";
+import { SoldCount } from "@/components/product/sold-count";
 import { formatPKR } from "@/lib/format";
 import { getBrandById } from "@/lib/data/brands";
 import { useCartStore } from "@/components/cart/cart-store";
@@ -51,13 +54,18 @@ export function ProductCard({ product }: { product: Product }) {
           </div>
         )}
         <StockUrgency product={product} className="mt-1.5" />
+        <LimitedStockBadge product={product} className="mt-1.5" />
+        <SaleTimer saleEndsAt={product.saleEndsAt} className="mt-1.5" />
+        <SoldCount product={product} className="mt-1.5" />
 
-        {product.rating && (
+        {product.rating && product.reviewCount ? (
           <div className="mt-1.5 flex items-center gap-1 text-xs text-ink-muted">
             <Star size={13} weight="fill" className="text-amber-600" />
             <span className="tabular">{product.rating}</span>
             <span className="text-ink-faint">({product.reviewCount})</span>
           </div>
+        ) : (
+          <p className="mt-1.5 text-xs text-ink-faint">No reviews yet</p>
         )}
 
         <div className="mt-3 flex items-baseline gap-2">

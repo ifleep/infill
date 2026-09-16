@@ -84,6 +84,10 @@ function fromRow(row: ProductWithMedia): Product {
     rating: row.rating ?? undefined,
     reviewCount: row.reviewCount ?? undefined,
     featured: row.featured,
+    soldCount: row.soldCount,
+    saleEndsAt: row.saleEndsAt?.toISOString(),
+    limitedStockEnabled: row.limitedStockEnabled,
+    limitedStockQuantity: row.limitedStockQuantity ?? undefined,
     seoTitle: row.seoTitle ?? undefined,
     metaDescription: row.metaDescription ?? undefined,
     canonicalUrl: row.canonicalUrl ?? undefined,
@@ -217,6 +221,11 @@ export interface ProductInput {
   ogDescription?: string | null;
   noindex?: boolean;
   includeInSitemap?: boolean;
+  weightKg?: number | null;
+  soldCount?: number;
+  saleEndsAt?: string | null;
+  limitedStockEnabled?: boolean;
+  limitedStockQuantity?: number | null;
 }
 
 function toDbInput(input: ProductInput) {
@@ -245,6 +254,11 @@ function toDbInput(input: ProductInput) {
     ...(input.ogDescription !== undefined ? { ogDescription: input.ogDescription } : {}),
     ...(input.noindex !== undefined ? { noindex: input.noindex } : {}),
     ...(input.includeInSitemap !== undefined ? { includeInSitemap: input.includeInSitemap } : {}),
+    ...(input.weightKg !== undefined ? { weightKg: input.weightKg } : {}),
+    ...(input.soldCount !== undefined ? { soldCount: input.soldCount } : {}),
+    ...(input.saleEndsAt !== undefined ? { saleEndsAt: input.saleEndsAt ? new Date(input.saleEndsAt) : null } : {}),
+    ...(input.limitedStockEnabled !== undefined ? { limitedStockEnabled: input.limitedStockEnabled } : {}),
+    ...(input.limitedStockQuantity !== undefined ? { limitedStockQuantity: input.limitedStockQuantity } : {}),
     // Prisma's Json input type wants an index-signature-bearing object, which
     // a concrete discriminated-union interface like ContentBlock doesn't
     // structurally have — cast through unknown, the runtime shape is plain JSON.

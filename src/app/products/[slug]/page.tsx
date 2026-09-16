@@ -14,6 +14,9 @@ import { ProductCard } from "@/components/product/product-card";
 import { AddToCartPanel } from "@/components/product/add-to-cart-panel";
 import { CompareToggle } from "@/components/compare/compare-toggle";
 import { AvailabilityStatus } from "@/components/product/availability-badge";
+import { LimitedStockBadge } from "@/components/product/limited-stock-badge";
+import { SaleTimer } from "@/components/product/sale-timer";
+import { SoldCount } from "@/components/product/sold-count";
 import { formatPKR } from "@/lib/format";
 import { Faq } from "@/components/product/faq";
 import { ReviewSection } from "@/components/product/review-section";
@@ -91,7 +94,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       price: product.price,
       availability: schemaAvailability(product.availability),
     },
-    ...(product.rating
+    ...(product.rating && product.reviewCount
       ? {
           aggregateRating: {
             "@type": "AggregateRating",
@@ -151,12 +154,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <p className="text-sm font-medium uppercase tracking-wide text-ink-faint">{brand?.name}</p>
           <h1 className="font-display mt-1 text-3xl font-semibold text-ink sm:text-4xl">{product.name}</h1>
 
-          {product.rating && (
+          {product.rating && product.reviewCount ? (
             <div className="mt-3 flex items-center gap-1.5 text-sm text-ink-muted">
               <Star size={16} weight="fill" className="text-amber-600" />
               <span className="tabular font-medium text-ink">{product.rating}</span>
               <span>({product.reviewCount} reviews)</span>
             </div>
+          ) : (
+            <p className="mt-3 text-sm text-ink-faint">No reviews yet</p>
           )}
 
           <p className="mt-4 text-base text-ink-muted">{product.shortDescription}</p>
@@ -173,6 +178,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
           <div className="mt-3">
             <AvailabilityStatus availability={product.availability} stock={product.stock} />
+            <LimitedStockBadge product={product} className="mt-1.5" />
+            <SaleTimer saleEndsAt={product.saleEndsAt} className="mt-1.5" />
+            <SoldCount product={product} className="mt-1.5" />
           </div>
 
           <AddToCartPanel product={product} brandName={brand?.name ?? ""} />

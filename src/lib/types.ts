@@ -114,6 +114,10 @@ export interface Product extends SeoFields {
   rating?: number;
   reviewCount?: number;
   featured?: boolean;
+  soldCount?: number;
+  saleEndsAt?: string;
+  limitedStockEnabled?: boolean;
+  limitedStockQuantity?: number;
 }
 
 export interface Article extends SeoFields {

@@ -39,6 +39,21 @@ export interface ProductFormValues {
   ogDescription: string;
   noindex: boolean;
   includeInSitemap: boolean;
+  weightKg: number | "";
+  soldCount: number | "";
+  saleEndsAt: string;
+  limitedStockEnabled: boolean;
+  limitedStockQuantity: number | "";
+}
+
+// datetime-local inputs need "YYYY-MM-DDTHH:mm" in the browser's local time,
+// not the ISO string (with seconds/Z) that comes back from the API.
+function toDatetimeLocal(iso: string | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function fromProduct(p: Product): ProductFormValues {
@@ -64,6 +79,11 @@ function fromProduct(p: Product): ProductFormValues {
     ogDescription: p.ogDescription ?? "",
     noindex: p.noindex ?? false,
     includeInSitemap: p.includeInSitemap ?? true,
+    weightKg: p.weightKg ?? "",
+    soldCount: p.soldCount ?? 0,
+    saleEndsAt: toDatetimeLocal(p.saleEndsAt),
+    limitedStockEnabled: p.limitedStockEnabled ?? false,
+    limitedStockQuantity: p.limitedStockQuantity ?? "",
   };
 }
 
@@ -89,6 +109,11 @@ const empty: ProductFormValues = {
   ogDescription: "",
   noindex: false,
   includeInSitemap: true,
+  weightKg: "",
+  soldCount: 0,
+  saleEndsAt: "",
+  limitedStockEnabled: false,
+  limitedStockQuantity: "",
 };
 
 export function ProductForm({
@@ -124,6 +149,10 @@ export function ProductForm({
       compareAtPrice: values.compareAtPrice === "" ? null : values.compareAtPrice,
       stock: values.stock === "" ? 0 : values.stock,
       lowStockThreshold: values.lowStockThreshold === "" ? null : values.lowStockThreshold,
+      weightKg: values.weightKg === "" ? null : values.weightKg,
+      soldCount: values.soldCount === "" ? 0 : values.soldCount,
+      saleEndsAt: values.saleEndsAt === "" ? null : new Date(values.saleEndsAt).toISOString(),
+      limitedStockQuantity: values.limitedStockQuantity === "" ? null : values.limitedStockQuantity,
       mediaIds: photos.map((p) => p.id),
       contentBlocks,
     };
@@ -287,6 +316,68 @@ export function ProductForm({
           />
           Featured on homepage
         </label>
+      </div>
+
+      <div className="border-t border-border pt-5">
+        <span className="mb-1.5 block text-sm font-medium text-ink">Merchandising</span>
+        <p className="mb-3 text-xs text-ink-faint">
+          Optional urgency/social-proof messaging shown on the product card and page.
+        </p>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Weight (kg)" hint="Used to calculate shipping cost at checkout (250 PKR/kg, capped at 2500 PKR)">
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              value={values.weightKg}
+              onChange={(e) => set("weightKg", e.target.value === "" ? "" : Number(e.target.value))}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Sold count" hint='Shown as "N sold" when above 0 — set by hand, not from real orders'>
+            <input
+              type="number"
+              min={0}
+              value={values.soldCount}
+              onChange={(e) => set("soldCount", e.target.value === "" ? "" : Number(e.target.value))}
+              className={inputClass}
+            />
+          </Field>
+        </div>
+        <div className="mt-4">
+          <Field
+            label="Sale ends at"
+            hint="Shows a live countdown on the product while set to a future date/time. Leave blank to hide."
+          >
+            <input
+              type="datetime-local"
+              value={values.saleEndsAt}
+              onChange={(e) => set("saleEndsAt", e.target.value)}
+              className={inputClass}
+            />
+          </Field>
+        </div>
+        <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-ink">
+          <input
+            type="checkbox"
+            checked={values.limitedStockEnabled}
+            onChange={(e) => set("limitedStockEnabled", e.target.checked)}
+          />
+          Show &ldquo;limited stock&rdquo; badge
+        </label>
+        {values.limitedStockEnabled && (
+          <div className="mt-3">
+            <Field label="Limited stock quantity" hint='Shown as "Only N left!" — independent of the real stock count above'>
+              <input
+                type="number"
+                min={0}
+                value={values.limitedStockQuantity}
+                onChange={(e) => set("limitedStockQuantity", e.target.value === "" ? "" : Number(e.target.value))}
+                className={inputClass}
+              />
+            </Field>
+          </div>
+        )}
       </div>
 
       <Field label="Photos" hint="Upload photos from the supplier — the first one becomes the main product image">

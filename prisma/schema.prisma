@@ -112,6 +112,14 @@ model Product {
   reviewCount Int?
   featured    Boolean @default(false)
 
+  /** Admin-entered "X sold" social-proof count — not derived from real orders. */
+  soldCount Int @default(0)
+  /** When set and in the future, the storefront shows a countdown; ignored once past. */
+  saleEndsAt DateTime?
+  /** Independent of `stock` — an admin-chosen number for "Only N left!" urgency messaging. */
+  limitedStockEnabled  Boolean @default(false)
+  limitedStockQuantity Int?
+
   // SEO
   seoTitle        String?
   metaDescription String? @db.Text
