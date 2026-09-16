@@ -24,10 +24,12 @@ export function SiteHeader() {
   const cartCount = useCartCount();
   const openCart = useCartStore((s) => s.open);
 
+  const activeMenu = megaMenus.find((m) => m.label === openMenu);
+
   return (
     <>
       <header className="sticky top-0 z-80 border-b border-border bg-surface/90 backdrop-blur-md">
-        <div className="container-page flex h-16 items-center gap-6 lg:h-20">
+        <div className="container-page flex h-14 items-center gap-6 lg:h-16">
           <button
             className="focus-ring cursor-pointer p-1 lg:hidden"
             aria-label="Open menu"
@@ -41,59 +43,21 @@ export function SiteHeader() {
           </Link>
 
           <nav
-            className="hidden flex-1 items-center gap-1 lg:flex"
+            className="hidden flex-1 items-center justify-center gap-1 lg:flex"
             onMouseLeave={() => setOpenMenu(null)}
           >
             {megaMenus.map((menu) => (
-              <div key={menu.label} className="relative">
-                <button
-                  onMouseEnter={() => setOpenMenu(menu.label)}
-                  onFocus={() => setOpenMenu(menu.label)}
-                  className="focus-ring flex cursor-pointer items-center gap-1 rounded px-3.5 py-2 text-sm font-medium text-ink hover:text-blue-700"
-                  aria-expanded={openMenu === menu.label}
-                >
-                  {menu.label}
-                  <CaretDown size={12} weight="bold" />
-                </button>
-                {openMenu === menu.label && (
-                  <div
-                    className="absolute left-1/2 top-full z-70 w-[min(90vw,760px)] -translate-x-1/2 rounded-xl border border-border bg-surface p-6 shadow-xl"
-                    onMouseEnter={() => setOpenMenu(menu.label)}
-                  >
-                    <div className="grid grid-cols-4 gap-6">
-                      {menu.columns.map((col) => (
-                        <div key={col.heading}>
-                          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-faint">
-                            {col.heading}
-                          </p>
-                          <ul className="space-y-2.5">
-                            {col.links.map((link) => (
-                              <li key={link.label}>
-                                <Link
-                                  href={link.href}
-                                  onClick={() => setOpenMenu(null)}
-                                  className="focus-ring text-sm text-ink hover:text-blue-700"
-                                >
-                                  {link.label}
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-6 border-t border-border pt-4">
-                      <Link
-                        href={menu.viewAllHref}
-                        onClick={() => setOpenMenu(null)}
-                        className="focus-ring text-sm font-medium text-blue-700 hover:text-blue-600"
-                      >
-                        {menu.viewAllLabel} →
-                      </Link>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <Link
+                key={menu.label}
+                href={menu.href}
+                onMouseEnter={() => setOpenMenu(menu.label)}
+                onFocus={() => setOpenMenu(menu.label)}
+                className="focus-ring flex cursor-pointer items-center gap-1 rounded px-3.5 py-2 text-sm font-medium text-ink hover:text-blue-700"
+                aria-expanded={openMenu === menu.label}
+              >
+                {menu.label}
+                <CaretDown size={12} weight="bold" />
+              </Link>
             ))}
             {simpleNavLinks.map((link) => (
               <Link
@@ -104,6 +68,45 @@ export function SiteHeader() {
                 {link.label}
               </Link>
             ))}
+
+            {activeMenu && (
+              <div
+                className="absolute inset-x-0 top-full z-70 border-b border-border bg-surface shadow-xl"
+                onMouseEnter={() => setOpenMenu(activeMenu.label)}
+              >
+                <div className="container-page grid grid-cols-4 gap-6 py-8">
+                  {activeMenu.columns.map((col) => (
+                    <div key={col.heading}>
+                      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                        {col.heading}
+                      </p>
+                      <ul className="space-y-2.5">
+                        {col.links.map((link) => (
+                          <li key={link.label}>
+                            <Link
+                              href={link.href}
+                              onClick={() => setOpenMenu(null)}
+                              className="focus-ring text-sm text-ink hover:text-blue-700"
+                            >
+                              {link.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+                <div className="container-page border-t border-border py-4">
+                  <Link
+                    href={activeMenu.viewAllHref}
+                    onClick={() => setOpenMenu(null)}
+                    className="focus-ring text-sm font-medium text-blue-700 hover:text-blue-600"
+                  >
+                    {activeMenu.viewAllLabel} →
+                  </Link>
+                </div>
+              </div>
+            )}
           </nav>
 
           <div className="ml-auto flex items-center gap-1 lg:ml-0">

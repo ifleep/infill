@@ -9,7 +9,7 @@ export function Wordmark({ inverted = false, className }: { inverted?: boolean; 
         className
       )}
     >
-      INFiLL<span className={inverted ? "text-blue-300" : "text-blue-700"}>PK</span>
+      INFiLL
     </span>
   );
 }

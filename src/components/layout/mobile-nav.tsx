@@ -40,20 +40,29 @@ export function MobileNav({ open, onClose }: { open: boolean; onClose: () => voi
         </div>
         <nav className="px-2 py-2">
           {megaMenus.map((menu) => (
-            <div key={menu.label} className="border-b border-border">
-              <button
-                className="focus-ring flex w-full cursor-pointer items-center justify-between px-3 py-3.5 text-left text-sm font-medium text-ink"
-                onClick={() => setExpanded(expanded === menu.label ? null : menu.label)}
-                aria-expanded={expanded === menu.label}
-              >
-                {menu.label}
-                <CaretRight
-                  size={14}
-                  className={`transition-transform ${expanded === menu.label ? "rotate-90" : ""}`}
-                />
-              </button>
+            <div key={menu.label}>
+              <div className="flex items-center border-b border-border">
+                <Link
+                  href={menu.href}
+                  onClick={onClose}
+                  className="focus-ring flex-1 px-3 py-3.5 text-left text-sm font-medium text-ink"
+                >
+                  {menu.label}
+                </Link>
+                <button
+                  className="focus-ring cursor-pointer p-3.5 text-ink-muted"
+                  onClick={() => setExpanded(expanded === menu.label ? null : menu.label)}
+                  aria-expanded={expanded === menu.label}
+                  aria-label={`${expanded === menu.label ? "Collapse" : "Expand"} ${menu.label}`}
+                >
+                  <CaretRight
+                    size={14}
+                    className={`transition-transform ${expanded === menu.label ? "rotate-90" : ""}`}
+                  />
+                </button>
+              </div>
               {expanded === menu.label && (
-                <div className="space-y-4 px-3 pb-4">
+                <div className="space-y-4 border-b border-border px-3 pb-4 pt-4">
                   {menu.columns.map((col) => (
                     <div key={col.heading}>
                       <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-faint">

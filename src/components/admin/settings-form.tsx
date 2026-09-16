@@ -1,17 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash } from "@phosphor-icons/react";
-import type { ShippingRate, SiteSettings } from "@/lib/data/settings";
+import { CaretUp, CaretDown } from "@phosphor-icons/react";
+import type { SiteSettings } from "@/lib/data/settings";
+import type { BlockImageRef } from "@/lib/content-blocks/types";
+import type { MediaItem } from "@/lib/admin/media-types";
+import { MediaPicker } from "@/components/admin/media-picker";
 
 const inputClass =
   "focus-ring w-full rounded-md border border-border-strong px-3 py-2 text-sm text-ink placeholder:text-ink-faint";
+
+function toImageRef(m: MediaItem): BlockImageRef {
+  return { mediaId: m.id, url: m.url, alt: m.alt ?? "", caption: m.caption ?? undefined };
+}
 
 export function SettingsForm({ initial }: { initial: SiteSettings }) {
   const [values, setValues] = useState(initial);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -31,6 +39,16 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
     } finally {
       setSaving(false);
     }
+  }
+
+  function moveHeroImage(index: number, direction: -1 | 1) {
+    setValues((v) => {
+      const images = [...v.heroImages];
+      const target = index + direction;
+      if (target < 0 || target >= images.length) return v;
+      [images[index], images[target]] = [images[target], images[index]];
+      return { ...v, heroImages: images };
+    });
   }
 
   return (
@@ -82,48 +100,90 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
       </label>
 
       <div className="border-t border-border pt-5">
-        <h2 className="font-display text-base font-semibold text-ink">Shipping</h2>
-        <p className="mt-1 text-sm text-ink-muted">Flat rate + delivery estimate shown at checkout, per city.</p>
+        <h2 className="font-display text-base font-semibold text-ink">Homepage hero photos</h2>
+        <p className="mt-1 text-sm text-ink-muted">
+          The photo carousel at the top of the homepage. Use the arrows to reorder.
+        </p>
       </div>
 
-      <label className="block text-sm">
-        <span className="mb-1.5 block font-medium text-ink">Default shipping cost</span>
-        <input
-          type="number"
-          min={0}
-          value={values.defaultShippingCost}
-          onChange={(e) => setValues((v) => ({ ...v, defaultShippingCost: Number(e.target.value) || 0 }))}
-          className={inputClass}
-        />
-        <span className="mt-1 block text-xs text-ink-faint">Used for any city not listed below.</span>
-      </label>
-
-      <div className="space-y-2.5">
-        {values.shippingRates.map((rate, i) => (
-          <ShippingRateRow
-            key={i}
-            rate={rate}
-            onChange={(next) =>
-              setValues((v) => ({
-                ...v,
-                shippingRates: v.shippingRates.map((r, idx) => (idx === i ? next : r)),
-              }))
-            }
-            onRemove={() =>
-              setValues((v) => ({ ...v, shippingRates: v.shippingRates.filter((_, idx) => idx !== i) }))
-            }
-          />
+      <div className="space-y-2">
+        {values.heroImages.map((img, i) => (
+          <div key={img.mediaId || i} className="flex items-center gap-2 rounded-md border border-border p-2">
+            {/* eslint-disable-next-line @next/next/no-img-element -- uploaded files, not a static import */}
+            <img src={img.url} alt="" className="h-12 w-16 shrink-0 rounded object-cover" />
+            <span className="flex-1 truncate text-xs text-ink-muted">{img.alt || img.url}</span>
+            <button
+              type="button"
+              onClick={() => moveHeroImage(i, -1)}
+              disabled={i === 0}
+              aria-label="Move up"
+              className="focus-ring cursor-pointer rounded p-1 text-ink-faint hover:text-ink disabled:opacity-30"
+            >
+              <CaretUp size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => moveHeroImage(i, 1)}
+              disabled={i === values.heroImages.length - 1}
+              aria-label="Move down"
+              className="focus-ring cursor-pointer rounded p-1 text-ink-faint hover:text-ink disabled:opacity-30"
+            >
+              <CaretDown size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setValues((v) => ({ ...v, heroImages: v.heroImages.filter((_, idx) => idx !== i) }))}
+              aria-label="Remove"
+              className="focus-ring cursor-pointer rounded p-1 text-ink-faint hover:text-destructive"
+            >
+              &times;
+            </button>
+          </div>
         ))}
         <button
           type="button"
-          onClick={() =>
-            setValues((v) => ({ ...v, shippingRates: [...v.shippingRates, { city: "", cost: 0, etaDays: 3 }] }))
-          }
-          className="focus-ring flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-border-strong px-3 py-2 text-xs font-medium text-ink-muted hover:text-ink"
+          onClick={() => setPickerOpen(true)}
+          className="focus-ring cursor-pointer rounded-md border border-dashed border-border-strong px-3 py-2 text-xs font-medium text-ink-muted hover:text-ink"
         >
-          <Plus size={14} /> Add city
+          Add photos
         </button>
+        <MediaPicker
+          open={pickerOpen}
+          onClose={() => setPickerOpen(false)}
+          multiple
+          onSelect={(items) => {
+            const existing = new Set(values.heroImages.map((i) => i.mediaId));
+            const additions = items.filter((i) => !existing.has(i.id)).map(toImageRef);
+            setValues((v) => ({ ...v, heroImages: [...v.heroImages, ...additions] }));
+          }}
+        />
       </div>
+
+      <div className="border-t border-border pt-5">
+        <h2 className="font-display text-base font-semibold text-ink">Review video</h2>
+        <p className="mt-1 text-sm text-ink-muted">
+          A small video card on the homepage. Leave the URL blank to hide it entirely.
+        </p>
+      </div>
+      <label className="block text-sm">
+        <span className="mb-1.5 block font-medium text-ink">Video URL</span>
+        <input
+          value={values.reviewVideoUrl}
+          onChange={(e) => setValues((v) => ({ ...v, reviewVideoUrl: e.target.value }))}
+          placeholder="https://.../reviews.mp4"
+          className={inputClass}
+        />
+        <span className="mt-1 block text-xs text-ink-faint">A direct link to an .mp4 file.</span>
+      </label>
+      <label className="block text-sm">
+        <span className="mb-1.5 block font-medium text-ink">Caption</span>
+        <input
+          value={values.reviewVideoCaption}
+          onChange={(e) => setValues((v) => ({ ...v, reviewVideoCaption: e.target.value }))}
+          placeholder="What our customers are saying"
+          className={inputClass}
+        />
+      </label>
 
       <div className="flex items-center gap-3">
         <button
@@ -136,50 +196,5 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
         {saved && <span className="text-xs font-medium text-pk-green">Saved</span>}
       </div>
     </form>
-  );
-}
-
-function ShippingRateRow({
-  rate,
-  onChange,
-  onRemove,
-}: {
-  rate: ShippingRate;
-  onChange: (rate: ShippingRate) => void;
-  onRemove: () => void;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <input
-        value={rate.city}
-        onChange={(e) => onChange({ ...rate, city: e.target.value })}
-        placeholder="City"
-        className={`${inputClass} w-32`}
-      />
-      <input
-        type="number"
-        min={0}
-        value={rate.cost}
-        onChange={(e) => onChange({ ...rate, cost: Number(e.target.value) || 0 })}
-        placeholder="Cost"
-        className={`${inputClass} w-24`}
-      />
-      <input
-        type="number"
-        min={1}
-        value={rate.etaDays ?? ""}
-        onChange={(e) => onChange({ ...rate, etaDays: e.target.value ? Number(e.target.value) : undefined })}
-        placeholder="Days"
-        className={`${inputClass} w-20`}
-      />
-      <button
-        type="button"
-        onClick={onRemove}
-        aria-label={`Remove ${rate.city || "row"}`}
-        className="focus-ring cursor-pointer rounded-md p-2 text-ink-faint hover:text-destructive"
-      >
-        <Trash size={16} />
-      </button>
-    </div>
   );
 }
