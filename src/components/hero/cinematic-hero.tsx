@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { CaretDown } from "@phosphor-icons/react";
+import { HeroFrameScene } from "@/components/hero/hero-frame-scene";
 import { HeroStaticVisual } from "@/components/hero/hero-static";
-import { HeroVideoScene } from "@/components/hero/hero-video-scene";
 import { LinkButton } from "@/components/ui/button";
 
 type Variant = "cinematic" | "static";
@@ -34,7 +34,7 @@ function useHeroVariant(): Variant {
 
 export function CinematicHero() {
   const variant = useHeroVariant();
-  const [videoReady, setVideoReady] = useState(false);
+  const [framesReady, setFramesReady] = useState(false);
   const progressRef = useRef(0);
   const pinRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -81,9 +81,9 @@ export function CinematicHero() {
       <div ref={pinRef} className="relative h-screen min-h-[640px] w-full overflow-hidden">
         <div className="absolute inset-0">
           {isCinematic && (
-            <HeroVideoScene progressRef={progressRef} onReady={() => setVideoReady(true)} />
+            <HeroFrameScene progressRef={progressRef} onReady={() => setFramesReady(true)} />
           )}
-          {(!isCinematic || !videoReady) && <HeroStaticVisual />}
+          {(!isCinematic || !framesReady) && <HeroStaticVisual />}
         </div>
 
         <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-hero-bg-deep/70 to-hero-bg-deep/5" />
