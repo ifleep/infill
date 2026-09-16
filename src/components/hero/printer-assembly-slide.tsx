@@ -16,6 +16,15 @@ export function PrinterAssemblySlide({ progress }: { progress: number }) {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    // This slide only ever renders inside the desktop/tablet hero (`sm:`
+    // and up — see HomepageHero); on a phone-sized viewport it's mounted
+    // but hidden via CSS, not removed from the tree, so without this guard
+    // the 45-frame preload below would still fire and burn mobile data for
+    // an animation nobody sees. Checked once on mount, not on resize —
+    // this only needs to be right for "did this page load on a phone,"
+    // not to react live to a mid-session resize.
+    if (window.matchMedia("(max-width: 639px)").matches) return;
+
     let cancelled = false;
     Promise.all(
       Array.from({ length: FRAME_COUNT }, (_, i) => {

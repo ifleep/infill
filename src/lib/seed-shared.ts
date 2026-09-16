@@ -8,7 +8,7 @@ type SeedArticle = (typeof seedArticles)[number];
 // "Seed Demo Catalog" action (src/app/api/admin/seed/route.ts) — hosts that
 // don't give shell/SSH access (so the CLI script can never be run) still
 // need a way to load the demo catalog, hence the admin-triggered version.
-export function seedProductToRow(p: Omit<Product, "availability">) {
+export function seedProductToRow(p: Omit<Product, "availability" | "brandName" | "brandSlug">) {
   return {
     id: p.id,
     slug: p.slug,

@@ -8,7 +8,6 @@ import {
   getAccessories,
   getCompatibleFilaments,
 } from "@/lib/data/products";
-import { getBrandById } from "@/lib/data";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { ProductCard } from "@/components/product/product-card";
 import { AddToCartPanel } from "@/components/product/add-to-cart-panel";
@@ -38,8 +37,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return {};
-  const brand = getBrandById(product.brandId);
-  const defaultTitle = `${brand?.name ?? ""} ${product.name}`.trim();
+  const defaultTitle = `${product.brandName} ${product.name}`.trim();
   const title = product.seoTitle || defaultTitle;
   const description = product.metaDescription || product.shortDescription;
   return {
@@ -74,7 +72,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     notFound();
   }
 
-  const brand = getBrandById(product.brandId);
   const [related, accessories, compatibleFilaments] = await Promise.all([
     getRelatedProducts(product),
     getAccessories(product),
@@ -86,7 +83,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    brand: { "@type": "Brand", name: brand?.name },
+    brand: { "@type": "Brand", name: product.brandName },
     description: product.shortDescription,
     offers: {
       "@type": "Offer",
@@ -151,7 +148,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
 
         <div>
-          <p className="text-sm font-medium uppercase tracking-wide text-ink-faint">{brand?.name}</p>
+          <p className="text-sm font-medium uppercase tracking-wide text-ink-faint">{product.brandName}</p>
           <h1 className="font-display mt-1 text-3xl font-semibold text-ink sm:text-4xl">{product.name}</h1>
 
           {product.rating && product.reviewCount ? (
@@ -181,7 +178,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <SoldCount product={product} className="mt-1.5" />
           </div>
 
-          <AddToCartPanel product={product} brandName={brand?.name ?? ""} />
+          <AddToCartPanel product={product} brandName={product.brandName} />
 
           <div className="mt-4">
             <CompareToggle productId={product.id} />

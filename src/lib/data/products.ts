@@ -5,6 +5,7 @@ import type {
   Product as ProductRow,
   ProductMedia as ProductMediaRow,
   Media as MediaRow,
+  Brand as BrandRow,
   Prisma,
 } from "@/generated/prisma/client";
 
@@ -34,10 +35,12 @@ const productWithMediaInclude = {
     orderBy: [{ isPrimary: "desc" }, { position: "asc" }],
     include: { media: true },
   },
+  brand: true,
 } satisfies Prisma.ProductInclude;
 
 type ProductWithMedia = ProductRow & {
   media: (ProductMediaRow & { media: MediaRow })[];
+  brand: BrandRow;
 };
 
 function fromRow(row: ProductWithMedia): Product {
@@ -49,7 +52,10 @@ function fromRow(row: ProductWithMedia): Product {
     slug: row.slug,
     name: row.name,
     brandId: row.brandId,
+    brandName: row.brand.name,
+    brandSlug: row.brand.slug,
     category: row.category as Product["category"],
+    categoryId: row.categoryId ?? undefined,
     subcategory: row.subcategory,
     machineCategory: (row.machineCategory as Product["machineCategory"]) ?? undefined,
     technology: (row.technology as Product["technology"]) ?? undefined,
@@ -194,6 +200,8 @@ export interface ProductInput {
   name: string;
   brandId: string;
   category: Product["category"];
+  /** `undefined` leaves the product's existing category assignment untouched; `null` clears it. */
+  categoryId?: string | null;
   subcategory: string;
   price: number;
   compareAtPrice: number | null;
@@ -234,6 +242,7 @@ function toDbInput(input: ProductInput) {
     name: input.name,
     brandId: input.brandId,
     category: input.category,
+    ...(input.categoryId !== undefined ? { categoryId: input.categoryId } : {}),
     subcategory: input.subcategory,
     price: input.price,
     compareAtPrice: input.compareAtPrice,

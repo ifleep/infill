@@ -8,6 +8,7 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
   const name = typeof b.name === "string" ? b.name.trim() : "";
   const brandId = typeof b.brandId === "string" ? b.brandId : "";
   const category = typeof b.category === "string" ? b.category : "";
+  const categoryId = "categoryId" in b ? (b.categoryId === null || b.categoryId === "" ? null : String(b.categoryId)) : undefined;
   const subcategory = typeof b.subcategory === "string" ? b.subcategory.trim() : "";
   const shortDescription = typeof b.shortDescription === "string" ? b.shortDescription.trim() : "";
   const description = typeof b.description === "string" ? b.description.trim() : "";
@@ -105,6 +106,7 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
       name,
       brandId,
       category: category as ProductInput["category"],
+      categoryId,
       subcategory,
       price,
       compareAtPrice,

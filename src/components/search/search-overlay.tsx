@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MagnifyingGlass, X } from "@phosphor-icons/react";
 import type { Product } from "@/lib/types";
-import { brands, getBrandById } from "@/lib/data/brands";
 
 const suggestions = [
   "3D printers",
@@ -63,11 +62,15 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
           (p) =>
             p.name.toLowerCase().includes(q) ||
             p.subcategory.toLowerCase().includes(q) ||
-            getBrandById(p.brandId)?.name.toLowerCase().includes(q)
+            p.brandName.toLowerCase().includes(q)
         )
         .slice(0, 6)
     : [];
-  const matchedBrands = q ? brands.filter((b) => b.name.toLowerCase().includes(q)).slice(0, 4) : [];
+  const matchedBrands = q
+    ? Array.from(new Map(products.map((p) => [p.brandId, { id: p.brandId, name: p.brandName, slug: p.brandSlug }])).values())
+        .filter((b) => b.name.toLowerCase().includes(q))
+        .slice(0, 4)
+    : [];
 
   return (
     <div className="fixed inset-0 z-110" role="dialog" aria-modal="true" aria-label="Search">
@@ -148,7 +151,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
                 >
                   <span>
                     <span className="block text-sm font-medium text-ink">{p.name}</span>
-                    <span className="block text-xs text-ink-faint">{getBrandById(p.brandId)?.name}</span>
+                    <span className="block text-xs text-ink-faint">{p.brandName}</span>
                   </span>
                   <span className="text-xs uppercase tracking-wide text-ink-faint">{p.subcategory}</span>
                 </Link>

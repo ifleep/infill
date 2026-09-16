@@ -370,21 +370,9 @@ model OrderItem {
 }
 
 // ============================================================================
-// ADMIN — AdminUser (schema-ready for roles; current auth still uses the
-// single ADMIN_PASSWORD env var — see src/lib/admin-auth.ts), SiteSetting
+// ADMIN — SiteSetting (admin auth is a single shared ADMIN_PASSWORD env var
+// — see src/lib/admin-auth.ts — by design; no per-user accounts)
 // ============================================================================
-
-model AdminUser {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  name         String?
-  passwordHash String
-  role         String   @default("owner") // "owner" | "store_manager" | "content_manager" | "sales"
-  active       Boolean  @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
 
 model SiteSetting {
   key       String   @id

@@ -22,6 +22,7 @@ export interface ProductFormValues {
   name: string;
   brandId: string;
   category: Product["category"];
+  categoryId: string;
   subcategory: string;
   price: number | "";
   compareAtPrice: number | "";
@@ -62,6 +63,7 @@ function fromProduct(p: Product): ProductFormValues {
     name: p.name,
     brandId: p.brandId,
     category: p.category,
+    categoryId: p.categoryId ?? "",
     subcategory: p.subcategory,
     price: p.price,
     compareAtPrice: p.compareAtPrice ?? "",
@@ -92,6 +94,7 @@ const empty: ProductFormValues = {
   name: "",
   brandId: "",
   category: "printers",
+  categoryId: "",
   subcategory: "",
   price: "",
   compareAtPrice: "",
@@ -118,11 +121,14 @@ const empty: ProductFormValues = {
 
 export function ProductForm({
   brands,
+  categoryOptions,
   product,
   mediaItems,
   productId,
 }: {
   brands: Brand[];
+  /** The admin-managed Category taxonomy (see /admin/categories) — optional, separate from the required `category` shop-section field above. */
+  categoryOptions: { id: string; name: string }[];
   product?: Product;
   mediaItems?: MediaItem[];
   productId?: string;
@@ -145,6 +151,7 @@ export function ProductForm({
 
     const body = {
       ...values,
+      categoryId: values.categoryId || null,
       price: values.price === "" ? 0 : values.price,
       compareAtPrice: values.compareAtPrice === "" ? null : values.compareAtPrice,
       stock: values.stock === "" ? 0 : values.stock,
@@ -236,14 +243,26 @@ export function ProductForm({
         </Field>
       </div>
 
-      <Field label="Type / subcategory" required hint='e.g. "FDM", "PLA", "Nozzles", "CNC"'>
-        <input
-          required
-          value={values.subcategory}
-          onChange={(e) => set("subcategory", e.target.value)}
-          className={inputClass}
-        />
-      </Field>
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="Type / subcategory" required hint='e.g. "FDM", "PLA", "Nozzles", "CNC"'>
+          <input
+            required
+            value={values.subcategory}
+            onChange={(e) => set("subcategory", e.target.value)}
+            className={inputClass}
+          />
+        </Field>
+        <Field label="Internal category" hint="Your own organizational taxonomy — optional, doesn't affect the shop">
+          <select value={values.categoryId} onChange={(e) => set("categoryId", e.target.value)} className={inputClass}>
+            <option value="">None</option>
+            {categoryOptions.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
 
       <div className="grid grid-cols-3 gap-4">
         <Field label="Price (PKR)" required>

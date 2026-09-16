@@ -10,7 +10,6 @@ import { LimitedStockBadge } from "@/components/product/limited-stock-badge";
 import { SaleTimer } from "@/components/product/sale-timer";
 import { SoldCount } from "@/components/product/sold-count";
 import { formatPKR } from "@/lib/format";
-import { getBrandById } from "@/lib/data/brands";
 import { useCartStore } from "@/components/cart/cart-store";
 
 function keySpec(product: Product) {
@@ -25,7 +24,6 @@ function keySpec(product: Product) {
 }
 
 export function ProductCard({ product }: { product: Product }) {
-  const brand = getBrandById(product.brandId);
   const addItem = useCartStore((s) => s.addItem);
 
   return (
@@ -39,7 +37,7 @@ export function ProductCard({ product }: { product: Product }) {
         )}
       </Link>
       <div className="flex flex-1 flex-col p-4">
-        <p className="text-xs uppercase tracking-wide text-ink-faint">{brand?.name}</p>
+        <p className="text-xs uppercase tracking-wide text-ink-faint">{product.brandName}</p>
         <Link
           href={`/products/${product.slug}`}
           className="focus-ring mt-0.5 text-sm font-semibold text-ink hover:text-blue-700"
@@ -94,7 +92,7 @@ export function ProductCard({ product }: { product: Product }) {
             </button>
           ) : (
             <button
-              onClick={() => addItem(product, brand?.name ?? "")}
+              onClick={() => addItem(product, product.brandName)}
               className="focus-ring flex h-9 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded bg-blue-700 px-3 text-sm font-medium text-white hover:bg-blue-600"
             >
               <Plus size={14} weight="bold" />
