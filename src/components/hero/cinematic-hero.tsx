@@ -56,7 +56,7 @@ export function CinematicHero() {
           end: "bottom bottom",
           pin: pinRef.current,
           pinSpacing: false,
-          scrub: 0.4,
+          scrub: 0.25,
           onUpdate: (self) => {
             progressRef.current = self.progress;
           },
@@ -76,7 +76,7 @@ export function CinematicHero() {
     <div
       ref={wrapperRef}
       className="relative"
-      style={{ height: isCinematic ? "280vh" : undefined }}
+      style={{ height: isCinematic ? "150vh" : undefined }}
     >
       <div ref={pinRef} className="relative h-screen min-h-[640px] w-full overflow-hidden">
         <div className="absolute inset-0">
