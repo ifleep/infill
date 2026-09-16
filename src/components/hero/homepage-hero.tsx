@@ -1,25 +1,21 @@
 import { LinkButton } from "@/components/ui/button";
-import { HeroStaticVisual } from "@/components/hero/hero-static";
-import { PhotoCarousel } from "@/components/sections/photo-carousel";
+import { HeroCarousel } from "@/components/hero/hero-carousel";
 import { getSiteSettings } from "@/lib/data/settings";
 
 /**
- * Full-viewport hero — heading/CTA overlaid on a full-bleed photo carousel
- * (dot navigation, admin-managed photos), in the same position the earlier
- * scroll-driven animation attempts used. See archive/hero-video-scene/ and
- * archive/hero-frame-sequence/ for why those approaches didn't work out;
- * this keeps the same layout, just with a much simpler, CMS-editable visual
- * instead of a canvas animation. Falls back to a static illustration until
- * an admin adds photos via Settings.
+ * Full-viewport hero — heading/CTA overlaid on a full-bleed carousel whose
+ * first slide is the printer exploded/assembled animation (played forward
+ * once per view, not scroll-scrubbed — see archive/hero-video-scene/ and
+ * archive/hero-frame-sequence/ for why scroll-driven versions of this
+ * didn't work out), followed by any admin-managed photos from Settings.
  */
 export async function HomepageHero() {
   const settings = await getSiteSettings();
-  const hasPhotos = settings.heroImages.length > 0;
 
   return (
     <div className="relative h-screen min-h-[560px] w-full overflow-hidden">
       <div className="absolute inset-0">
-        {hasPhotos ? <PhotoCarousel images={settings.heroImages} fill /> : <HeroStaticVisual />}
+        <HeroCarousel photos={settings.heroImages} />
       </div>
 
       <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-hero-bg-deep/70 to-hero-bg-deep/5" />
