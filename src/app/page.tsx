@@ -22,17 +22,17 @@ export default async function Home() {
       <RegionalMotifEdge motif="sindh" side="left" />
       <RegionalMotifEdge motif="punjab" side="right" />
       <HomepageHero heroImages={settings.heroImages} />
+      <FeaturedPrintersSection />
+      <ReviewVideoCard />
+      <HomepagePromoSections />
       <InstantQuoteSection
         materials={settings.printMaterials}
         supportOverheadPercent={settings.printSupportOverheadPercent}
         serviceFeePkr={settings.printServiceFeePkr}
       />
+      <MaterialsSection />
       <PrintingDiscoverySection />
       <FindYourPrinterSection printers={printers} />
-      <FeaturedPrintersSection />
-      <ReviewVideoCard />
-      <HomepagePromoSections />
-      <MaterialsSection />
       <DigitalFabricationSection />
       <ServicesSection />
       <LearnSection />
