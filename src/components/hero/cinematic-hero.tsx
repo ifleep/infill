@@ -1,36 +1,12 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { CaretDown } from "@phosphor-icons/react";
 import { HeroStaticVisual } from "@/components/hero/hero-static";
+import { HeroVideoScene } from "@/components/hero/hero-video-scene";
 import { LinkButton } from "@/components/ui/button";
 
-const HeroScene = dynamic(() => import("@/components/hero/hero-scene").then((m) => m.HeroScene), {
-  ssr: false,
-  loading: () => <HeroStaticVisual />,
-});
-
-function supportsWebGL() {
-  try {
-    const canvas = document.createElement("canvas");
-    return Boolean(
-      canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl")
-    );
-  } catch {
-    return false;
-  }
-}
-
 type Variant = "cinematic" | "static";
-
-// WebGL support can't change at runtime, so it's checked once and cached
-// rather than re-probed on every snapshot read.
-let cachedWebglSupport: boolean | null = null;
-function getWebglSupport() {
-  if (cachedWebglSupport === null) cachedWebglSupport = supportsWebGL();
-  return cachedWebglSupport;
-}
 
 function subscribeToHeroCapability(onChange: () => void) {
   const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -45,7 +21,7 @@ function subscribeToHeroCapability(onChange: () => void) {
 function getHeroVariantSnapshot(): Variant {
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const isSmallScreen = window.innerWidth < 768;
-  return reducedMotion || isSmallScreen || !getWebglSupport() ? "static" : "cinematic";
+  return reducedMotion || isSmallScreen ? "static" : "cinematic";
 }
 
 function getHeroVariantServerSnapshot(): Variant {
@@ -58,6 +34,7 @@ function useHeroVariant(): Variant {
 
 export function CinematicHero() {
   const variant = useHeroVariant();
+  const [videoReady, setVideoReady] = useState(false);
   const progressRef = useRef(0);
   const pinRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -103,7 +80,10 @@ export function CinematicHero() {
     >
       <div ref={pinRef} className="relative h-screen min-h-[640px] w-full overflow-hidden">
         <div className="absolute inset-0">
-          {isCinematic ? <HeroScene progressRef={progressRef} /> : <HeroStaticVisual />}
+          {isCinematic && (
+            <HeroVideoScene progressRef={progressRef} onReady={() => setVideoReady(true)} />
+          )}
+          {(!isCinematic || !videoReady) && <HeroStaticVisual />}
         </div>
 
         <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-hero-bg-deep/70 to-hero-bg-deep/5" />
