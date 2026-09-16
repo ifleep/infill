@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { getSiteSettings } from "@/lib/data/settings";
 import { getCurrentCustomerId } from "@/lib/customer-auth";
 import { getCustomerById, getCustomerAddresses } from "@/lib/data/customers";
 import CheckoutClient from "./checkout-client";
@@ -7,7 +6,7 @@ import CheckoutClient from "./checkout-client";
 export const metadata: Metadata = { title: "Checkout" };
 
 export default async function CheckoutPage() {
-  const [settings, customerId] = await Promise.all([getSiteSettings(), getCurrentCustomerId()]);
+  const customerId = await getCurrentCustomerId();
 
   let initial: Partial<{ email: string; phone: string; fullName: string; address: string; city: string; province: string }> = {};
   if (customerId) {
@@ -23,11 +22,5 @@ export default async function CheckoutPage() {
     };
   }
 
-  return (
-    <CheckoutClient
-      shippingRates={settings.shippingRates}
-      defaultShippingCost={settings.defaultShippingCost}
-      initial={initial}
-    />
-  );
+  return <CheckoutClient initial={initial} />;
 }

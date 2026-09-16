@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   const address = typeof b.address === "string" ? b.address.trim() : "";
   const city = typeof b.city === "string" ? b.city.trim() : "";
   const province = typeof b.province === "string" ? b.province.trim() : "";
-  const paymentMethod = b.paymentMethod === "bank" ? "bank" : "cod";
+  const paymentMethod = b.paymentMethod === "transfer" ? "transfer" : "cod";
   const lines = Array.isArray(b.lines) ? (b.lines as unknown[]) : [];
 
   if (!email.includes("@")) return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });

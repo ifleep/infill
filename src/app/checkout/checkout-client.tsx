@@ -5,9 +5,18 @@ import { CheckCircle } from "@phosphor-icons/react";
 import { useCartStore, useCartTotal } from "@/components/cart/cart-store";
 import { formatPKR } from "@/lib/format";
 import { Button, LinkButton } from "@/components/ui/button";
-import type { ShippingRate } from "@/lib/data/settings";
 
 const steps = ["Contact", "Delivery", "Payment", "Review", "Confirmation"];
+
+// Mirrors the server-side calc in src/lib/data/orders.ts — this is only an
+// estimate shown before placing the order; the server always recomputes the
+// real charge from the database, so a stale/tampered client value can't
+// change what's actually billed.
+const SHIPPING_COST_PER_KG = 250;
+const SHIPPING_COST_CAP = 2500;
+const FALLBACK_ITEM_WEIGHT_KG = 1;
+
+const WHATSAPP_NUMBER = "923185262969";
 
 interface FormState {
   email: string;
@@ -16,16 +25,12 @@ interface FormState {
   address: string;
   city: string;
   province: string;
-  paymentMethod: "cod" | "bank";
+  paymentMethod: "cod" | "transfer";
 }
 
 export default function CheckoutClient({
-  shippingRates = [],
-  defaultShippingCost = 450,
   initial = {},
 }: {
-  shippingRates?: ShippingRate[];
-  defaultShippingCost?: number;
   initial?: Partial<Omit<FormState, "paymentMethod">>;
 }) {
   const hydrate = useCartStore((s) => s.hydrate);
@@ -51,11 +56,11 @@ export default function CheckoutClient({
     hydrate();
   }, [hydrate]);
 
-  const shippingMatch = useMemo(
-    () => shippingRates.find((r) => r.city.toLowerCase() === form.city.trim().toLowerCase()),
-    [shippingRates, form.city]
-  );
-  const shipping = lines.length === 0 ? 0 : shippingMatch?.cost ?? defaultShippingCost;
+  const shipping = useMemo(() => {
+    if (lines.length === 0) return 0;
+    const totalWeightKg = lines.reduce((sum, l) => sum + (l.weightKg ?? FALLBACK_ITEM_WEIGHT_KG) * l.quantity, 0);
+    return Math.min(Math.round(totalWeightKg * SHIPPING_COST_PER_KG), SHIPPING_COST_CAP);
+  }, [lines]);
   const total = subtotal + shipping;
 
   if (lines.length === 0 && step < 4) {
@@ -124,14 +129,7 @@ export default function CheckoutClient({
             />
           )}
           {step === 1 && (
-            <StepDelivery
-              form={form}
-              setForm={setForm}
-              onBack={() => setStep(0)}
-              onNext={() => setStep(2)}
-              shippingRates={shippingRates}
-              defaultShippingCost={defaultShippingCost}
-            />
+            <StepDelivery form={form} setForm={setForm} onBack={() => setStep(0)} onNext={() => setStep(2)} />
           )}
           {step === 2 && (
             <StepPayment form={form} setForm={setForm} onBack={() => setStep(1)} onNext={() => setStep(3)} />
@@ -145,7 +143,9 @@ export default function CheckoutClient({
               error={orderError}
             />
           )}
-          {step === 4 && orderNumber && <StepConfirmation orderNumber={orderNumber} email={form.email} />}
+          {step === 4 && orderNumber && (
+            <StepConfirmation orderNumber={orderNumber} email={form.email} paymentMethod={form.paymentMethod} />
+          )}
         </div>
 
         {step < 4 && (
@@ -239,18 +239,13 @@ function StepDelivery({
   setForm,
   onBack,
   onNext,
-  shippingRates,
-  defaultShippingCost,
 }: {
   form: FormState;
   setForm: React.Dispatch<React.SetStateAction<FormState>>;
   onBack: () => void;
   onNext: () => void;
-  shippingRates: ShippingRate[];
-  defaultShippingCost: number;
 }) {
   const valid = form.fullName && form.address && form.city;
-  const cityMatch = shippingRates.find((r) => r.city.toLowerCase() === form.city.trim().toLowerCase());
   return (
     <div className="space-y-4">
       <h2 className="font-display text-xl font-semibold text-ink">Delivery</h2>
@@ -271,21 +266,9 @@ function StepDelivery({
           <Field
             label="City"
             required
-            list="pk-cities"
             value={form.city}
             onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
           />
-          <datalist id="pk-cities">
-            {shippingRates.map((r) => (
-              <option key={r.city} value={r.city} />
-            ))}
-          </datalist>
-          {form.city.trim() && (
-            <p className="mt-1.5 text-xs text-ink-muted">
-              Shipping: {formatPKR(cityMatch?.cost ?? defaultShippingCost)}
-              {cityMatch?.etaDays ? ` · ~${cityMatch.etaDays} day${cityMatch.etaDays > 1 ? "s" : ""} delivery` : ""}
-            </p>
-          )}
         </div>
         <label className="block text-sm">
           <span className="mb-1.5 block font-medium text-ink">Province</span>
@@ -345,28 +328,53 @@ function StepPayment({
           <input
             type="radio"
             name="payment"
-            checked={form.paymentMethod === "bank"}
-            onChange={() => setForm((f) => ({ ...f, paymentMethod: "bank" }))}
+            checked={form.paymentMethod === "transfer"}
+            onChange={() => setForm((f) => ({ ...f, paymentMethod: "transfer" }))}
           />
           <span>
-            <span className="block text-sm font-medium text-ink">Bank Transfer</span>
-            <span className="block text-xs text-ink-muted">Account details sent after checkout.</span>
+            <span className="block text-sm font-medium text-ink">Bank / Mobile Wallet Transfer</span>
+            <span className="block text-xs text-ink-muted">HBL, Sadapay, or Easypaisa — details on the next step.</span>
           </span>
         </label>
-        <div className="flex cursor-not-allowed items-center gap-3 rounded-md border border-dashed border-border p-4 opacity-50">
-          <input type="radio" disabled />
-          <span>
-            <span className="block text-sm font-medium text-ink">JazzCash / Easypaisa</span>
-            <span className="block text-xs text-ink-muted">Coming soon.</span>
-          </span>
-        </div>
       </div>
+      {form.paymentMethod === "transfer" && <TransferInstructions />}
       <div className="flex gap-3">
         <Button variant="ghost" onClick={onBack}>
           Back
         </Button>
         <Button onClick={onNext}>Review Order</Button>
       </div>
+    </div>
+  );
+}
+
+function TransferInstructions() {
+  return (
+    <div className="space-y-3 rounded-md border border-border bg-surface-sunken p-4 text-sm">
+      <p className="font-medium text-ink">Send payment to any one of these, then continue:</p>
+      <ul className="space-y-1.5 text-ink-muted">
+        <li>
+          <span className="font-medium text-ink">HBL Bank</span> — 05347902580503 (Shoaib Awan)
+        </li>
+        <li>
+          <span className="font-medium text-ink">Sadapay</span> — 03185262969
+        </li>
+        <li>
+          <span className="font-medium text-ink">Easypaisa</span> — 03185262969
+        </li>
+      </ul>
+      <p className="text-ink-muted">
+        After paying, send a screenshot of the payment to our{" "}
+        <a
+          href={`https://wa.me/${WHATSAPP_NUMBER}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="focus-ring font-medium text-blue-700 hover:text-blue-600"
+        >
+          WhatsApp
+        </a>{" "}
+        along with your order number so we can confirm it and start processing your order.
+      </p>
     </div>
   );
 }
@@ -400,9 +408,12 @@ function StepReview({
         </div>
         <div>
           <p className="text-xs uppercase tracking-wide text-ink-faint">Payment</p>
-          <p className="text-ink">{form.paymentMethod === "cod" ? "Cash on Delivery" : "Bank Transfer"}</p>
+          <p className="text-ink">
+            {form.paymentMethod === "cod" ? "Cash on Delivery" : "Bank / Mobile Wallet Transfer"}
+          </p>
         </div>
       </div>
+      {form.paymentMethod === "transfer" && <TransferInstructions />}
       {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-destructive">{error}</p>}
       <div className="flex gap-3">
         <Button variant="ghost" onClick={onBack} disabled={placing}>
@@ -416,7 +427,15 @@ function StepReview({
   );
 }
 
-function StepConfirmation({ orderNumber, email }: { orderNumber: string; email: string }) {
+function StepConfirmation({
+  orderNumber,
+  email,
+  paymentMethod,
+}: {
+  orderNumber: string;
+  email: string;
+  paymentMethod: FormState["paymentMethod"];
+}) {
   return (
     <div className="py-8 text-center">
       <CheckCircle size={48} weight="fill" className="mx-auto text-pk-green" />
@@ -425,6 +444,15 @@ function StepConfirmation({ orderNumber, email }: { orderNumber: string; email: 
         Order <span className="tabular font-medium text-ink">{orderNumber}</span> has been placed.
         {email && <> A confirmation will be sent to {email}.</>}
       </p>
+      {paymentMethod === "transfer" && (
+        <div className="mx-auto mt-6 max-w-sm text-left">
+          <TransferInstructions />
+          <p className="mt-2 text-xs text-ink-faint">
+            Mention order <span className="tabular font-medium text-ink">{orderNumber}</span> when you send the
+            screenshot.
+          </p>
+        </div>
+      )}
       <LinkButton href="/" className="mt-6">
         Back to Home
       </LinkButton>
