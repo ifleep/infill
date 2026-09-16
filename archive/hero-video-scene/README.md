@@ -15,3 +15,7 @@ decode cost — the actual technique the reference prompt that inspired this ("p
 sequence scrubbed via scroll on a `<canvas>`") called for from the start. Kept here for reference only;
 `archive/hero-printer-model-v1/` and `archive/hero-3d-scene/` hold the earlier procedural-3D attempts
 this superseded.
+
+The source `hero-printer.mp4` itself isn't kept here — it added 9MB to the repo for no benefit (it
+was never served; the frame sequence was already extracted from it into `public/frames/hero-printer/`
+before this was archived). This README and `hero-video-scene.tsx` are the only reference value.
