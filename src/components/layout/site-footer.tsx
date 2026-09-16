@@ -78,7 +78,7 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-12 flex flex-col gap-4 border-t border-border-on-navy pt-6 text-xs text-on-navy-muted sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} INFiLL. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} INFiLLPK. All rights reserved.</p>
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             <Link href="/legal/privacy" className="focus-ring hover:text-on-navy">
               Privacy Policy

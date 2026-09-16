@@ -43,7 +43,7 @@ export function SiteHeader() {
           </Link>
 
           <nav
-            className="hidden flex-1 items-center justify-center gap-1 lg:flex"
+            className="relative hidden flex-1 items-center justify-center gap-1 self-stretch lg:flex"
             onMouseLeave={() => setOpenMenu(null)}
           >
             {megaMenus.map((menu) => (
@@ -71,10 +71,10 @@ export function SiteHeader() {
 
             {activeMenu && (
               <div
-                className="absolute inset-x-0 top-full z-70 border-b border-border bg-surface shadow-xl"
+                className="absolute left-1/2 top-full z-70 w-[min(92vw,720px)] -translate-x-1/2 rounded-b-xl border border-t-0 border-border bg-surface p-6 shadow-xl"
                 onMouseEnter={() => setOpenMenu(activeMenu.label)}
               >
-                <div className="container-page grid grid-cols-4 gap-6 py-8">
+                <div className="grid grid-cols-4 gap-6">
                   {activeMenu.columns.map((col) => (
                     <div key={col.heading}>
                       <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-faint">
@@ -96,7 +96,7 @@ export function SiteHeader() {
                     </div>
                   ))}
                 </div>
-                <div className="container-page border-t border-border py-4">
+                <div className="mt-6 border-t border-border pt-4">
                   <Link
                     href={activeMenu.viewAllHref}
                     onClick={() => setOpenMenu(null)}

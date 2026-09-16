@@ -76,7 +76,6 @@ export function ProductCard({ product }: { product: Product }) {
             </span>
           )}
         </div>
-        <p className="mt-0.5 text-xs text-ink-faint">Estimated price — confirmed at checkout</p>
 
         <div className="mt-4 flex gap-2">
           {product.quoteOnly ? (

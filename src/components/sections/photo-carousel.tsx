@@ -7,7 +7,12 @@ import type { BlockImageRef } from "@/lib/content-blocks/types";
 // dot navigation underneath — distinct from the static "gallery" variant's
 // grid layout. Swipeable on touch, click-to-jump dots, and a slow auto-
 // advance that pauses on hover/focus so it doesn't fight someone reading.
-export function PhotoCarousel({ images }: { images: BlockImageRef[] }) {
+//
+// `fill` switches it from an inline content-width block (fixed aspect
+// ratio, dots below the image) to a full-bleed background (fills its
+// parent's height, dots overlaid on top of the image near the bottom) —
+// used by the homepage hero, which sizes the container itself.
+export function PhotoCarousel({ images, fill = false }: { images: BlockImageRef[]; fill?: boolean }) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -30,7 +35,7 @@ export function PhotoCarousel({ images }: { images: BlockImageRef[] }) {
 
   return (
     <div
-      className="relative"
+      className={fill ? "relative h-full" : "relative"}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
@@ -38,7 +43,11 @@ export function PhotoCarousel({ images }: { images: BlockImageRef[] }) {
     >
       <div
         ref={trackRef}
-        className="aspect-[16/9] overflow-hidden rounded-2xl bg-surface-sunken sm:aspect-[21/9]"
+        className={
+          fill
+            ? "h-full w-full overflow-hidden bg-surface-sunken"
+            : "aspect-[16/9] overflow-hidden rounded-2xl bg-surface-sunken sm:aspect-[21/9]"
+        }
         onTouchStart={(e) => {
           touchStartX.current = e.touches[0].clientX;
         }}
@@ -68,7 +77,13 @@ export function PhotoCarousel({ images }: { images: BlockImageRef[] }) {
       </div>
 
       {images.length > 1 && (
-        <div className="mt-4 flex justify-center gap-2">
+        <div
+          className={
+            fill
+              ? "absolute inset-x-0 bottom-6 z-10 flex justify-center gap-2"
+              : "mt-4 flex justify-center gap-2"
+          }
+        >
           {images.map((img, i) => (
             <button
               key={img.mediaId || i}
@@ -77,7 +92,11 @@ export function PhotoCarousel({ images }: { images: BlockImageRef[] }) {
               aria-current={i === index}
               onClick={() => goTo(i)}
               className={`focus-ring h-2 cursor-pointer rounded-full transition-all ${
-                i === index ? "w-6 bg-blue-700" : "w-2 bg-border-strong hover:bg-ink-faint"
+                i === index
+                  ? "w-6 bg-blue-700"
+                  : fill
+                    ? "w-2 bg-white/60 hover:bg-white/90"
+                    : "w-2 bg-border-strong hover:bg-ink-faint"
               }`}
             />
           ))}

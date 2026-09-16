@@ -174,8 +174,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </span>
             )}
           </div>
-          <p className="mt-1 text-xs text-ink-faint">Estimated price — confirmed at checkout</p>
-
           <div className="mt-3">
             <AvailabilityStatus availability={product.availability} stock={product.stock} />
             <LimitedStockBadge product={product} className="mt-1.5" />
