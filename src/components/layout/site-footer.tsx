@@ -11,6 +11,7 @@ const columns = [
       { label: "CNC", href: "/category/machines?sub=CNC" },
       { label: "UV Printers", href: "/category/machines?sub=UV+Printing" },
       { label: "Laser Machines", href: "/category/machines?sub=Laser" },
+      { label: "Robots", href: "/category/machines?sub=Robots" },
     ],
   },
   {

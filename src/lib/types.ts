@@ -13,7 +13,8 @@ export type MachineCategory =
   | "3d-printing"
   | "cnc"
   | "uv-printing"
-  | "laser";
+  | "laser"
+  | "robots";
 
 export type ExperienceLevel = "Beginner" | "Intermediate" | "Professional" | "Industrial";
 

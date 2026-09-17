@@ -23,6 +23,7 @@ export const categories: Category[] = [
   { id: "machines-cnc", slug: "cnc", name: "CNC", parent: "machines" },
   { id: "machines-uv", slug: "uv-printing", name: "UV Printing", parent: "machines" },
   { id: "machines-laser", slug: "laser", name: "Laser", parent: "machines" },
+  { id: "machines-robots", slug: "robots", name: "Robots", parent: "machines" },
 ];
 
 export function getCategoryBySlug(slug: string) {

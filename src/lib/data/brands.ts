@@ -25,4 +25,7 @@ export const brands: Brand[] = [
   { id: "xtool", name: "xTool", slug: "xtool", country: "China", description: "Desktop laser cutting and engraving systems." },
   { id: "carvera", name: "Makera", slug: "makera", country: "China", description: "Desktop CNC machining centers." },
   { id: "roland", name: "Roland DG", slug: "roland-dg", country: "Japan", description: "Professional UV flatbed and wide-format printing." },
+  { id: "unitree", name: "Unitree", slug: "unitree", country: "China", description: "Quadruped and humanoid robots for research, inspection and consumer robotics." },
+  { id: "borunte", name: "Borunte Robot", slug: "borunte-robot", country: "China", description: "Six-axis industrial robot arms for handling, assembly and injection-molding automation." },
+  { id: "keenon", name: "KEENON Robotics", slug: "keenon-robotics", country: "China", description: "Commercial service robots for delivery, hospitality and floor cleaning." },
 ];
