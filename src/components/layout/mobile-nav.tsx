@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { X, CaretRight, Heart } from "@phosphor-icons/react";
+import { X, CaretRight, Heart, Scales } from "@phosphor-icons/react";
 import { Wordmark } from "@/components/layout/wordmark";
 import { megaMenus, simpleNavLinks } from "@/components/layout/nav-data";
 import { useWishlistCount } from "@/components/wishlist/wishlist-store";
+import { useCompareCount } from "@/components/compare/compare-store";
 
 export function MobileNav({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const wishlistCount = useWishlistCount();
+  const compareCount = useCompareCount();
 
   return (
     <div
@@ -114,6 +116,15 @@ export function MobileNav({ open, onClose }: { open: boolean; onClose: () => voi
             <Heart size={16} />
             Wishlist
             {wishlistCount > 0 && <span className="text-ink-faint">({wishlistCount})</span>}
+          </Link>
+          <Link
+            href="/compare"
+            onClick={onClose}
+            className="focus-ring flex items-center gap-2 border-b border-border px-3 py-3.5 text-sm font-medium text-ink"
+          >
+            <Scales size={16} />
+            Compare
+            {compareCount > 0 && <span className="text-ink-faint">({compareCount})</span>}
           </Link>
           <Link
             href="/contact?type=quote"
