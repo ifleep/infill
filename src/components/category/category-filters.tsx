@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { X, Check } from "@phosphor-icons/react/ssr";
 import type { Product } from "@/lib/types";
-import { brands } from "@/lib/data/brands";
+import { MobileFilterDrawer } from "@/components/category/mobile-filter-drawer";
+import { PriceRangeFilter } from "@/components/category/price-range-filter";
 
 export interface ActiveFilters {
   tech?: string;
@@ -9,6 +10,8 @@ export interface ActiveFilters {
   use?: string;
   brand?: string;
   sub?: string;
+  priceMin?: string;
+  priceMax?: string;
 }
 
 function buildHref(base: string, current: ActiveFilters, key: keyof ActiveFilters, value: string) {
@@ -82,9 +85,9 @@ export function CategoryFilters({
   productsInCategory: Product[];
   showPrinterFacets: boolean;
 }) {
-  const brandOptions = brands
-    .filter((b) => productsInCategory.some((p) => p.brandId === b.id))
-    .map((b) => ({ label: b.name, value: b.slug }));
+  const brandOptions = Array.from(
+    new Map(productsInCategory.map((p) => [p.brandId, { label: p.brandName, value: p.brandSlug }])).values()
+  );
 
   const subOptions = Array.from(new Set(productsInCategory.map((p) => p.subcategory))).map((s) => ({
     label: s,
@@ -106,8 +109,19 @@ export function CategoryFilters({
 
   const hasActive = Object.values(current).some(Boolean);
 
-  return (
-    <aside className="w-full shrink-0 lg:w-56">
+  const prices = productsInCategory.map((p) => p.price);
+  const priceMin = prices.length > 0 ? Math.min(...prices) : 0;
+  const priceMax = prices.length > 0 ? Math.max(...prices) : 0;
+  const currentPriceMin = current.priceMin ? Number(current.priceMin) : priceMin;
+  const currentPriceMax = current.priceMax ? Number(current.priceMax) : priceMax;
+
+  const otherParams = new URLSearchParams();
+  for (const [k, v] of Object.entries(current)) {
+    if (v && k !== "priceMin" && k !== "priceMax") otherParams.set(k, v);
+  }
+
+  const filtersContent = (
+    <>
       {hasActive && (
         <Link
           href={base}
@@ -116,6 +130,14 @@ export function CategoryFilters({
           <X size={14} /> Clear all filters
         </Link>
       )}
+      <PriceRangeFilter
+        base={base}
+        otherParams={otherParams.toString()}
+        min={priceMin}
+        max={priceMax}
+        currentMin={currentPriceMin}
+        currentMax={currentPriceMax}
+      />
       {showPrinterFacets && techOptions.length > 0 && (
         <FilterGroup heading="Technology" base={base} current={current} filterKey="tech" options={techOptions} />
       )}
@@ -129,6 +151,12 @@ export function CategoryFilters({
           <FilterGroup heading="Use case" base={base} current={current} filterKey="use" options={useOptions} />
         </>
       )}
-    </aside>
+    </>
+  );
+
+  return (
+    <MobileFilterDrawer hasActiveFilters={hasActive}>
+      <aside className="w-full shrink-0 lg:w-56">{filtersContent}</aside>
+    </MobileFilterDrawer>
   );
 }

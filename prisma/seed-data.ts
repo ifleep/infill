@@ -6,7 +6,7 @@ import type { Product } from "../src/lib/types";
 // PKR figure for demonstration only (confirmed at checkout in a real store)
 // and does not represent a confirmed distributor relationship.
 
-export const seedProducts: Omit<Product, "availability">[] = [
+export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSlug">[] = [
   // ---------------------------------------------------------------- PRINTERS
   {
     id: "p-bambu-a1-mini",

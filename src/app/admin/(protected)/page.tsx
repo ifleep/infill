@@ -1,11 +1,11 @@
 import { getAllProducts } from "@/lib/data/products";
-import { brands } from "@/lib/data/brands";
+import { getAllBrandsAdmin } from "@/lib/data/brands-admin";
 import { AdminProductTable } from "@/components/admin/admin-product-table";
 import { SeedCatalogButton } from "@/components/admin/seed-catalog-button";
 import { LinkButton } from "@/components/ui/button";
 
 export default async function AdminDashboardPage() {
-  const products = await getAllProducts();
+  const [products, brands] = await Promise.all([getAllProducts(), getAllBrandsAdmin()]);
 
   return (
     <div>

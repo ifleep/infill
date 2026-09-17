@@ -15,9 +15,9 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     label: "Catalog",
     items: [
       { href: "/admin", label: "Products", available: true },
-      { href: "/admin/categories", label: "Categories", available: false },
-      { href: "/admin/brands", label: "Brands", available: false },
-      { href: "/admin/inventory", label: "Inventory", available: false },
+      { href: "/admin/categories", label: "Categories", available: true },
+      { href: "/admin/brands", label: "Brands", available: true },
+      { href: "/admin/inventory", label: "Inventory", available: true },
     ],
   },
   {
@@ -40,10 +40,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   },
   {
     label: "System",
-    items: [
-      { href: "/admin/settings", label: "Settings", available: true },
-      { href: "/admin/users", label: "Admin Users", available: false },
-    ],
+    items: [{ href: "/admin/settings", label: "Settings", available: true }],
   },
 ];
 

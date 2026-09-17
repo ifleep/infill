@@ -8,6 +8,7 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
   const name = typeof b.name === "string" ? b.name.trim() : "";
   const brandId = typeof b.brandId === "string" ? b.brandId : "";
   const category = typeof b.category === "string" ? b.category : "";
+  const categoryId = "categoryId" in b ? (b.categoryId === null || b.categoryId === "" ? null : String(b.categoryId)) : undefined;
   const subcategory = typeof b.subcategory === "string" ? b.subcategory.trim() : "";
   const shortDescription = typeof b.shortDescription === "string" ? b.shortDescription.trim() : "";
   const description = typeof b.description === "string" ? b.description.trim() : "";
@@ -45,6 +46,19 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
   const ogDescription = "ogDescription" in b ? str(b.ogDescription) : undefined;
   const noindex = "noindex" in b ? Boolean(b.noindex) : undefined;
   const includeInSitemap = "includeInSitemap" in b ? Boolean(b.includeInSitemap) : undefined;
+  const weightKg =
+    "weightKg" in b ? (b.weightKg === null || b.weightKg === "" ? null : Number(b.weightKg)) : undefined;
+  const soldCount = "soldCount" in b ? Number(b.soldCount) : undefined;
+  const saleEndsAt =
+    "saleEndsAt" in b ? (b.saleEndsAt === null || b.saleEndsAt === "" ? null : String(b.saleEndsAt)) : undefined;
+  const limitedStockEnabled = "limitedStockEnabled" in b ? Boolean(b.limitedStockEnabled) : undefined;
+  const limitedStockQuantity =
+    "limitedStockQuantity" in b
+      ? b.limitedStockQuantity === null || b.limitedStockQuantity === ""
+        ? null
+        : Number(b.limitedStockQuantity)
+      : undefined;
+  const warrantyMonths = "warrantyMonths" in b ? Number(b.warrantyMonths) : undefined;
 
   if (!name) return { error: "Name is required." };
   if (!brandId) return { error: "Brand is required." };
@@ -69,6 +83,22 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
   if (!["in-stock", "out-of-stock", "preorder"].includes(availability)) {
     return { error: "Invalid availability." };
   }
+  if (weightKg !== undefined && weightKg !== null && (!Number.isFinite(weightKg) || weightKg < 0)) {
+    return { error: "Weight must be a non-negative number." };
+  }
+  if (soldCount !== undefined && (!Number.isFinite(soldCount) || soldCount < 0)) {
+    return { error: "Sold count must be a non-negative number." };
+  }
+  if (
+    limitedStockQuantity !== undefined &&
+    limitedStockQuantity !== null &&
+    (!Number.isFinite(limitedStockQuantity) || limitedStockQuantity < 0)
+  ) {
+    return { error: "Limited stock quantity must be a non-negative number." };
+  }
+  if (warrantyMonths !== undefined && (!Number.isFinite(warrantyMonths) || warrantyMonths < 0)) {
+    return { error: "Warranty must be a non-negative number of months." };
+  }
 
   const rawSlug = typeof b.slug === "string" && b.slug.trim() ? b.slug : (fallbackSlug ?? name);
   const slug = slugify(rawSlug);
@@ -80,6 +110,7 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
       name,
       brandId,
       category: category as ProductInput["category"],
+      categoryId,
       subcategory,
       price,
       compareAtPrice,
@@ -99,6 +130,12 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
       ogDescription,
       noindex,
       includeInSitemap,
+      weightKg,
+      soldCount,
+      saleEndsAt,
+      limitedStockEnabled,
+      limitedStockQuantity,
+      warrantyMonths,
     },
   };
 }

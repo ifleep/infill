@@ -1,5 +1,15 @@
 import { prisma } from "@/lib/db";
-import { shippingCostForCity, type SiteSettings } from "@/lib/data/settings";
+
+// 250 PKR/kg, capped at 2500 PKR — the cap kicks in naturally at 10kg
+// (10 * 250 = 2500), so a single min() covers both halves of the rule.
+const SHIPPING_COST_PER_KG = 250;
+const SHIPPING_COST_CAP = 2500;
+// Applied when a product's weight hasn't been entered in the admin yet.
+// Printers already carry real seeded weights; the products actually missing
+// one today are filaments, which are standard 1kg spools — so this is a
+// reasonable default for the common case, not just a placeholder. Admins
+// should still set a real weight for anything unusually heavy or light.
+const FALLBACK_ITEM_WEIGHT_KG = 1;
 
 export interface CheckoutLineInput {
   productId: string;
@@ -19,7 +29,7 @@ export interface CreateOrderInput {
   guestEmail: string;
   guestPhone: string;
   address: CheckoutAddressInput;
-  paymentMethod: "cod" | "bank";
+  paymentMethod: "cod" | "transfer";
   lines: CheckoutLineInput[];
 }
 
@@ -43,17 +53,13 @@ function generateOrderNumber(): string {
 export async function createOrder(input: CreateOrderInput) {
   if (input.lines.length === 0) throw new OrderError("Your cart is empty.");
 
-  const settings = await prisma.siteSetting.findMany({
-    where: { key: { in: ["shippingRates", "defaultShippingCost"] } },
-  });
-  const settingsMap = Object.fromEntries(settings.map((s) => [s.key, s.value]));
-
   return prisma.$transaction(async (tx) => {
     const productIds = input.lines.map((l) => l.productId);
     const products = await tx.product.findMany({ where: { id: { in: productIds } } });
     const productMap = new Map(products.map((p) => [p.id, p]));
 
     let subtotal = 0;
+    let totalWeightKg = 0;
     const items: {
       productId: string;
       productName: string;
@@ -72,6 +78,7 @@ export async function createOrder(input: CreateOrderInput) {
       }
       const lineTotal = product.price * line.quantity;
       subtotal += lineTotal;
+      totalWeightKg += (product.weightKg ?? FALLBACK_ITEM_WEIGHT_KG) * line.quantity;
       items.push({
         productId: product.id,
         productName: product.name,
@@ -82,12 +89,7 @@ export async function createOrder(input: CreateOrderInput) {
       });
     }
 
-    const shippingRates = (settingsMap.shippingRates as unknown as SiteSettings["shippingRates"] | undefined) ?? [];
-    const defaultShippingCost = (settingsMap.defaultShippingCost as unknown as number | undefined) ?? 450;
-    const shippingCost = shippingCostForCity(
-      { shippingRates, defaultShippingCost } as SiteSettings,
-      input.address.city
-    );
+    const shippingCost = Math.min(Math.round(totalWeightKg * SHIPPING_COST_PER_KG), SHIPPING_COST_CAP);
     const total = subtotal + shippingCost;
 
     let orderNumber = generateOrderNumber();
