@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { ArrowRight } from "@phosphor-icons/react/ssr";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { CncIcon, UvPrintingIcon, LaserIcon } from "@/components/icons/tech-icons";
+import { CncIcon, UvPrintingIcon, LaserIcon, RobotIcon } from "@/components/icons/tech-icons";
 
 const machines = [
   { label: "CNC", href: "/category/machines?sub=CNC", copy: "Desktop precision machining for wood, plastic and light metals.", Icon: CncIcon },
   { label: "UV Printing", href: "/category/machines?sub=UV+Printing", copy: "Direct-to-object printing for signage and promotional items.", Icon: UvPrintingIcon },
   { label: "Laser", href: "/category/machines?sub=Laser", copy: "Cutting and engraving across wood, acrylic and leather.", Icon: LaserIcon },
+  { label: "Robots", href: "/category/machines?sub=Robots", copy: "Quadrupeds, humanoids and desktop arms for research and automation.", Icon: RobotIcon },
 ];
 
 export function DigitalFabricationSection() {
@@ -19,7 +20,7 @@ export function DigitalFabricationSection() {
           title="An expanding fabrication ecosystem."
           description="3D printing remains the core of INFiLLPK. These are the machines that extend what's possible alongside it."
         />
-        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
           {machines.map(({ label, href, copy, Icon }) => (
             <Link
               key={label}

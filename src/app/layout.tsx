@@ -42,6 +42,7 @@ export const metadata: Metadata = {
     "CNC machine Pakistan",
     "UV printer Pakistan",
     "laser cutting machine Pakistan",
+    "robotics Pakistan",
     "3D printing service Pakistan",
   ],
   openGraph: {

@@ -64,8 +64,8 @@ export default function AboutPage() {
           <h2 className="font-display text-2xl font-semibold text-ink">Where we&rsquo;re headed</h2>
           <p className="mt-4 max-w-2xl text-ink-muted">
             3D printing is where we started, and it remains our core. Over time, INFiLLPK is built to
-            grow into the broader story: materials, CNC, UV printing, laser cutting, and the services
-            that connect them — one brand, one place to go when you want to make something.
+            grow into the broader story: materials, CNC, UV printing, laser cutting, robots, and the
+            services that connect them — one brand, one place to go when you want to make something.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <LinkButton href="/category/3d-printers">Shop 3D Printers</LinkButton>

@@ -14,7 +14,7 @@ const categories: { value: Product["category"]; label: string }[] = [
   { value: "filament", label: "Filament" },
   { value: "resin", label: "Resin" },
   { value: "parts", label: "Parts & Accessories" },
-  { value: "machines", label: "Machine (CNC/UV/Laser)" },
+  { value: "machines", label: "Machine (CNC/UV/Laser/Robots)" },
 ];
 
 export interface ProductFormValues {

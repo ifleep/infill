@@ -126,6 +126,23 @@ export function LaserIcon({ size = 96, className }: IconProps) {
   );
 }
 
+export function RobotIcon({ size = 96, className }: IconProps) {
+  return (
+    <svg {...base} width={size} height={size} className={className} aria-hidden="true">
+      <path d="M50 16 50 26" />
+      <circle cx="50" cy="12" r="4" fill="currentColor" stroke="none" />
+      <rect x="26" y="26" width="48" height="36" rx="8" />
+      <circle cx="38" cy="42" r="5" fill="currentColor" stroke="none" />
+      <circle cx="62" cy="42" r="5" fill="currentColor" stroke="none" />
+      <path d="M36 54 64 54" opacity="0.6" />
+      <path d="M26 38 16 38 16 54 26 54" opacity="0.5" />
+      <path d="M74 38 84 38 84 54 74 54" opacity="0.5" />
+      <path d="M36 62 36 82M64 62 64 82" />
+      <path d="M28 82 44 82M56 82 72 82" />
+    </svg>
+  );
+}
+
 export function UvPrintingIcon({ size = 96, className }: IconProps) {
   return (
     <svg {...base} width={size} height={size} className={className} aria-hidden="true">
