@@ -58,6 +58,7 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
         ? null
         : Number(b.limitedStockQuantity)
       : undefined;
+  const warrantyMonths = "warrantyMonths" in b ? Number(b.warrantyMonths) : undefined;
 
   if (!name) return { error: "Name is required." };
   if (!brandId) return { error: "Brand is required." };
@@ -95,6 +96,9 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
   ) {
     return { error: "Limited stock quantity must be a non-negative number." };
   }
+  if (warrantyMonths !== undefined && (!Number.isFinite(warrantyMonths) || warrantyMonths < 0)) {
+    return { error: "Warranty must be a non-negative number of months." };
+  }
 
   const rawSlug = typeof b.slug === "string" && b.slug.trim() ? b.slug : (fallbackSlug ?? name);
   const slug = slugify(rawSlug);
@@ -131,6 +135,7 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
       saleEndsAt,
       limitedStockEnabled,
       limitedStockQuantity,
+      warrantyMonths,
     },
   };
 }

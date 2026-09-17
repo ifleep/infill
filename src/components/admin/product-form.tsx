@@ -41,6 +41,7 @@ export interface ProductFormValues {
   noindex: boolean;
   includeInSitemap: boolean;
   weightKg: number | "";
+  warrantyMonths: number | "";
   soldCount: number | "";
   saleEndsAt: string;
   limitedStockEnabled: boolean;
@@ -82,6 +83,7 @@ function fromProduct(p: Product): ProductFormValues {
     noindex: p.noindex ?? false,
     includeInSitemap: p.includeInSitemap ?? true,
     weightKg: p.weightKg ?? "",
+    warrantyMonths: p.warrantyMonths,
     soldCount: p.soldCount ?? 0,
     saleEndsAt: toDatetimeLocal(p.saleEndsAt),
     limitedStockEnabled: p.limitedStockEnabled ?? false,
@@ -113,6 +115,7 @@ const empty: ProductFormValues = {
   noindex: false,
   includeInSitemap: true,
   weightKg: "",
+  warrantyMonths: 0,
   soldCount: 0,
   saleEndsAt: "",
   limitedStockEnabled: false,
@@ -157,6 +160,7 @@ export function ProductForm({
       stock: values.stock === "" ? 0 : values.stock,
       lowStockThreshold: values.lowStockThreshold === "" ? null : values.lowStockThreshold,
       weightKg: values.weightKg === "" ? null : values.weightKg,
+      warrantyMonths: values.warrantyMonths === "" ? 0 : values.warrantyMonths,
       soldCount: values.soldCount === "" ? 0 : values.soldCount,
       saleEndsAt: values.saleEndsAt === "" ? null : new Date(values.saleEndsAt).toISOString(),
       limitedStockQuantity: values.limitedStockQuantity === "" ? null : values.limitedStockQuantity,
@@ -300,6 +304,15 @@ export function ProductForm({
             min={1}
             value={values.lowStockThreshold}
             onChange={(e) => set("lowStockThreshold", e.target.value === "" ? "" : Number(e.target.value))}
+            className={inputClass}
+          />
+        </Field>
+        <Field label="Warranty (months)" hint="0 means no warranty — shown on the product page and compare table">
+          <input
+            type="number"
+            min={0}
+            value={values.warrantyMonths}
+            onChange={(e) => set("warrantyMonths", e.target.value === "" ? "" : Number(e.target.value))}
             className={inputClass}
           />
         </Field>

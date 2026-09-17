@@ -14,6 +14,7 @@ import { Wordmark } from "@/components/layout/wordmark";
 import { megaMenus, simpleNavLinks } from "@/components/layout/nav-data";
 import { SearchOverlay } from "@/components/search/search-overlay";
 import { useCartCount, useCartStore } from "@/components/cart/cart-store";
+import { useWishlistCount } from "@/components/wishlist/wishlist-store";
 import { LinkButton } from "@/components/ui/button";
 import { MobileNav } from "@/components/layout/mobile-nav";
 
@@ -23,6 +24,7 @@ export function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const cartCount = useCartCount();
   const openCart = useCartStore((s) => s.open);
+  const wishlistCount = useWishlistCount();
 
   const activeMenu = megaMenus.find((m) => m.label === openMenu);
 
@@ -119,10 +121,15 @@ export function SiteHeader() {
             </button>
             <Link
               href="/wishlist"
-              aria-label="Wishlist"
-              className="focus-ring hidden cursor-pointer rounded p-2 text-ink hover:bg-surface-sunken sm:block"
+              aria-label={`Wishlist, ${wishlistCount} item${wishlistCount === 1 ? "" : "s"}`}
+              className="focus-ring relative hidden cursor-pointer rounded p-2 text-ink hover:bg-surface-sunken sm:block"
             >
               <Heart size={20} />
+              {wishlistCount > 0 && (
+                <span className="tabular absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-700 px-1 text-[10px] font-semibold text-white">
+                  {wishlistCount}
+                </span>
+              )}
             </Link>
             <Link
               href="/account"

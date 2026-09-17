@@ -11,6 +11,7 @@ import { SaleTimer } from "@/components/product/sale-timer";
 import { SoldCount } from "@/components/product/sold-count";
 import { formatPKR } from "@/lib/format";
 import { useCartStore } from "@/components/cart/cart-store";
+import { WishlistIconToggle } from "@/components/wishlist/wishlist-toggle";
 
 function keySpec(product: Product) {
   if (product.buildVolume) {
@@ -35,6 +36,9 @@ export function ProductCard({ product }: { product: Product }) {
             Sale
           </span>
         )}
+        <div className="absolute right-6 top-6">
+          <WishlistIconToggle productId={product.id} name={product.name} />
+        </div>
       </Link>
       <div className="flex flex-1 flex-col p-4">
         <p className="text-xs uppercase tracking-wide text-ink-faint">{product.brandName}</p>

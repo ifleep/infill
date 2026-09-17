@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Minus, Plus, ShoppingBagOpen } from "@phosphor-icons/react";
 import { useCartStore, useCartTotal } from "@/components/cart/cart-store";
+import { useWishlistStore } from "@/components/wishlist/wishlist-store";
 import { formatPKR } from "@/lib/format";
 import { LinkButton } from "@/components/ui/button";
 import type { Product } from "@/lib/types";
@@ -15,6 +16,17 @@ export default function CartPage() {
   const setQuantity = useCartStore((s) => s.setQuantity);
   const removeItem = useCartStore((s) => s.removeItem);
   const total = useCartTotal();
+  const hydrateWishlist = useWishlistStore((s) => s.hydrate);
+  const addToWishlist = useWishlistStore((s) => s.add);
+
+  useEffect(() => {
+    hydrateWishlist();
+  }, [hydrateWishlist]);
+
+  function saveForLater(productId: string) {
+    addToWishlist(productId);
+    removeItem(productId);
+  }
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
@@ -78,12 +90,20 @@ export default function CartPage() {
                 <p className="tabular w-28 text-right text-sm font-semibold text-ink">
                   {formatPKR(line.price * line.quantity)}
                 </p>
-                <button
-                  onClick={() => removeItem(line.productId)}
-                  className="focus-ring cursor-pointer text-xs text-ink-faint underline-offset-2 hover:text-destructive hover:underline"
-                >
-                  Remove
-                </button>
+                <div className="flex flex-col items-end gap-1">
+                  <button
+                    onClick={() => saveForLater(line.productId)}
+                    className="focus-ring cursor-pointer text-xs text-ink-faint underline-offset-2 hover:text-blue-700 hover:underline"
+                  >
+                    Save for later
+                  </button>
+                  <button
+                    onClick={() => removeItem(line.productId)}
+                    className="focus-ring cursor-pointer text-xs text-ink-faint underline-offset-2 hover:text-destructive hover:underline"
+                  >
+                    Remove
+                  </button>
+                </div>
               </li>
             ))}
           </ul>

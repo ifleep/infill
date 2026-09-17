@@ -234,6 +234,7 @@ export interface ProductInput {
   saleEndsAt?: string | null;
   limitedStockEnabled?: boolean;
   limitedStockQuantity?: number | null;
+  warrantyMonths?: number;
 }
 
 function toDbInput(input: ProductInput) {
@@ -268,6 +269,7 @@ function toDbInput(input: ProductInput) {
     ...(input.saleEndsAt !== undefined ? { saleEndsAt: input.saleEndsAt ? new Date(input.saleEndsAt) : null } : {}),
     ...(input.limitedStockEnabled !== undefined ? { limitedStockEnabled: input.limitedStockEnabled } : {}),
     ...(input.limitedStockQuantity !== undefined ? { limitedStockQuantity: input.limitedStockQuantity } : {}),
+    ...(input.warrantyMonths !== undefined ? { warrantyMonths: input.warrantyMonths } : {}),
     // Prisma's Json input type wants an index-signature-bearing object, which
     // a concrete discriminated-union interface like ContentBlock doesn't
     // structurally have — cast through unknown, the runtime shape is plain JSON.
@@ -297,7 +299,6 @@ export async function createProduct(input: ProductInput): Promise<Product> {
       currency: "PKR",
       specifications: "[]",
       tags: [],
-      warrantyMonths: 12,
       media: { create: mediaCreateInput(input.mediaIds ?? []) },
     },
     include: productWithMediaInclude,

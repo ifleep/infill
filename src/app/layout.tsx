@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { WhatsAppButton } from "@/components/layout/whatsapp-button";
 import { CartProvider } from "@/components/cart/cart-store";
+import { WishlistProvider } from "@/components/wishlist/wishlist-store";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 
 const outfit = Outfit({
@@ -100,9 +101,11 @@ export default function RootLayout({
           Skip to main content
         </a>
         <CartProvider>
-          <SiteChrome header={<SiteHeader />} footer={<SiteFooter />} whatsapp={<WhatsAppButton />}>
-            {children}
-          </SiteChrome>
+          <WishlistProvider>
+            <SiteChrome header={<SiteHeader />} footer={<SiteFooter />} whatsapp={<WhatsAppButton />}>
+              {children}
+            </SiteChrome>
+          </WishlistProvider>
         </CartProvider>
       </body>
     </html>

@@ -12,6 +12,7 @@ import { ProductGallery } from "@/components/product/product-gallery";
 import { ProductCard } from "@/components/product/product-card";
 import { AddToCartPanel } from "@/components/product/add-to-cart-panel";
 import { CompareToggle } from "@/components/compare/compare-toggle";
+import { WishlistToggle } from "@/components/wishlist/wishlist-toggle";
 import { AvailabilityStatus } from "@/components/product/availability-badge";
 import { LimitedStockBadge } from "@/components/product/limited-stock-badge";
 import { SaleTimer } from "@/components/product/sale-timer";
@@ -180,7 +181,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
           <AddToCartPanel product={product} brandName={product.brandName} />
 
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap gap-2">
+            <WishlistToggle productId={product.id} />
             <CompareToggle productId={product.id} />
           </div>
 
@@ -257,8 +259,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <div>
             <h3 className="font-display text-base font-semibold text-ink">Warranty &amp; support</h3>
             <p className="mt-2 text-sm text-ink-muted">
-              {product.warrantyMonths}-month warranty, with installation and training available through
-              our services team.
+              {product.warrantyMonths > 0
+                ? `${product.warrantyMonths}-month warranty, with installation and training available through our services team.`
+                : "Installation and training available through our services team."}
             </p>
             <Link
               href="/services"
