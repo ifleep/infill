@@ -18,9 +18,16 @@ import type { SiteSettings } from "@/lib/data/settings";
  * Below `sm` this renders MobileHero instead (see that file for why) —
  * `sm` and up is untouched, so tablet and desktop stay exactly as before.
  */
-export function HomepageHero({ heroImages }: { heroImages: SiteSettings["heroImages"] }) {
+export function HomepageHero({
+  heroImages,
+  heroImagesMobile,
+}: {
+  heroImages: SiteSettings["heroImages"];
+  heroImagesMobile: SiteSettings["heroImagesMobile"];
+}) {
   const progressRef = useRef(0);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const mobileImages = heroImagesMobile.length > 0 ? heroImagesMobile : heroImages;
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
@@ -45,7 +52,7 @@ export function HomepageHero({ heroImages }: { heroImages: SiteSettings["heroIma
   return (
     <>
       <div className="sm:hidden">
-        <MobileHero heroImages={heroImages} />
+        <MobileHero heroImages={mobileImages} />
       </div>
 
       <div ref={wrapperRef} className="relative hidden sm:block" style={{ height: "200vh" }}>

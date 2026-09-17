@@ -17,6 +17,18 @@ type Slide = { kind: "printer" } | { kind: "image"; image: BlockImageRef };
  * ratio swipeable carousel instead: no scroll-jacking, no sticky
  * positioning, no viewport-height units, and a single static "assembled
  * printer" frame rather than the animation.
+ *
+ * Photos are shown with `object-contain` (never cropped) rather than
+ * `object-cover` — the desktop hero photos are wide, and forcing a wide
+ * photo into a tall crop discards most of its width, then that reduced
+ * slice gets stretched to fill a phone's much higher pixel density than
+ * a desktop monitor, which is what made photos look "low quality" here
+ * even though the source file itself was never touched or compressed.
+ * Any letterboxing this leaves is filled with the same hero background
+ * color rather than a blurred copy, so nothing about the photo itself is
+ * processed — heading/buttons/dots sit below the photo in normal flow
+ * instead of overlaid on it, since a contained (not cropped) image can't
+ * guarantee a dark area for overlaid text to stay legible against.
  */
 export function MobileHero({ heroImages }: { heroImages: BlockImageRef[] }) {
   const slides: Slide[] = [{ kind: "printer" }, ...heroImages.map((image) => ({ kind: "image" as const, image }))];
@@ -35,9 +47,9 @@ export function MobileHero({ heroImages }: { heroImages: BlockImageRef[] }) {
   }, [index, slides.length, goTo]);
 
   return (
-    <div className="relative aspect-[4/5] w-full overflow-hidden bg-hero-bg-deep">
+    <div className="bg-hero-bg-deep">
       <div
-        className="h-full w-full overflow-hidden"
+        className="relative aspect-video w-full overflow-hidden"
         onTouchStart={(e) => {
           touchStartX.current = e.touches[0].clientX;
         }}
@@ -59,7 +71,7 @@ export function MobileHero({ heroImages }: { heroImages: BlockImageRef[] }) {
                 key="printer"
                 src={framePath(FRAME_COUNT - 1)}
                 alt="3D printer"
-                className="h-full w-full shrink-0 object-cover"
+                className="h-full w-full shrink-0 object-contain"
                 loading="eager"
                 decoding="async"
               />
@@ -69,7 +81,7 @@ export function MobileHero({ heroImages }: { heroImages: BlockImageRef[] }) {
                 key={slide.image.mediaId || i}
                 src={slide.image.url}
                 alt={slide.image.alt}
-                className="h-full w-full shrink-0 object-cover"
+                className="h-full w-full shrink-0 object-contain"
                 loading="lazy"
                 decoding="async"
               />
@@ -78,16 +90,14 @@ export function MobileHero({ heroImages }: { heroImages: BlockImageRef[] }) {
         </div>
       </div>
 
-      <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-hero-bg-deep/85 via-hero-bg-deep/20 to-transparent" />
-
-      <div className="container-page pointer-events-none absolute inset-x-0 bottom-0 z-10 pb-6">
+      <div className="container-page pb-6 pt-5 text-center">
         <h1 className="font-display text-3xl font-semibold leading-[1.05] tracking-tight text-on-navy">
           Build what&rsquo;s next.
         </h1>
-        <p className="mt-3 max-w-xs text-sm text-on-navy-muted">
+        <p className="mx-auto mt-3 max-w-xs text-sm text-on-navy-muted">
           3D printing technology, materials and digital fabrication for Pakistan.
         </p>
-        <div className="pointer-events-auto mt-4 flex flex-wrap gap-2.5">
+        <div className="mt-4 flex flex-wrap justify-center gap-2.5">
           <LinkButton href="/category/3d-printers" size="md">
             Shop 3D Printers
           </LinkButton>
@@ -97,7 +107,7 @@ export function MobileHero({ heroImages }: { heroImages: BlockImageRef[] }) {
         </div>
 
         {slides.length > 1 && (
-          <div className="pointer-events-auto mt-4 flex gap-2">
+          <div className="mt-4 flex justify-center gap-2">
             {slides.map((slide, i) => (
               <button
                 key={slide.kind === "printer" ? "printer" : slide.image.mediaId || i}

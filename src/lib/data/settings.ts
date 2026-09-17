@@ -11,6 +11,8 @@ export interface SiteSettings {
   storeNotificationEmail: string;
   /** Homepage hero photo carousel — admin-selected/reordered, dot navigation. */
   heroImages: BlockImageRef[];
+  /** Phone-only alternative to heroImages, composed for a narrow/tall screen instead of cropped from the desktop photos. Falls back to heroImages when empty. */
+  heroImagesMobile: BlockImageRef[];
   /** Small fixed-size review-video card on the homepage — hidden entirely when unset. */
   reviewVideoUrl: string;
   reviewVideoCaption: string;
@@ -37,6 +39,7 @@ const DEFAULTS: SiteSettings = {
   whatsappMessage: "Hi INFiLLPK, I have a question about ",
   storeNotificationEmail: "sales@infillpk.com",
   heroImages: [],
+  heroImagesMobile: [],
   reviewVideoUrl: "",
   reviewVideoCaption: "",
   printMaterials: DEFAULT_PRINT_MATERIALS,

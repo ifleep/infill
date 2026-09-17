@@ -1,26 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { CaretUp, CaretDown, Plus, Trash } from "@phosphor-icons/react";
+import { Plus, Trash } from "@phosphor-icons/react";
 import type { SiteSettings } from "@/lib/data/settings";
-import type { BlockImageRef } from "@/lib/content-blocks/types";
 import type { PrintMaterial } from "@/lib/print-estimate";
-import type { MediaItem } from "@/lib/admin/media-types";
-import { MediaPicker } from "@/components/admin/media-picker";
+import { HeroImagesEditor } from "@/components/admin/hero-images-editor";
 
 const inputClass =
   "focus-ring w-full rounded-md border border-border-strong px-3 py-2 text-sm text-ink placeholder:text-ink-faint";
-
-function toImageRef(m: MediaItem): BlockImageRef {
-  return { mediaId: m.id, url: m.url, alt: m.alt ?? "", caption: m.caption ?? undefined };
-}
 
 export function SettingsForm({ initial }: { initial: SiteSettings }) {
   const [values, setValues] = useState(initial);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pickerOpen, setPickerOpen] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -40,16 +33,6 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
     } finally {
       setSaving(false);
     }
-  }
-
-  function moveHeroImage(index: number, direction: -1 | 1) {
-    setValues((v) => {
-      const images = [...v.heroImages];
-      const target = index + direction;
-      if (target < 0 || target >= images.length) return v;
-      [images[index], images[target]] = [images[target], images[index]];
-      return { ...v, heroImages: images };
-    });
   }
 
   function updateMaterial(index: number, patch: Partial<PrintMaterial>) {
@@ -122,62 +105,25 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
       <div className="border-t border-border pt-5">
         <h2 className="font-display text-base font-semibold text-ink">Homepage hero photos</h2>
         <p className="mt-1 text-sm text-ink-muted">
-          The photo carousel at the top of the homepage. Use the arrows to reorder.
+          The photo carousel at the top of the homepage (desktop and tablet). Use the arrows to reorder.
         </p>
       </div>
+      <HeroImagesEditor
+        images={values.heroImages}
+        onChange={(heroImages) => setValues((v) => ({ ...v, heroImages }))}
+      />
 
-      <div className="space-y-2">
-        {values.heroImages.map((img, i) => (
-          <div key={img.mediaId || i} className="flex items-center gap-2 rounded-md border border-border p-2">
-            {/* eslint-disable-next-line @next/next/no-img-element -- uploaded files, not a static import */}
-            <img src={img.url} alt="" className="h-12 w-16 shrink-0 rounded object-cover" />
-            <span className="flex-1 truncate text-xs text-ink-muted">{img.alt || img.url}</span>
-            <button
-              type="button"
-              onClick={() => moveHeroImage(i, -1)}
-              disabled={i === 0}
-              aria-label="Move up"
-              className="focus-ring cursor-pointer rounded p-1 text-ink-faint hover:text-ink disabled:opacity-30"
-            >
-              <CaretUp size={14} />
-            </button>
-            <button
-              type="button"
-              onClick={() => moveHeroImage(i, 1)}
-              disabled={i === values.heroImages.length - 1}
-              aria-label="Move down"
-              className="focus-ring cursor-pointer rounded p-1 text-ink-faint hover:text-ink disabled:opacity-30"
-            >
-              <CaretDown size={14} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setValues((v) => ({ ...v, heroImages: v.heroImages.filter((_, idx) => idx !== i) }))}
-              aria-label="Remove"
-              className="focus-ring cursor-pointer rounded p-1 text-ink-faint hover:text-destructive"
-            >
-              &times;
-            </button>
-          </div>
-        ))}
-        <button
-          type="button"
-          onClick={() => setPickerOpen(true)}
-          className="focus-ring cursor-pointer rounded-md border border-dashed border-border-strong px-3 py-2 text-xs font-medium text-ink-muted hover:text-ink"
-        >
-          Add photos
-        </button>
-        <MediaPicker
-          open={pickerOpen}
-          onClose={() => setPickerOpen(false)}
-          multiple
-          onSelect={(items) => {
-            const existing = new Set(values.heroImages.map((i) => i.mediaId));
-            const additions = items.filter((i) => !existing.has(i.id)).map(toImageRef);
-            setValues((v) => ({ ...v, heroImages: [...v.heroImages, ...additions] }));
-          }}
-        />
+      <div className="border-t border-border pt-5">
+        <h2 className="font-display text-base font-semibold text-ink">Homepage hero photos (mobile)</h2>
+        <p className="mt-1 text-sm text-ink-muted">
+          Shown only on phones, in place of the photos above — upload versions cropped/composed for a narrow,
+          tall screen instead of a wide one. Leave empty to reuse the desktop photos on phones too.
+        </p>
       </div>
+      <HeroImagesEditor
+        images={values.heroImagesMobile}
+        onChange={(heroImagesMobile) => setValues((v) => ({ ...v, heroImagesMobile }))}
+      />
 
       <div className="border-t border-border pt-5">
         <h2 className="font-display text-base font-semibold text-ink">Review video</h2>

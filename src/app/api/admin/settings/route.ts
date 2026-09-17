@@ -60,6 +60,7 @@ export async function PATCH(request: Request) {
     whatsappMessage?: string;
     storeNotificationEmail?: string;
     heroImages?: BlockImageRef[];
+    heroImagesMobile?: BlockImageRef[];
     reviewVideoUrl?: string;
     reviewVideoCaption?: string;
     printMaterials?: PrintMaterial[];
@@ -71,6 +72,8 @@ export async function PATCH(request: Request) {
   if (typeof b.storeNotificationEmail === "string") patch.storeNotificationEmail = b.storeNotificationEmail.trim();
   const heroImages = parseHeroImages(b.heroImages);
   if (heroImages) patch.heroImages = heroImages;
+  const heroImagesMobile = parseHeroImages(b.heroImagesMobile);
+  if (heroImagesMobile) patch.heroImagesMobile = heroImagesMobile;
   if (typeof b.reviewVideoUrl === "string") patch.reviewVideoUrl = b.reviewVideoUrl.trim();
   if (typeof b.reviewVideoCaption === "string") patch.reviewVideoCaption = b.reviewVideoCaption.trim();
   const printMaterials = parsePrintMaterials(b.printMaterials);

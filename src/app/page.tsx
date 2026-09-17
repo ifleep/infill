@@ -21,7 +21,7 @@ export default async function Home() {
     <>
       <RegionalMotifEdge motif="sindh" side="left" />
       <RegionalMotifEdge motif="punjab" side="right" />
-      <HomepageHero heroImages={settings.heroImages} />
+      <HomepageHero heroImages={settings.heroImages} heroImagesMobile={settings.heroImagesMobile} />
       <FeaturedPrintersSection />
       <ReviewVideoCard />
       <HomepagePromoSections />
