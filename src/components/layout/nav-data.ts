@@ -129,6 +129,7 @@ export const megaMenus: MegaMenuConfig[] = [
           { label: "CNC", href: "/category/machines?sub=CNC" },
           { label: "UV Printing", href: "/category/machines?sub=UV+Printing" },
           { label: "Laser", href: "/category/machines?sub=Laser" },
+          { label: "Robots", href: "/category/machines?sub=Robots" },
         ],
       },
     ],
