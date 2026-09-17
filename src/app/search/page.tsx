@@ -1,5 +1,4 @@
 import { getAllProducts } from "@/lib/data/products";
-import { getBrandById } from "@/lib/data";
 import { ProductCard } from "@/components/product/product-card";
 
 export default async function SearchPage({
@@ -17,7 +16,7 @@ export default async function SearchPage({
           p.name.toLowerCase().includes(query) ||
           p.subcategory.toLowerCase().includes(query) ||
           p.tags.some((t) => t.toLowerCase().includes(query)) ||
-          getBrandById(p.brandId)?.name.toLowerCase().includes(query)
+          p.brandName.toLowerCase().includes(query)
       )
     : [];
 

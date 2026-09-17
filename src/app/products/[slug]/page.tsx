@@ -8,12 +8,15 @@ import {
   getAccessories,
   getCompatibleFilaments,
 } from "@/lib/data/products";
-import { getBrandById } from "@/lib/data";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { ProductCard } from "@/components/product/product-card";
 import { AddToCartPanel } from "@/components/product/add-to-cart-panel";
 import { CompareToggle } from "@/components/compare/compare-toggle";
+import { WishlistToggle } from "@/components/wishlist/wishlist-toggle";
 import { AvailabilityStatus } from "@/components/product/availability-badge";
+import { LimitedStockBadge } from "@/components/product/limited-stock-badge";
+import { SaleTimer } from "@/components/product/sale-timer";
+import { SoldCount } from "@/components/product/sold-count";
 import { formatPKR } from "@/lib/format";
 import { Faq } from "@/components/product/faq";
 import { ReviewSection } from "@/components/product/review-section";
@@ -35,8 +38,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return {};
-  const brand = getBrandById(product.brandId);
-  const defaultTitle = `${brand?.name ?? ""} ${product.name}`.trim();
+  const defaultTitle = `${product.brandName} ${product.name}`.trim();
   const title = product.seoTitle || defaultTitle;
   const description = product.metaDescription || product.shortDescription;
   return {
@@ -59,7 +61,6 @@ const statFields: { label: string; get: (p: Product) => string | null }[] = [
   },
   { label: "Max speed", get: (p) => (p.speedMmPerSec ? `${p.speedMmPerSec} mm/s` : null) },
   { label: "Weight", get: (p) => (p.weightKg ? `${p.weightKg} kg` : null) },
-  { label: "Warranty", get: (p) => `${p.warrantyMonths} months` },
 ];
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -71,7 +72,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     notFound();
   }
 
-  const brand = getBrandById(product.brandId);
   const [related, accessories, compatibleFilaments] = await Promise.all([
     getRelatedProducts(product),
     getAccessories(product),
@@ -83,7 +83,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    brand: { "@type": "Brand", name: brand?.name },
+    brand: { "@type": "Brand", name: product.brandName },
     description: product.shortDescription,
     offers: {
       "@type": "Offer",
@@ -91,7 +91,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       price: product.price,
       availability: schemaAvailability(product.availability),
     },
-    ...(product.rating
+    ...(product.rating && product.reviewCount
       ? {
           aggregateRating: {
             "@type": "AggregateRating",
@@ -148,15 +148,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
 
         <div>
-          <p className="text-sm font-medium uppercase tracking-wide text-ink-faint">{brand?.name}</p>
+          <p className="text-sm font-medium uppercase tracking-wide text-ink-faint">{product.brandName}</p>
           <h1 className="font-display mt-1 text-3xl font-semibold text-ink sm:text-4xl">{product.name}</h1>
 
-          {product.rating && (
+          {product.rating && product.reviewCount ? (
             <div className="mt-3 flex items-center gap-1.5 text-sm text-ink-muted">
               <Star size={16} weight="fill" className="text-amber-600" />
               <span className="tabular font-medium text-ink">{product.rating}</span>
               <span>({product.reviewCount} reviews)</span>
             </div>
+          ) : (
+            <p className="mt-3 text-sm text-ink-faint">No reviews yet</p>
           )}
 
           <p className="mt-4 text-base text-ink-muted">{product.shortDescription}</p>
@@ -169,15 +171,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </span>
             )}
           </div>
-          <p className="mt-1 text-xs text-ink-faint">Estimated price — confirmed at checkout</p>
-
           <div className="mt-3">
             <AvailabilityStatus availability={product.availability} stock={product.stock} />
+            <LimitedStockBadge product={product} className="mt-1.5" />
+            <SaleTimer saleEndsAt={product.saleEndsAt} className="mt-1.5" />
+            <SoldCount product={product} className="mt-1.5" />
           </div>
 
-          <AddToCartPanel product={product} brandName={brand?.name ?? ""} />
+          <AddToCartPanel product={product} brandName={product.brandName} />
 
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap gap-2">
+            <WishlistToggle productId={product.id} />
             <CompareToggle productId={product.id} />
           </div>
 
@@ -252,10 +256,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </Link>
           </div>
           <div>
-            <h3 className="font-display text-base font-semibold text-ink">Warranty &amp; support</h3>
+            <h3 className="font-display text-base font-semibold text-ink">Installation &amp; support</h3>
             <p className="mt-2 text-sm text-ink-muted">
-              {product.warrantyMonths}-month warranty, with installation and training available through
-              our services team.
+              Installation and training available through our services team.
             </p>
             <Link
               href="/services"

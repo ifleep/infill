@@ -5,7 +5,6 @@ import Link from "next/link";
 import { X } from "@phosphor-icons/react";
 import { useCompareStore } from "@/components/compare/compare-store";
 import type { Product } from "@/lib/types";
-import { getBrandById } from "@/lib/data/brands";
 import { ProductVisual } from "@/components/product/product-visual";
 import { formatPKR } from "@/lib/format";
 import { LinkButton } from "@/components/ui/button";
@@ -25,7 +24,6 @@ const fields: { label: string; get: (p: Product) => string }[] = [
     get: (p) =>
       p.dimensions ? `${p.dimensions.width} × ${p.dimensions.depth} × ${p.dimensions.height} mm` : "—",
   },
-  { label: "Warranty", get: (p) => `${p.warrantyMonths} months` },
 ];
 
 export default function ComparePage() {
@@ -69,7 +67,6 @@ export default function ComparePage() {
           >
             <div className="bg-surface-sunken" />
             {selected.map((p) => {
-              const brand = getBrandById(p.brandId);
               return (
                 <div key={p.id} className="relative bg-surface p-4">
                   <button
@@ -80,7 +77,7 @@ export default function ComparePage() {
                     <X size={16} />
                   </button>
                   <ProductVisual product={p} className="mx-auto max-w-[120px]" />
-                  <p className="mt-2 text-center text-xs text-ink-faint">{brand?.name}</p>
+                  <p className="mt-2 text-center text-xs text-ink-faint">{p.brandName}</p>
                   <Link
                     href={`/products/${p.slug}`}
                     className="focus-ring block text-center text-sm font-semibold text-ink hover:text-blue-700"

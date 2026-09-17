@@ -13,8 +13,8 @@ const faqs = [
     a: "Yes — installation, calibration and hands-on operator training are available as a paid service, on-site in major cities or remotely elsewhere in Pakistan.",
   },
   {
-    q: "What does the warranty cover?",
-    a: "The warranty period shown covers manufacturing defects and hardware failure under normal use. Consumable parts (nozzles, build surfaces) are not covered.",
+    q: "What if my order arrives faulty or damaged?",
+    a: "Contact our support team and we'll sort out a repair, replacement or refund. Full details are on our Returns & Warranty page.",
   },
   {
     q: "Can I pay in installments or request a quote for bulk orders?",

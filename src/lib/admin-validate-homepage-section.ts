@@ -49,7 +49,7 @@ export function validateHomepageSectionInput(
       buttonUrl: typeof rawConfig.buttonUrl === "string" ? rawConfig.buttonUrl : undefined,
     };
   } else {
-    const variant: PromoImageVariant = ["full-width", "image-text", "overlay-text", "gallery"].includes(
+    const variant: PromoImageVariant = ["full-width", "image-text", "overlay-text", "gallery", "carousel"].includes(
       rawConfig.variant as string
     )
       ? (rawConfig.variant as PromoImageVariant)

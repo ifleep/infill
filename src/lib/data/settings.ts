@@ -1,35 +1,50 @@
 import { prisma } from "@/lib/db";
 import type { Prisma } from "@/generated/prisma/client";
-
-export interface ShippingRate {
-  city: string;
-  cost: number;
-  etaDays?: number;
-}
+import type { BlockImageRef } from "@/lib/content-blocks/types";
+import type { PrintMaterial } from "@/lib/print-estimate";
 
 // A small key-value store for global site settings that don't warrant
 // their own model (SiteSetting.value is a Json column).
 export interface SiteSettings {
   whatsappNumber: string;
   whatsappMessage: string;
-  /** Per-city flat rates shown at checkout; defaultShippingCost covers any city not listed. */
-  shippingRates: ShippingRate[];
-  defaultShippingCost: number;
   storeNotificationEmail: string;
+  /** Homepage hero photo carousel — admin-selected/reordered, dot navigation. */
+  heroImages: BlockImageRef[];
+  /** Phone-only alternative to heroImages, composed for a narrow/tall screen instead of cropped from the desktop photos. Falls back to heroImages when empty. */
+  heroImagesMobile: BlockImageRef[];
+  /** Small fixed-size review-video card on the homepage — hidden entirely when unset. */
+  reviewVideoUrl: string;
+  reviewVideoCaption: string;
+  /** Materials offered on the print price calculator, with their price/kg. */
+  printMaterials: PrintMaterial[];
+  /** Flat % added to material weight for support structures (the estimator can't know real overhangs without a real slicer — see print-estimate.ts). */
+  printSupportOverheadPercent: number;
+  /** Flat handling/labor fee added on top of material cost. */
+  printServiceFeePkr: number;
 }
+
+// Real physical densities (g/cm³) — safe defaults, these are material
+// science facts. pricePerKgPkr values are NOT real prices — an admin must
+// set these in Settings before the calculator quotes real customers.
+const DEFAULT_PRINT_MATERIALS: PrintMaterial[] = [
+  { name: "PLA", densityGCm3: 1.24, pricePerKgPkr: 3000 },
+  { name: "ABS", densityGCm3: 1.04, pricePerKgPkr: 3200 },
+  { name: "PETG", densityGCm3: 1.27, pricePerKgPkr: 3500 },
+  { name: "TPU", densityGCm3: 1.21, pricePerKgPkr: 4500 },
+];
 
 const DEFAULTS: SiteSettings = {
   whatsappNumber: "8616621610013",
   whatsappMessage: "Hi INFiLLPK, I have a question about ",
-  shippingRates: [
-    { city: "Karachi", cost: 300, etaDays: 2 },
-    { city: "Lahore", cost: 300, etaDays: 2 },
-    { city: "Islamabad", cost: 300, etaDays: 3 },
-    { city: "Rawalpindi", cost: 300, etaDays: 3 },
-    { city: "Faisalabad", cost: 350, etaDays: 3 },
-  ],
-  defaultShippingCost: 450,
   storeNotificationEmail: "sales@infillpk.com",
+  heroImages: [],
+  heroImagesMobile: [],
+  reviewVideoUrl: "",
+  reviewVideoCaption: "",
+  printMaterials: DEFAULT_PRINT_MATERIALS,
+  printSupportOverheadPercent: 15,
+  printServiceFeePkr: 200,
 };
 
 export async function getSiteSettings(): Promise<SiteSettings> {
@@ -50,11 +65,4 @@ export async function updateSiteSettings(patch: Partial<SiteSettings>): Promise<
       })
     )
   );
-}
-
-// Looked up at checkout — case-insensitive match against the configured
-// city list, falling back to the flat default rate for anywhere else.
-export function shippingCostForCity(settings: SiteSettings, city: string): number {
-  const match = settings.shippingRates.find((r) => r.city.toLowerCase() === city.trim().toLowerCase());
-  return match?.cost ?? settings.defaultShippingCost;
 }

@@ -32,6 +32,14 @@ export function ServicesSection() {
                   </li>
                 ))}
               </ul>
+              {svc.id === "svc-printing" && (
+                <Link
+                  href="/print-price-calculator"
+                  className="focus-ring mt-4 inline-flex items-center text-xs font-semibold text-blue-700 hover:text-blue-600"
+                >
+                  Get an instant price →
+                </Link>
+              )}
             </div>
           );
         })}

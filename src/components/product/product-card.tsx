@@ -6,9 +6,12 @@ import type { Product } from "@/lib/types";
 import { ProductVisual } from "@/components/product/product-visual";
 import { AvailabilityBadge } from "@/components/product/availability-badge";
 import { StockUrgency } from "@/components/product/stock-urgency";
+import { LimitedStockBadge } from "@/components/product/limited-stock-badge";
+import { SaleTimer } from "@/components/product/sale-timer";
+import { SoldCount } from "@/components/product/sold-count";
 import { formatPKR } from "@/lib/format";
-import { getBrandById } from "@/lib/data/brands";
 import { useCartStore } from "@/components/cart/cart-store";
+import { WishlistIconToggle } from "@/components/wishlist/wishlist-toggle";
 
 function keySpec(product: Product) {
   if (product.buildVolume) {
@@ -22,7 +25,6 @@ function keySpec(product: Product) {
 }
 
 export function ProductCard({ product }: { product: Product }) {
-  const brand = getBrandById(product.brandId);
   const addItem = useCartStore((s) => s.addItem);
 
   return (
@@ -34,9 +36,12 @@ export function ProductCard({ product }: { product: Product }) {
             Sale
           </span>
         )}
+        <div className="absolute right-6 top-6">
+          <WishlistIconToggle productId={product.id} name={product.name} />
+        </div>
       </Link>
       <div className="flex flex-1 flex-col p-4">
-        <p className="text-xs uppercase tracking-wide text-ink-faint">{brand?.name}</p>
+        <p className="text-xs uppercase tracking-wide text-ink-faint">{product.brandName}</p>
         <Link
           href={`/products/${product.slug}`}
           className="focus-ring mt-0.5 text-sm font-semibold text-ink hover:text-blue-700"
@@ -51,13 +56,18 @@ export function ProductCard({ product }: { product: Product }) {
           </div>
         )}
         <StockUrgency product={product} className="mt-1.5" />
+        <LimitedStockBadge product={product} className="mt-1.5" />
+        <SaleTimer saleEndsAt={product.saleEndsAt} className="mt-1.5" />
+        <SoldCount product={product} className="mt-1.5" />
 
-        {product.rating && (
+        {product.rating && product.reviewCount ? (
           <div className="mt-1.5 flex items-center gap-1 text-xs text-ink-muted">
             <Star size={13} weight="fill" className="text-amber-600" />
             <span className="tabular">{product.rating}</span>
             <span className="text-ink-faint">({product.reviewCount})</span>
           </div>
+        ) : (
+          <p className="mt-1.5 text-xs text-ink-faint">No reviews yet</p>
         )}
 
         <div className="mt-3 flex items-baseline gap-2">
@@ -68,7 +78,6 @@ export function ProductCard({ product }: { product: Product }) {
             </span>
           )}
         </div>
-        <p className="mt-0.5 text-xs text-ink-faint">Estimated price — confirmed at checkout</p>
 
         <div className="mt-4 flex gap-2">
           {product.quoteOnly ? (
@@ -87,7 +96,7 @@ export function ProductCard({ product }: { product: Product }) {
             </button>
           ) : (
             <button
-              onClick={() => addItem(product, brand?.name ?? "")}
+              onClick={() => addItem(product, product.brandName)}
               className="focus-ring flex h-9 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded bg-blue-700 px-3 text-sm font-medium text-white hover:bg-blue-600"
             >
               <Plus size={14} weight="bold" />

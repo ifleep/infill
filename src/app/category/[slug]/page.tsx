@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCategoryDef, categoryDefs } from "@/components/category/category-config";
 import { getProductsByCategory } from "@/lib/data/products";
-import { brands } from "@/lib/data/brands";
 import { ProductCard } from "@/components/product/product-card";
 import { CategoryFilters, type ActiveFilters } from "@/components/category/category-filters";
 
@@ -47,19 +46,23 @@ export default async function CategoryPage({
     use: firstParam(sp.use),
     brand: firstParam(sp.brand),
     sub: firstParam(sp.sub),
+    priceMin: firstParam(sp.priceMin),
+    priceMax: firstParam(sp.priceMax),
   };
 
   const productsInCategory = await getProductsByCategory(def.productCategory);
+
+  const priceMin = current.priceMin ? Number(current.priceMin) : undefined;
+  const priceMax = current.priceMax ? Number(current.priceMax) : undefined;
 
   const filtered = productsInCategory.filter((p) => {
     if (current.tech && p.technology !== current.tech) return false;
     if (current.sub && p.subcategory !== current.sub) return false;
     if (current.level && !p.experienceLevel?.includes(current.level as never)) return false;
     if (current.use && !p.useCases?.includes(current.use as never)) return false;
-    if (current.brand) {
-      const brand = brands.find((b) => b.slug === current.brand);
-      if (!brand || p.brandId !== brand.id) return false;
-    }
+    if (current.brand && p.brandSlug !== current.brand) return false;
+    if (priceMin !== undefined && p.price < priceMin) return false;
+    if (priceMax !== undefined && p.price > priceMax) return false;
     return true;
   });
 
