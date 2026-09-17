@@ -61,7 +61,6 @@ const statFields: { label: string; get: (p: Product) => string | null }[] = [
   },
   { label: "Max speed", get: (p) => (p.speedMmPerSec ? `${p.speedMmPerSec} mm/s` : null) },
   { label: "Weight", get: (p) => (p.weightKg ? `${p.weightKg} kg` : null) },
-  { label: "Warranty", get: (p) => `${p.warrantyMonths} months` },
 ];
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -257,11 +256,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </Link>
           </div>
           <div>
-            <h3 className="font-display text-base font-semibold text-ink">Warranty &amp; support</h3>
+            <h3 className="font-display text-base font-semibold text-ink">Installation &amp; support</h3>
             <p className="mt-2 text-sm text-ink-muted">
-              {product.warrantyMonths > 0
-                ? `${product.warrantyMonths}-month warranty, with installation and training available through our services team.`
-                : "Installation and training available through our services team."}
+              Installation and training available through our services team.
             </p>
             <Link
               href="/services"

@@ -24,7 +24,6 @@ const fields: { label: string; get: (p: Product) => string }[] = [
     get: (p) =>
       p.dimensions ? `${p.dimensions.width} × ${p.dimensions.depth} × ${p.dimensions.height} mm` : "—",
   },
-  { label: "Warranty", get: (p) => `${p.warrantyMonths} months` },
 ];
 
 export default function ComparePage() {
