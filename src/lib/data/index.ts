@@ -3,9 +3,10 @@
 // bindings via better-sqlite3). Safe to import from Server Components and
 // API routes, but NEVER from a "use client" component — doing so pulls the
 // whole database client into the browser bundle and breaks the build.
-// Client components should import brands/categories/etc. directly from
-// their own files (e.g. "@/lib/data/brands") instead.
-export * from "@/lib/data/brands";
+// Client components should import categories/etc. directly from their own
+// files instead. (Brand data isn't re-exported here — src/lib/data/brands.ts
+// is seed data only; the live Brand table is read via brands-admin.ts /
+// Product.brandName, see that file's own comment for why.)
 export * from "@/lib/data/products";
 export * from "@/lib/data/categories";
 export * from "@/lib/data/articles";

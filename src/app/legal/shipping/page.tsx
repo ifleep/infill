@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LegalNotice, LegalSection } from "@/components/legal/legal-page";
+import { LegalSection } from "@/components/legal/legal-page";
 
 export const metadata: Metadata = { title: "Shipping" };
 
@@ -7,7 +7,6 @@ export default function ShippingPage() {
   return (
     <div className="container-page max-w-2xl py-12 sm:py-16">
       <h1 className="font-display text-3xl font-semibold text-ink">Shipping</h1>
-      <LegalNotice />
       <LegalSection title="Coverage">
         We ship nationwide across all provinces and territories of Pakistan, including Gilgit-Baltistan
         and Azad Jammu &amp; Kashmir.

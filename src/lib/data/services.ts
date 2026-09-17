@@ -4,10 +4,10 @@ export const services: ServiceOffering[] = [
   {
     id: "svc-printing",
     name: "3D Printing",
-    headline: "Turn digital models into physical parts.",
+    headline: "Don't own a printer? We'll print it for you.",
     description:
-      "Send us a file and get a finished part back — FDM or resin, in the material your application actually needs.",
-    bullets: ["Single parts or small production runs", "FDM and resin technologies", "Material guidance included"],
+      "Upload your file and get a price in seconds — then we print it and get it to you. One part or a hundred, in PLA, ABS, PETG, TPU or another material.",
+    bullets: ["Instant online price — no need to call first", "PLA, ABS, PETG, TPU and more", "One-off parts or small production runs"],
   },
   {
     id: "svc-prototyping",

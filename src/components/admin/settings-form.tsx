@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { Plus, Trash } from "@phosphor-icons/react";
-import type { ShippingRate, SiteSettings } from "@/lib/data/settings";
+import type { SiteSettings } from "@/lib/data/settings";
+import type { PrintMaterial } from "@/lib/print-estimate";
+import { HeroImagesEditor } from "@/components/admin/hero-images-editor";
 
 const inputClass =
   "focus-ring w-full rounded-md border border-border-strong px-3 py-2 text-sm text-ink placeholder:text-ink-faint";
@@ -31,6 +33,25 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
     } finally {
       setSaving(false);
     }
+  }
+
+  function updateMaterial(index: number, patch: Partial<PrintMaterial>) {
+    setValues((v) => {
+      const materials = [...v.printMaterials];
+      materials[index] = { ...materials[index], ...patch };
+      return { ...v, printMaterials: materials };
+    });
+  }
+
+  function addMaterial() {
+    setValues((v) => ({
+      ...v,
+      printMaterials: [...v.printMaterials, { name: "", densityGCm3: 1.24, pricePerKgPkr: 0 }],
+    }));
+  }
+
+  function removeMaterial(index: number) {
+    setValues((v) => ({ ...v, printMaterials: v.printMaterials.filter((_, i) => i !== index) }));
   }
 
   return (
@@ -82,48 +103,142 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
       </label>
 
       <div className="border-t border-border pt-5">
-        <h2 className="font-display text-base font-semibold text-ink">Shipping</h2>
-        <p className="mt-1 text-sm text-ink-muted">Flat rate + delivery estimate shown at checkout, per city.</p>
+        <h2 className="font-display text-base font-semibold text-ink">Homepage hero photos</h2>
+        <p className="mt-1 text-sm text-ink-muted">
+          The photo carousel at the top of the homepage (desktop and tablet). Use the arrows to reorder.
+        </p>
       </div>
+      <HeroImagesEditor
+        images={values.heroImages}
+        onChange={(heroImages) => setValues((v) => ({ ...v, heroImages }))}
+      />
 
+      <div className="border-t border-border pt-5">
+        <h2 className="font-display text-base font-semibold text-ink">Homepage hero photos (mobile)</h2>
+        <p className="mt-1 text-sm text-ink-muted">
+          Shown only on phones, in place of the photos above — upload versions cropped/composed for a narrow,
+          tall screen instead of a wide one. Leave empty to reuse the desktop photos on phones too.
+        </p>
+      </div>
+      <HeroImagesEditor
+        images={values.heroImagesMobile}
+        onChange={(heroImagesMobile) => setValues((v) => ({ ...v, heroImagesMobile }))}
+      />
+
+      <div className="border-t border-border pt-5">
+        <h2 className="font-display text-base font-semibold text-ink">Review video</h2>
+        <p className="mt-1 text-sm text-ink-muted">
+          A small video card on the homepage. Leave the URL blank to hide it entirely.
+        </p>
+      </div>
       <label className="block text-sm">
-        <span className="mb-1.5 block font-medium text-ink">Default shipping cost</span>
+        <span className="mb-1.5 block font-medium text-ink">Video URL</span>
         <input
-          type="number"
-          min={0}
-          value={values.defaultShippingCost}
-          onChange={(e) => setValues((v) => ({ ...v, defaultShippingCost: Number(e.target.value) || 0 }))}
+          value={values.reviewVideoUrl}
+          onChange={(e) => setValues((v) => ({ ...v, reviewVideoUrl: e.target.value }))}
+          placeholder="https://.../reviews.mp4"
           className={inputClass}
         />
-        <span className="mt-1 block text-xs text-ink-faint">Used for any city not listed below.</span>
+        <span className="mt-1 block text-xs text-ink-faint">A direct link to an .mp4 file.</span>
+      </label>
+      <label className="block text-sm">
+        <span className="mb-1.5 block font-medium text-ink">Caption</span>
+        <input
+          value={values.reviewVideoCaption}
+          onChange={(e) => setValues((v) => ({ ...v, reviewVideoCaption: e.target.value }))}
+          placeholder="What our customers are saying"
+          className={inputClass}
+        />
       </label>
 
-      <div className="space-y-2.5">
-        {values.shippingRates.map((rate, i) => (
-          <ShippingRateRow
-            key={i}
-            rate={rate}
-            onChange={(next) =>
-              setValues((v) => ({
-                ...v,
-                shippingRates: v.shippingRates.map((r, idx) => (idx === i ? next : r)),
-              }))
-            }
-            onRemove={() =>
-              setValues((v) => ({ ...v, shippingRates: v.shippingRates.filter((_, idx) => idx !== i) }))
-            }
-          />
+      <div className="border-t border-border pt-5">
+        <h2 className="font-display text-base font-semibold text-ink">Print price calculator</h2>
+        <p className="mt-1 text-sm text-ink-muted">
+          Materials and pricing used to estimate 3D-printing quotes. Prices are per kilogram — set these to your
+          real costs before customers rely on the quotes.
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        {values.printMaterials.map((material, i) => (
+          <div key={i} className="flex items-center gap-2 rounded-md border border-border p-2">
+            <input
+              value={material.name}
+              onChange={(e) => updateMaterial(i, { name: e.target.value })}
+              placeholder="Name (e.g. PLA)"
+              className={`${inputClass} w-28`}
+            />
+            <label className="flex items-center gap-1 text-xs text-ink-muted">
+              Density
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={material.densityGCm3}
+                onChange={(e) => updateMaterial(i, { densityGCm3: Number(e.target.value) })}
+                placeholder="g/cm³"
+                className={`${inputClass} w-20`}
+              />
+              g/cm³
+            </label>
+            <label className="flex flex-1 items-center gap-1 text-xs text-ink-muted">
+              Price
+              <input
+                type="number"
+                step="1"
+                min="0"
+                value={material.pricePerKgPkr}
+                onChange={(e) => updateMaterial(i, { pricePerKgPkr: Number(e.target.value) })}
+                placeholder="PKR/kg"
+                className={`${inputClass} w-24`}
+              />
+              PKR/kg
+            </label>
+            <button
+              type="button"
+              onClick={() => removeMaterial(i)}
+              aria-label="Remove material"
+              className="focus-ring cursor-pointer rounded p-1 text-ink-faint hover:text-destructive"
+            >
+              <Trash size={14} />
+            </button>
+          </div>
         ))}
         <button
           type="button"
-          onClick={() =>
-            setValues((v) => ({ ...v, shippingRates: [...v.shippingRates, { city: "", cost: 0, etaDays: 3 }] }))
-          }
-          className="focus-ring flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-border-strong px-3 py-2 text-xs font-medium text-ink-muted hover:text-ink"
+          onClick={addMaterial}
+          className="focus-ring flex cursor-pointer items-center gap-1 rounded-md border border-dashed border-border-strong px-3 py-2 text-xs font-medium text-ink-muted hover:text-ink"
         >
-          <Plus size={14} /> Add city
+          <Plus size={14} />
+          Add material
         </button>
       </div>
+
+      <label className="block text-sm">
+        <span className="mb-1.5 block font-medium text-ink">Support material overhead (%)</span>
+        <input
+          type="number"
+          min="0"
+          value={values.printSupportOverheadPercent}
+          onChange={(e) => setValues((v) => ({ ...v, printSupportOverheadPercent: Number(e.target.value) }))}
+          className={inputClass}
+        />
+        <span className="mt-1 block text-xs text-ink-faint">
+          Extra material assumed for supports, added on top of the estimated part weight.
+        </span>
+      </label>
+
+      <label className="block text-sm">
+        <span className="mb-1.5 block font-medium text-ink">Service fee (PKR)</span>
+        <input
+          type="number"
+          min="0"
+          value={values.printServiceFeePkr}
+          onChange={(e) => setValues((v) => ({ ...v, printServiceFeePkr: Number(e.target.value) }))}
+          className={inputClass}
+        />
+        <span className="mt-1 block text-xs text-ink-faint">Flat handling fee added to every quote.</span>
+      </label>
 
       <div className="flex items-center gap-3">
         <button
@@ -136,50 +251,5 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
         {saved && <span className="text-xs font-medium text-pk-green">Saved</span>}
       </div>
     </form>
-  );
-}
-
-function ShippingRateRow({
-  rate,
-  onChange,
-  onRemove,
-}: {
-  rate: ShippingRate;
-  onChange: (rate: ShippingRate) => void;
-  onRemove: () => void;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <input
-        value={rate.city}
-        onChange={(e) => onChange({ ...rate, city: e.target.value })}
-        placeholder="City"
-        className={`${inputClass} w-32`}
-      />
-      <input
-        type="number"
-        min={0}
-        value={rate.cost}
-        onChange={(e) => onChange({ ...rate, cost: Number(e.target.value) || 0 })}
-        placeholder="Cost"
-        className={`${inputClass} w-24`}
-      />
-      <input
-        type="number"
-        min={1}
-        value={rate.etaDays ?? ""}
-        onChange={(e) => onChange({ ...rate, etaDays: e.target.value ? Number(e.target.value) : undefined })}
-        placeholder="Days"
-        className={`${inputClass} w-20`}
-      />
-      <button
-        type="button"
-        onClick={onRemove}
-        aria-label={`Remove ${rate.city || "row"}`}
-        className="focus-ring cursor-pointer rounded-md p-2 text-ink-faint hover:text-destructive"
-      >
-        <Trash size={16} />
-      </button>
-    </div>
   );
 }

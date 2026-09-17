@@ -128,6 +128,44 @@ body {
   border-radius: 2px;
 }
 
+/* Two-handle price range slider (category-filters) — a pair of overlapping
+   native <input type="range"> elements; the track is made invisible/inert
+   here so only the (visible, interactive) thumb shows through. */
+.price-range-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+.price-range-thumb::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  background: transparent;
+}
+.price-range-thumb::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: var(--color-blue-700);
+  border: 2px solid var(--color-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+.price-range-thumb::-moz-range-track {
+  background: transparent;
+}
+.price-range-thumb::-moz-range-thumb {
+  pointer-events: auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: var(--color-blue-700);
+  border: 2px solid var(--color-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  -moz-appearance: none;
+}
+
 .container-page {
   width: 100%;
   max-width: var(--container-max);

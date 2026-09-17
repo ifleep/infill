@@ -6,6 +6,7 @@ import {
   Cube,
   Lightning,
   SunDim,
+  Robot,
 } from "@phosphor-icons/react/ssr";
 import type { IconProps } from "@phosphor-icons/react";
 import type { Product } from "@/lib/types";
@@ -18,6 +19,7 @@ function renderIcon(product: Product, props: IconProps) {
     if (product.machineCategory === "cnc") return <Cube {...props} />;
     if (product.machineCategory === "laser") return <Lightning {...props} />;
     if (product.machineCategory === "uv-printing") return <SunDim {...props} />;
+    if (product.machineCategory === "robots") return <Robot {...props} />;
     return <Cube {...props} />;
   }
   if (product.technology === "Resin") return <Drop {...props} />;

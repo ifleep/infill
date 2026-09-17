@@ -1,5 +1,11 @@
 import type { Brand } from "@/lib/types";
 
+// Demo seed data only — used by prisma/seed.ts and /api/admin/seed to
+// populate the real Brand database table on a fresh install. Once seeded,
+// every runtime read/write goes through the database instead (see
+// src/lib/data/brands-admin.ts for the admin CRUD, and Product.brandName/
+// brandSlug — set in products.ts's `fromRow` — for how the storefront
+// gets brand info without importing this file).
 export const brands: Brand[] = [
   { id: "bambulab", name: "Bambu Lab", slug: "bambu-lab", country: "China", description: "High-speed CoreXY printers with automated color systems." },
   { id: "creality", name: "Creality", slug: "creality", country: "China", description: "The world's most widely adopted entry-to-mid FDM printer maker." },
@@ -19,8 +25,7 @@ export const brands: Brand[] = [
   { id: "xtool", name: "xTool", slug: "xtool", country: "China", description: "Desktop laser cutting and engraving systems." },
   { id: "carvera", name: "Makera", slug: "makera", country: "China", description: "Desktop CNC machining centers." },
   { id: "roland", name: "Roland DG", slug: "roland-dg", country: "Japan", description: "Professional UV flatbed and wide-format printing." },
+  { id: "unitree", name: "Unitree", slug: "unitree", country: "China", description: "Quadruped and humanoid robots for research, inspection and consumer robotics." },
+  { id: "borunte", name: "Borunte Robot", slug: "borunte-robot", country: "China", description: "Six-axis industrial robot arms for handling, assembly and injection-molding automation." },
+  { id: "keenon", name: "KEENON Robotics", slug: "keenon-robotics", country: "China", description: "Commercial service robots for delivery, hospitality and floor cleaning." },
 ];
-
-export function getBrandById(id: string) {
-  return brands.find((b) => b.id === id);
-}

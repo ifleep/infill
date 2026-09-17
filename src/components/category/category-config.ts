@@ -35,7 +35,7 @@ export const categoryDefs: CategoryDef[] = [
   {
     slug: "machines",
     title: "Machines",
-    description: "CNC, UV printing and laser cutting — the fabrication ecosystem beyond 3D printing.",
+    description: "CNC, UV printing, laser cutting and robots — the fabrication ecosystem beyond 3D printing.",
     productCategory: "machines",
   },
 ];

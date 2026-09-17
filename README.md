@@ -31,6 +31,13 @@ Visit `http://localhost:3000` for the site and `http://localhost:3000/admin` for
 
 - **Products** — full catalog CRUD: pricing, stock, availability, featured flag, photos (via the
   Media Library, below), a block-based content editor for the product page body, and SEO fields.
+- **Brands** (`/admin/brands`) — name, slug, country, description and logo; this is the live source
+  for brand names shown on product cards, filters and search across the site.
+- **Categories** (`/admin/categories`) — an internal, parent/child taxonomy you can assign products
+  to, separate from the shop's fixed top-level sections (3D Printers, Filament, Resin, Parts &
+  Accessories, Machines), which stay hard-coded.
+- **Inventory** (`/admin/inventory`) — every product's stock and low-stock threshold in one place,
+  with a "low stock only" filter for spotting what needs restocking.
 - **Media Library** (`/admin/media`) — every uploaded image in one place, reused across products,
   homepage sections, pages and articles instead of re-uploading. Products/homepage/pages/articles
   all open the same picker to select existing media.
@@ -137,10 +144,5 @@ only the upload route itself would need to change where it writes files.
 - **Customer accounts don't exist yet** — same reasoning: the schema is ready (`Customer`,
   `CustomerAddress`), but there's no register/login flow, intentionally, rather than a hand-rolled
   insecure one.
-- **Admin authentication is still a single shared password** (`ADMIN_PASSWORD`) — the `AdminUser`
-  model exists in the schema for future per-user accounts and roles, but nothing reads it yet; the
-  admin sidebar's "Admin Users" entry is a placeholder for that.
-- **Categories, Brands and Inventory** don't have dedicated admin pages yet — brands are still a
-  static list (`src/lib/data/brands.ts`) and stock is edited from the product editor itself; a
-  standalone low-stock/inventory view would sit on top of the existing `Product.stock` /
-  `lowStockThreshold` columns without a schema change.
+- **Admin authentication is a single shared password** (`ADMIN_PASSWORD`), by design — no per-user
+  accounts or roles.

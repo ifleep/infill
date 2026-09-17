@@ -22,6 +22,7 @@ export interface ProductFormValues {
   name: string;
   brandId: string;
   category: Product["category"];
+  categoryId: string;
   subcategory: string;
   price: number | "";
   compareAtPrice: number | "";
@@ -39,6 +40,22 @@ export interface ProductFormValues {
   ogDescription: string;
   noindex: boolean;
   includeInSitemap: boolean;
+  weightKg: number | "";
+  warrantyMonths: number | "";
+  soldCount: number | "";
+  saleEndsAt: string;
+  limitedStockEnabled: boolean;
+  limitedStockQuantity: number | "";
+}
+
+// datetime-local inputs need "YYYY-MM-DDTHH:mm" in the browser's local time,
+// not the ISO string (with seconds/Z) that comes back from the API.
+function toDatetimeLocal(iso: string | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function fromProduct(p: Product): ProductFormValues {
@@ -47,6 +64,7 @@ function fromProduct(p: Product): ProductFormValues {
     name: p.name,
     brandId: p.brandId,
     category: p.category,
+    categoryId: p.categoryId ?? "",
     subcategory: p.subcategory,
     price: p.price,
     compareAtPrice: p.compareAtPrice ?? "",
@@ -64,6 +82,12 @@ function fromProduct(p: Product): ProductFormValues {
     ogDescription: p.ogDescription ?? "",
     noindex: p.noindex ?? false,
     includeInSitemap: p.includeInSitemap ?? true,
+    weightKg: p.weightKg ?? "",
+    warrantyMonths: p.warrantyMonths,
+    soldCount: p.soldCount ?? 0,
+    saleEndsAt: toDatetimeLocal(p.saleEndsAt),
+    limitedStockEnabled: p.limitedStockEnabled ?? false,
+    limitedStockQuantity: p.limitedStockQuantity ?? "",
   };
 }
 
@@ -72,6 +96,7 @@ const empty: ProductFormValues = {
   name: "",
   brandId: "",
   category: "printers",
+  categoryId: "",
   subcategory: "",
   price: "",
   compareAtPrice: "",
@@ -89,15 +114,24 @@ const empty: ProductFormValues = {
   ogDescription: "",
   noindex: false,
   includeInSitemap: true,
+  weightKg: "",
+  warrantyMonths: 0,
+  soldCount: 0,
+  saleEndsAt: "",
+  limitedStockEnabled: false,
+  limitedStockQuantity: "",
 };
 
 export function ProductForm({
   brands,
+  categoryOptions,
   product,
   mediaItems,
   productId,
 }: {
   brands: Brand[];
+  /** The admin-managed Category taxonomy (see /admin/categories) — optional, separate from the required `category` shop-section field above. */
+  categoryOptions: { id: string; name: string }[];
   product?: Product;
   mediaItems?: MediaItem[];
   productId?: string;
@@ -120,10 +154,16 @@ export function ProductForm({
 
     const body = {
       ...values,
+      categoryId: values.categoryId || null,
       price: values.price === "" ? 0 : values.price,
       compareAtPrice: values.compareAtPrice === "" ? null : values.compareAtPrice,
       stock: values.stock === "" ? 0 : values.stock,
       lowStockThreshold: values.lowStockThreshold === "" ? null : values.lowStockThreshold,
+      weightKg: values.weightKg === "" ? null : values.weightKg,
+      warrantyMonths: values.warrantyMonths === "" ? 0 : values.warrantyMonths,
+      soldCount: values.soldCount === "" ? 0 : values.soldCount,
+      saleEndsAt: values.saleEndsAt === "" ? null : new Date(values.saleEndsAt).toISOString(),
+      limitedStockQuantity: values.limitedStockQuantity === "" ? null : values.limitedStockQuantity,
       mediaIds: photos.map((p) => p.id),
       contentBlocks,
     };
@@ -207,14 +247,26 @@ export function ProductForm({
         </Field>
       </div>
 
-      <Field label="Type / subcategory" required hint='e.g. "FDM", "PLA", "Nozzles", "CNC"'>
-        <input
-          required
-          value={values.subcategory}
-          onChange={(e) => set("subcategory", e.target.value)}
-          className={inputClass}
-        />
-      </Field>
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="Type / subcategory" required hint='e.g. "FDM", "PLA", "Nozzles", "CNC"'>
+          <input
+            required
+            value={values.subcategory}
+            onChange={(e) => set("subcategory", e.target.value)}
+            className={inputClass}
+          />
+        </Field>
+        <Field label="Internal category" hint="Your own organizational taxonomy — optional, doesn't affect the shop">
+          <select value={values.categoryId} onChange={(e) => set("categoryId", e.target.value)} className={inputClass}>
+            <option value="">None</option>
+            {categoryOptions.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
 
       <div className="grid grid-cols-3 gap-4">
         <Field label="Price (PKR)" required>
@@ -255,6 +307,15 @@ export function ProductForm({
             className={inputClass}
           />
         </Field>
+        <Field label="Warranty (months)" hint="0 means no warranty — shown on the product page and compare table">
+          <input
+            type="number"
+            min={0}
+            value={values.warrantyMonths}
+            onChange={(e) => set("warrantyMonths", e.target.value === "" ? "" : Number(e.target.value))}
+            className={inputClass}
+          />
+        </Field>
       </div>
 
       <Field label="Availability" required>
@@ -287,6 +348,68 @@ export function ProductForm({
           />
           Featured on homepage
         </label>
+      </div>
+
+      <div className="border-t border-border pt-5">
+        <span className="mb-1.5 block text-sm font-medium text-ink">Merchandising</span>
+        <p className="mb-3 text-xs text-ink-faint">
+          Optional urgency/social-proof messaging shown on the product card and page.
+        </p>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Weight (kg)" hint="Used to calculate shipping cost at checkout (250 PKR/kg, capped at 2500 PKR)">
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              value={values.weightKg}
+              onChange={(e) => set("weightKg", e.target.value === "" ? "" : Number(e.target.value))}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Sold count" hint='Shown as "N sold" when above 0 — set by hand, not from real orders'>
+            <input
+              type="number"
+              min={0}
+              value={values.soldCount}
+              onChange={(e) => set("soldCount", e.target.value === "" ? "" : Number(e.target.value))}
+              className={inputClass}
+            />
+          </Field>
+        </div>
+        <div className="mt-4">
+          <Field
+            label="Sale ends at"
+            hint="Shows a live countdown on the product while set to a future date/time. Leave blank to hide."
+          >
+            <input
+              type="datetime-local"
+              value={values.saleEndsAt}
+              onChange={(e) => set("saleEndsAt", e.target.value)}
+              className={inputClass}
+            />
+          </Field>
+        </div>
+        <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-ink">
+          <input
+            type="checkbox"
+            checked={values.limitedStockEnabled}
+            onChange={(e) => set("limitedStockEnabled", e.target.checked)}
+          />
+          Show &ldquo;limited stock&rdquo; badge
+        </label>
+        {values.limitedStockEnabled && (
+          <div className="mt-3">
+            <Field label="Limited stock quantity" hint='Shown as "Only N left!" — independent of the real stock count above'>
+              <input
+                type="number"
+                min={0}
+                value={values.limitedStockQuantity}
+                onChange={(e) => set("limitedStockQuantity", e.target.value === "" ? "" : Number(e.target.value))}
+                className={inputClass}
+              />
+            </Field>
+          </div>
+        )}
       </div>
 
       <Field label="Photos" hint="Upload photos from the supplier — the first one becomes the main product image">

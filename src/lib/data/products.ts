@@ -5,6 +5,7 @@ import type {
   Product as ProductRow,
   ProductMedia as ProductMediaRow,
   Media as MediaRow,
+  Brand as BrandRow,
   Prisma,
 } from "@/generated/prisma/client";
 
@@ -34,10 +35,12 @@ const productWithMediaInclude = {
     orderBy: [{ isPrimary: "desc" }, { position: "asc" }],
     include: { media: true },
   },
+  brand: true,
 } satisfies Prisma.ProductInclude;
 
 type ProductWithMedia = ProductRow & {
   media: (ProductMediaRow & { media: MediaRow })[];
+  brand: BrandRow;
 };
 
 function fromRow(row: ProductWithMedia): Product {
@@ -49,7 +52,10 @@ function fromRow(row: ProductWithMedia): Product {
     slug: row.slug,
     name: row.name,
     brandId: row.brandId,
+    brandName: row.brand.name,
+    brandSlug: row.brand.slug,
     category: row.category as Product["category"],
+    categoryId: row.categoryId ?? undefined,
     subcategory: row.subcategory,
     machineCategory: (row.machineCategory as Product["machineCategory"]) ?? undefined,
     technology: (row.technology as Product["technology"]) ?? undefined,
@@ -84,6 +90,10 @@ function fromRow(row: ProductWithMedia): Product {
     rating: row.rating ?? undefined,
     reviewCount: row.reviewCount ?? undefined,
     featured: row.featured,
+    soldCount: row.soldCount,
+    saleEndsAt: row.saleEndsAt?.toISOString(),
+    limitedStockEnabled: row.limitedStockEnabled,
+    limitedStockQuantity: row.limitedStockQuantity ?? undefined,
     seoTitle: row.seoTitle ?? undefined,
     metaDescription: row.metaDescription ?? undefined,
     canonicalUrl: row.canonicalUrl ?? undefined,
@@ -190,6 +200,8 @@ export interface ProductInput {
   name: string;
   brandId: string;
   category: Product["category"];
+  /** `undefined` leaves the product's existing category assignment untouched; `null` clears it. */
+  categoryId?: string | null;
   subcategory: string;
   price: number;
   compareAtPrice: number | null;
@@ -217,6 +229,12 @@ export interface ProductInput {
   ogDescription?: string | null;
   noindex?: boolean;
   includeInSitemap?: boolean;
+  weightKg?: number | null;
+  soldCount?: number;
+  saleEndsAt?: string | null;
+  limitedStockEnabled?: boolean;
+  limitedStockQuantity?: number | null;
+  warrantyMonths?: number;
 }
 
 function toDbInput(input: ProductInput) {
@@ -225,6 +243,7 @@ function toDbInput(input: ProductInput) {
     name: input.name,
     brandId: input.brandId,
     category: input.category,
+    ...(input.categoryId !== undefined ? { categoryId: input.categoryId } : {}),
     subcategory: input.subcategory,
     price: input.price,
     compareAtPrice: input.compareAtPrice,
@@ -245,6 +264,12 @@ function toDbInput(input: ProductInput) {
     ...(input.ogDescription !== undefined ? { ogDescription: input.ogDescription } : {}),
     ...(input.noindex !== undefined ? { noindex: input.noindex } : {}),
     ...(input.includeInSitemap !== undefined ? { includeInSitemap: input.includeInSitemap } : {}),
+    ...(input.weightKg !== undefined ? { weightKg: input.weightKg } : {}),
+    ...(input.soldCount !== undefined ? { soldCount: input.soldCount } : {}),
+    ...(input.saleEndsAt !== undefined ? { saleEndsAt: input.saleEndsAt ? new Date(input.saleEndsAt) : null } : {}),
+    ...(input.limitedStockEnabled !== undefined ? { limitedStockEnabled: input.limitedStockEnabled } : {}),
+    ...(input.limitedStockQuantity !== undefined ? { limitedStockQuantity: input.limitedStockQuantity } : {}),
+    ...(input.warrantyMonths !== undefined ? { warrantyMonths: input.warrantyMonths } : {}),
     // Prisma's Json input type wants an index-signature-bearing object, which
     // a concrete discriminated-union interface like ContentBlock doesn't
     // structurally have — cast through unknown, the runtime shape is plain JSON.
@@ -274,7 +299,6 @@ export async function createProduct(input: ProductInput): Promise<Product> {
       currency: "PKR",
       specifications: "[]",
       tags: [],
-      warrantyMonths: 12,
       media: { create: mediaCreateInput(input.mediaIds ?? []) },
     },
     include: productWithMediaInclude,

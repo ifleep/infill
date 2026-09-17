@@ -13,7 +13,7 @@ export interface MegaMenuConfig {
 
 export const megaMenus: MegaMenuConfig[] = [
   {
-    label: "3D Printing",
+    label: "3D Printer",
     href: "/category/3d-printers",
     viewAllLabel: "View all 3D printers",
     viewAllHref: "/category/3d-printers",
@@ -129,6 +129,7 @@ export const megaMenus: MegaMenuConfig[] = [
           { label: "CNC", href: "/category/machines?sub=CNC" },
           { label: "UV Printing", href: "/category/machines?sub=UV+Printing" },
           { label: "Laser", href: "/category/machines?sub=Laser" },
+          { label: "Robots", href: "/category/machines?sub=Robots" },
         ],
       },
     ],
@@ -136,6 +137,7 @@ export const megaMenus: MegaMenuConfig[] = [
 ];
 
 export const simpleNavLinks = [
+  { label: "3D Printing", href: "/print-price-calculator" },
   { label: "Services", href: "/services" },
   { label: "Learn", href: "/lab" },
 ];

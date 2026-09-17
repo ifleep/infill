@@ -12,6 +12,8 @@ export interface CartLine {
   brandName: string;
   price: number;
   quantity: number;
+  /** For an estimated shipping preview at checkout — the server always recomputes the real charge. */
+  weightKg?: number;
 }
 
 interface CartState {
@@ -65,6 +67,7 @@ export const useCartStore = create<CartState>((set, get) => ({
         brandName,
         price: product.price,
         quantity,
+        weightKg: product.weightKg,
       });
     }
     persist(lines);

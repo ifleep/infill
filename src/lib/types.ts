@@ -13,7 +13,8 @@ export type MachineCategory =
   | "3d-printing"
   | "cnc"
   | "uv-printing"
-  | "laser";
+  | "laser"
+  | "robots";
 
 export type ExperienceLevel = "Beginner" | "Intermediate" | "Professional" | "Industrial";
 
@@ -80,7 +81,12 @@ export interface Product extends SeoFields {
   slug: string;
   name: string;
   brandId: string;
+  /** Denormalized from the Brand table at read time (see products.ts's `fromRow`) so client components can display it without touching the database themselves. */
+  brandName: string;
+  brandSlug: string;
   category: ProductCategory;
+  /** Optional assignment into the admin-managed Category taxonomy (see /admin/categories) — internal organization, separate from `category` above which drives the actual shop routing. */
+  categoryId?: string;
   subcategory: string;
   machineCategory?: MachineCategory;
   technology?: PrinterTechnology;
@@ -114,6 +120,10 @@ export interface Product extends SeoFields {
   rating?: number;
   reviewCount?: number;
   featured?: boolean;
+  soldCount?: number;
+  saleEndsAt?: string;
+  limitedStockEnabled?: boolean;
+  limitedStockQuantity?: number;
 }
 
 export interface Article extends SeoFields {

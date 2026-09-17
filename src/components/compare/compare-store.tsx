@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { useEffect } from "react";
 
 interface CompareState {
   ids: string[];
@@ -45,3 +46,16 @@ export const useCompareStore = create<CompareState>((set, get) => ({
     set({ ids: [] });
   },
 }));
+
+export function useCompareCount() {
+  return useCompareStore((s) => s.ids.length);
+}
+
+export function CompareProvider({ children }: { children: React.ReactNode }) {
+  const hydrate = useCompareStore((s) => s.hydrate);
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
+
+  return <>{children}</>;
+}

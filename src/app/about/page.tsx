@@ -55,7 +55,7 @@ export default function AboutPage() {
               <li>— Transparent, public pricing — no hidden &ldquo;contact us&rdquo; gating on standard products.</li>
               <li>— Genuine technical support, not just a sales relationship.</li>
               <li>— Only displaying certifications and partnerships we actually hold.</li>
-              <li>— Building toward Pakistan-made filament and a broader fabrication ecosystem.</li>
+              <li>— Building our own INFiLL filament line and a broader fabrication ecosystem.</li>
             </ul>
           </div>
         </div>

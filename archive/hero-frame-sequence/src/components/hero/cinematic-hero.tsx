@@ -1,36 +1,12 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { CaretDown } from "@phosphor-icons/react";
+import { HeroFrameScene } from "@/components/hero/hero-frame-scene";
 import { HeroStaticVisual } from "@/components/hero/hero-static";
 import { LinkButton } from "@/components/ui/button";
 
-const HeroScene = dynamic(() => import("@/components/hero/hero-scene").then((m) => m.HeroScene), {
-  ssr: false,
-  loading: () => <HeroStaticVisual />,
-});
-
-function supportsWebGL() {
-  try {
-    const canvas = document.createElement("canvas");
-    return Boolean(
-      canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl")
-    );
-  } catch {
-    return false;
-  }
-}
-
 type Variant = "cinematic" | "static";
-
-// WebGL support can't change at runtime, so it's checked once and cached
-// rather than re-probed on every snapshot read.
-let cachedWebglSupport: boolean | null = null;
-function getWebglSupport() {
-  if (cachedWebglSupport === null) cachedWebglSupport = supportsWebGL();
-  return cachedWebglSupport;
-}
 
 function subscribeToHeroCapability(onChange: () => void) {
   const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -45,7 +21,7 @@ function subscribeToHeroCapability(onChange: () => void) {
 function getHeroVariantSnapshot(): Variant {
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const isSmallScreen = window.innerWidth < 768;
-  return reducedMotion || isSmallScreen || !getWebglSupport() ? "static" : "cinematic";
+  return reducedMotion || isSmallScreen ? "static" : "cinematic";
 }
 
 function getHeroVariantServerSnapshot(): Variant {
@@ -58,39 +34,32 @@ function useHeroVariant(): Variant {
 
 export function CinematicHero() {
   const variant = useHeroVariant();
+  const [framesReady, setFramesReady] = useState(false);
   const progressRef = useRef(0);
   const pinRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (variant !== "cinematic") return;
-    let ctx: { revert: () => void } | undefined;
-    let mounted = true;
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
 
-    import("gsap").then(async ({ gsap }) => {
-      const { ScrollTrigger } = await import("gsap/ScrollTrigger");
-      if (!mounted || !wrapperRef.current || !pinRef.current) return;
-      gsap.registerPlugin(ScrollTrigger);
-
-      ctx = gsap.context(() => {
-        ScrollTrigger.create({
-          trigger: wrapperRef.current,
-          start: "top top",
-          end: "bottom bottom",
-          pin: pinRef.current,
-          pinSpacing: false,
-          scrub: 0.4,
-          onUpdate: (self) => {
-            progressRef.current = self.progress;
-          },
-        });
-      });
-    });
-
-    return () => {
-      mounted = false;
-      ctx?.revert();
+    // Plain scroll-progress math instead of a GSAP ScrollTrigger pin: no
+    // library to load, no measurement-timing race — progress is read
+    // straight from live geometry every frame, so it can't latch onto a
+    // stale scroll range. The wrapper is exactly 2 screen heights tall and
+    // the visual sits in a `sticky` inner div, so "scrollable distance
+    // while pinned" is always exactly one screen height (wrapper height
+    // minus the one screen height already occupied by the sticky viewport).
+    let raf: number;
+    const tick = () => {
+      const rect = wrapper.getBoundingClientRect();
+      const total = wrapper.offsetHeight - window.innerHeight;
+      progressRef.current = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
+      raf = requestAnimationFrame(tick);
     };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   }, [variant]);
 
   const isCinematic = variant === "cinematic";
@@ -99,11 +68,14 @@ export function CinematicHero() {
     <div
       ref={wrapperRef}
       className="relative"
-      style={{ height: isCinematic ? "280vh" : undefined }}
+      style={{ height: isCinematic ? "200vh" : undefined }}
     >
-      <div ref={pinRef} className="relative h-screen min-h-[640px] w-full overflow-hidden">
+      <div ref={pinRef} className="sticky top-0 h-screen min-h-[640px] w-full overflow-hidden">
         <div className="absolute inset-0">
-          {isCinematic ? <HeroScene progressRef={progressRef} /> : <HeroStaticVisual />}
+          {isCinematic && (
+            <HeroFrameScene progressRef={progressRef} onReady={() => setFramesReady(true)} />
+          )}
+          {(!isCinematic || !framesReady) && <HeroStaticVisual />}
         </div>
 
         <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-hero-bg-deep/70 to-hero-bg-deep/5" />
