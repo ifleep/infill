@@ -326,3 +326,93 @@ export async function updateProduct(id: string, input: ProductInput): Promise<Pr
 export async function deleteProduct(id: string): Promise<void> {
   await prisma.product.delete({ where: { id } });
 }
+
+// Copies every field the admin form doesn't expose (specifications,
+// contentBlocks, experienceLevel/useCases, dimensions, etc. — see
+// ProductInput above for what's missing) alongside what it does, since the
+// point of duplicating is avoiding re-entering all of that by hand. Deliberately
+// resets what shouldn't carry over to a distinct listing: sku (unique),
+// rating/reviewCount (see seed-data.ts — a review total belongs to the
+// product people actually reviewed), soldCount/saleEndsAt/limitedStock*
+// (per-listing merchandising, not a template default), featured (an
+// editorial choice, not something a copy should inherit), and canonicalUrl
+// (copying it would point the duplicate's canonical at the original,
+// hiding the duplicate from search entirely).
+export async function duplicateProduct(id: string): Promise<Product | null> {
+  const source = await prisma.product.findUnique({ where: { id }, include: productWithMediaInclude });
+  if (!source) return null;
+
+  let slug = `${source.slug}-copy`;
+  let suffix = 2;
+  while (await prisma.product.findUnique({ where: { slug }, select: { id: true } })) {
+    slug = `${source.slug}-copy-${suffix}`;
+    suffix += 1;
+  }
+
+  const row = await prisma.product.create({
+    data: {
+      id: `p-${slug}`,
+      slug,
+      sku: null,
+      name: `${source.name} (Copy)`,
+      brandId: source.brandId,
+      categoryId: source.categoryId,
+      category: source.category,
+      subcategory: source.subcategory,
+      machineCategory: source.machineCategory,
+      technology: source.technology,
+      experienceLevel: source.experienceLevel as Prisma.InputJsonValue,
+      useCases: source.useCases as Prisma.InputJsonValue,
+      price: source.price,
+      compareAtPrice: source.compareAtPrice,
+      currency: source.currency,
+      stock: source.stock,
+      lowStockThreshold: source.lowStockThreshold,
+      availability: source.availability,
+      quoteOnly: source.quoteOnly,
+      badges: source.badges as Prisma.InputJsonValue | undefined,
+      shortDescription: source.shortDescription,
+      description: source.description,
+      specifications: source.specifications,
+      contentBlocks: source.contentBlocks as Prisma.InputJsonValue | undefined,
+      materials: source.materials,
+      buildVolumeX: source.buildVolumeX,
+      buildVolumeY: source.buildVolumeY,
+      buildVolumeZ: source.buildVolumeZ,
+      speedMmPerSec: source.speedMmPerSec,
+      weightKg: source.weightKg,
+      dimWidth: source.dimWidth,
+      dimDepth: source.dimDepth,
+      dimHeight: source.dimHeight,
+      warrantyMonths: source.warrantyMonths,
+      accessoryIds: source.accessoryIds as Prisma.InputJsonValue | undefined,
+      relatedProductIds: source.relatedProductIds as Prisma.InputJsonValue | undefined,
+      compatibleFilamentTags: source.compatibleFilamentTags as Prisma.InputJsonValue | undefined,
+      tags: source.tags as Prisma.InputJsonValue,
+      featured: false,
+      soldCount: 0,
+      saleEndsAt: null,
+      limitedStockEnabled: false,
+      limitedStockQuantity: null,
+      seoTitle: source.seoTitle,
+      metaDescription: source.metaDescription,
+      canonicalUrl: null,
+      ogTitle: source.ogTitle,
+      ogDescription: source.ogDescription,
+      ogImageMediaId: source.ogImageMediaId,
+      noindex: source.noindex,
+      includeInSitemap: source.includeInSitemap,
+      media: {
+        create: source.media.map((pm) => ({
+          mediaId: pm.mediaId,
+          position: pm.position,
+          isPrimary: pm.isPrimary,
+          caption: pm.caption,
+          alt: pm.alt,
+        })),
+      },
+    },
+    include: productWithMediaInclude,
+  });
+  return fromRow(row);
+}

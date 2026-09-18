@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { PencilSimple, Trash, CheckCircle, WarningCircle } from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
+import { PencilSimple, Trash, Copy, CheckCircle, WarningCircle } from "@phosphor-icons/react";
 import type { Availability, Brand, Product } from "@/lib/types";
 
 type RowStatus = "idle" | "saving" | "saved" | "error";
@@ -22,9 +23,11 @@ export function AdminProductTable({
   initialProducts: Product[];
   brands: Brand[];
 }) {
+  const router = useRouter();
   const [products, setProducts] = useState(initialProducts);
   const [status, setStatus] = useState<Record<string, RowStatus>>({});
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [duplicating, setDuplicating] = useState<string | null>(null);
   const brandName = (id: string) => brands.find((b) => b.id === id)?.name ?? id;
 
   async function save(product: Product) {
@@ -59,6 +62,19 @@ export function AdminProductTable({
 
   function updateLocal(id: string, patch: Partial<Product>) {
     setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  }
+
+  async function handleDuplicate(product: Product) {
+    setDuplicating(product.id);
+    try {
+      const res = await fetch(`/api/admin/products/${product.id}/duplicate`, { method: "POST" });
+      if (!res.ok) throw new Error();
+      const created = (await res.json()) as Product;
+      router.push(`/admin/products/${created.id}/edit`);
+    } catch {
+      alert("Failed to duplicate product.");
+      setDuplicating(null);
+    }
   }
 
   async function handleDelete(product: Product) {
@@ -178,6 +194,15 @@ export function AdminProductTable({
                     >
                       <PencilSimple size={16} />
                     </Link>
+                    <button
+                      onClick={() => handleDuplicate(p)}
+                      disabled={duplicating === p.id}
+                      aria-label={`Duplicate ${p.name}`}
+                      title="Duplicate"
+                      className="focus-ring cursor-pointer rounded p-1.5 text-ink-muted hover:bg-surface-sunken disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <Copy size={16} />
+                    </button>
                     <button
                       onClick={() => handleDelete(p)}
                       disabled={deleting === p.id}
