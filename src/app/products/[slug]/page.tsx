@@ -209,18 +209,22 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <p className="mt-3 max-w-2xl text-ink-muted">{product.description}</p>
           )}
 
-          <h2 className="font-display mt-10 text-xl font-semibold text-ink">Specifications</h2>
-          <div className="mt-4 overflow-hidden rounded-lg border border-border">
-            {product.specifications.map((spec, i) => (
-              <div
-                key={spec.label}
-                className={`flex justify-between px-4 py-3 text-sm ${i % 2 === 0 ? "bg-surface" : "bg-surface-sunken"}`}
-              >
-                <span className="text-ink-muted">{spec.label}</span>
-                <span className="tabular font-medium text-ink">{spec.value}</span>
+          {product.specifications.length > 0 && (
+            <>
+              <h2 className="font-display mt-10 text-xl font-semibold text-ink">Specifications</h2>
+              <div className="mt-4 overflow-hidden rounded-lg border border-border">
+                {product.specifications.map((spec, i) => (
+                  <div
+                    key={spec.label}
+                    className={`flex justify-between px-4 py-3 text-sm ${i % 2 === 0 ? "bg-surface" : "bg-surface-sunken"}`}
+                  >
+                    <span className="text-ink-muted">{spec.label}</span>
+                    <span className="tabular font-medium text-ink">{spec.value}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          )}
 
           {product.materials && product.materials.length > 0 && (
             <>

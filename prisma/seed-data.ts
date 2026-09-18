@@ -43,8 +43,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     relatedProductIds: ["p-bambu-a1", "p-creality-ender3v3se"],
     compatibleFilamentTags: ["pla", "petg", "tpu"],
     tags: ["beginner", "compact", "classroom"],
-    rating: 4.7,
-    reviewCount: 812,
     featured: true,
   },
   {
@@ -82,8 +80,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     relatedProductIds: ["p-bambu-x1c", "p-bambu-a1-mini"],
     compatibleFilamentTags: ["pla", "petg", "tpu", "asa"],
     tags: ["multi-color", "open-frame"],
-    rating: 4.8,
-    reviewCount: 1204,
     featured: true,
   },
   {
@@ -121,8 +117,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     relatedProductIds: ["p-bambu-a1", "p-raise3d-pro3"],
     compatibleFilamentTags: ["pla", "petg", "abs", "asa", "nylon"],
     tags: ["enclosed", "high-speed", "multi-material"],
-    rating: 4.9,
-    reviewCount: 2031,
     featured: true,
   },
   {
@@ -160,8 +154,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     relatedProductIds: ["p-bambu-a1-mini", "p-creality-k1"],
     compatibleFilamentTags: ["pla", "tpu"],
     tags: ["beginner", "budget", "classroom"],
-    rating: 4.5,
-    reviewCount: 3120,
     featured: true,
   },
   {
@@ -198,8 +190,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     relatedProductIds: ["p-bambu-x1c", "p-creality-ender3v3se"],
     compatibleFilamentTags: ["pla", "petg", "abs", "tpu"],
     tags: ["enclosed", "high-speed"],
-    rating: 4.4,
-    reviewCount: 940,
   },
   {
     id: "p-prusa-mk4s",
@@ -235,8 +225,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     relatedProductIds: ["p-bambu-x1c", "p-raise3d-pro3"],
     compatibleFilamentTags: ["pla", "petg", "abs", "asa", "tpu"],
     tags: ["open-source", "reliable"],
-    rating: 4.9,
-    reviewCount: 1567,
   },
   {
     id: "p-snapmaker-artisan",
@@ -270,8 +258,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     relatedProductIds: ["p-bambu-x1c"],
     compatibleFilamentTags: ["pla", "petg", "abs"],
     tags: ["large-format", "modular", "workshop"],
-    rating: 4.6,
-    reviewCount: 213,
   },
   {
     id: "p-raise3d-pro3",
@@ -306,8 +292,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     relatedProductIds: ["p-bambu-x1c", "p-formlabs-form4"],
     compatibleFilamentTags: ["pla", "petg", "abs", "asa", "nylon"],
     tags: ["industrial", "dual-extrusion", "production"],
-    rating: 4.8,
-    reviewCount: 98,
   },
   {
     id: "p-elegoo-neptune4pro",
@@ -342,8 +326,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     relatedProductIds: ["p-creality-ender3v3se", "p-anycubic-kobra3"],
     compatibleFilamentTags: ["pla", "petg", "tpu", "abs"],
     tags: ["value", "direct-drive"],
-    rating: 4.5,
-    reviewCount: 674,
   },
   {
     id: "p-anycubic-kobra3",
@@ -377,8 +359,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     relatedProductIds: ["p-elegoo-neptune4pro"],
     compatibleFilamentTags: ["pla", "petg", "tpu"],
     tags: ["high-speed", "multi-color-optional"],
-    rating: 4.4,
-    reviewCount: 388,
   },
   {
     id: "p-elegoo-saturn4ultra",
@@ -411,8 +391,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     relatedProductIds: ["p-anycubic-m5s", "p-formlabs-form4"],
     compatibleFilamentTags: ["resin"],
     tags: ["resin", "high-resolution"],
-    rating: 4.7,
-    reviewCount: 501,
   },
   {
     id: "p-anycubic-m5s",
@@ -445,8 +423,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     relatedProductIds: ["p-elegoo-saturn4ultra"],
     compatibleFilamentTags: ["resin"],
     tags: ["resin", "accuracy"],
-    rating: 4.6,
-    reviewCount: 322,
   },
   {
     id: "p-formlabs-form4",
@@ -480,8 +456,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     relatedProductIds: ["p-raise3d-pro3"],
     compatibleFilamentTags: ["resin"],
     tags: ["industrial", "engineering", "dental"],
-    rating: 4.9,
-    reviewCount: 156,
   },
 
   // -------------------------------------------------------------- FILAMENT
@@ -506,8 +480,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     materials: ["PLA"],
     warrantyMonths: 0,
     tags: ["pla", "beginner-friendly"],
-    rating: 4.8,
-    reviewCount: 2211,
   },
   {
     id: "f-polymaker-petg",
@@ -530,8 +502,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     materials: ["PETG"],
     warrantyMonths: 0,
     tags: ["petg", "functional"],
-    rating: 4.7,
-    reviewCount: 1198,
   },
   {
     id: "f-esun-abs",
@@ -554,8 +524,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     materials: ["ABS"],
     warrantyMonths: 0,
     tags: ["abs", "enclosed-recommended"],
-    rating: 4.5,
-    reviewCount: 640,
   },
   {
     id: "f-overture-asa",
@@ -578,8 +546,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     materials: ["ASA"],
     warrantyMonths: 0,
     tags: ["asa", "outdoor"],
-    rating: 4.6,
-    reviewCount: 289,
   },
   {
     id: "f-sunlu-tpu",
@@ -602,8 +568,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     materials: ["TPU"],
     warrantyMonths: 0,
     tags: ["tpu", "flexible"],
-    rating: 4.5,
-    reviewCount: 402,
   },
   {
     id: "f-polymaker-nylon",
@@ -626,8 +590,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     materials: ["Nylon", "Engineering"],
     warrantyMonths: 0,
     tags: ["nylon", "engineering", "carbon-fiber"],
-    rating: 4.6,
-    reviewCount: 134,
   },
 
   // ------------------------------------------------------------------ RESIN
@@ -652,8 +614,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     materials: ["Standard resin"],
     warrantyMonths: 0,
     tags: ["resin", "standard"],
-    rating: 4.6,
-    reviewCount: 987,
   },
   {
     id: "r-sirayatech-fast",
@@ -676,8 +636,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     materials: ["Standard resin"],
     warrantyMonths: 0,
     tags: ["resin", "fast-curing"],
-    rating: 4.5,
-    reviewCount: 356,
   },
   {
     id: "r-elegoo-abslike",
@@ -700,8 +658,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     materials: ["Engineering resin"],
     warrantyMonths: 0,
     tags: ["resin", "engineering", "functional"],
-    rating: 4.6,
-    reviewCount: 271,
   },
 
   // ------------------------------------------------------------------ PARTS
@@ -725,8 +681,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     ],
     warrantyMonths: 3,
     tags: ["nozzle", "abrasive-resistant"],
-    rating: 4.7,
-    reviewCount: 512,
   },
   {
     id: "a-nozzle-brass-04",
@@ -748,8 +702,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     ],
     warrantyMonths: 3,
     tags: ["nozzle", "value"],
-    rating: 4.6,
-    reviewCount: 890,
   },
   {
     id: "a-hotend-v6",
@@ -771,8 +723,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     ],
     warrantyMonths: 6,
     tags: ["hotend"],
-    rating: 4.8,
-    reviewCount: 634,
   },
   {
     id: "a-hotend-microswiss",
@@ -793,8 +743,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     ],
     warrantyMonths: 6,
     tags: ["hotend", "high-temp"],
-    rating: 4.7,
-    reviewCount: 298,
   },
   {
     id: "a-extruder-lgx",
@@ -815,8 +763,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     ],
     warrantyMonths: 6,
     tags: ["extruder"],
-    rating: 4.8,
-    reviewCount: 187,
   },
   {
     id: "a-buildplate-pei-textured",
@@ -837,8 +783,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     ],
     warrantyMonths: 6,
     tags: ["build-plate"],
-    rating: 4.8,
-    reviewCount: 421,
   },
   {
     id: "a-buildplate-pei-a1mini",
@@ -859,8 +803,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     ],
     warrantyMonths: 6,
     tags: ["build-plate"],
-    rating: 4.6,
-    reviewCount: 118,
   },
   {
     id: "a-buildplate-glass",
@@ -881,8 +823,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     ],
     warrantyMonths: 3,
     tags: ["build-plate", "value"],
-    rating: 4.5,
-    reviewCount: 233,
   },
 
   // -------------------------------------------------------------- MACHINES
@@ -909,8 +849,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     ],
     warrantyMonths: 12,
     tags: ["cnc", "desktop"],
-    rating: 4.6,
-    reviewCount: 87,
   },
   {
     id: "m-xtool-d1pro",
@@ -935,8 +873,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     ],
     warrantyMonths: 12,
     tags: ["laser", "cutting", "engraving"],
-    rating: 4.6,
-    reviewCount: 305,
   },
   {
     id: "m-xtool-f1",
@@ -961,8 +897,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     ],
     warrantyMonths: 12,
     tags: ["laser", "portable"],
-    rating: 4.7,
-    reviewCount: 152,
   },
   {
     id: "m-roland-lef2",
@@ -988,8 +922,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     ],
     warrantyMonths: 12,
     tags: ["uv-printing", "direct-to-object"],
-    rating: 4.8,
-    reviewCount: 41,
   },
   {
     id: "m-unitree-go2",
@@ -1015,8 +947,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     ],
     warrantyMonths: 12,
     tags: ["robotics", "quadruped"],
-    rating: 4.7,
-    reviewCount: 34,
   },
   {
     id: "m-unitree-g1",
@@ -1043,8 +973,6 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     ],
     warrantyMonths: 12,
     tags: ["robotics", "humanoid"],
-    rating: 4.5,
-    reviewCount: 12,
   },
   {
     id: "m-elephant-mycobot280",
@@ -1070,7 +998,5 @@ export const seedProducts: Omit<Product, "availability" | "brandName" | "brandSl
     ],
     warrantyMonths: 12,
     tags: ["robotics", "robotic-arm", "desktop"],
-    rating: 4.6,
-    reviewCount: 58,
   },
 ];
