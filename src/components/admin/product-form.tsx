@@ -8,6 +8,7 @@ import type { MediaItem } from "@/lib/admin/media-types";
 import { Button } from "@/components/ui/button";
 import { ImageUploader } from "@/components/admin/image-uploader";
 import { ContentBlockEditor } from "@/components/admin/content-block-editor";
+import { parseProductText } from "@/lib/admin/parse-product-text";
 
 const categories: { value: Product["category"]; label: string }[] = [
   { value: "printers", label: "3D Printer" },
@@ -141,10 +142,23 @@ export function ProductForm({
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>(product?.contentBlocks ?? []);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [pasteText, setPasteText] = useState("");
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [pasteWarnings, setPasteWarnings] = useState<string[]>([]);
   const router = useRouter();
 
   function set<K extends keyof ProductFormValues>(key: K, value: ProductFormValues[K]) {
     setValues((v) => ({ ...v, [key]: value }));
+  }
+
+  // Only fills the form fields below — the product still isn't created
+  // until you review and click "Create Product" yourself, same as typing
+  // it in by hand. See src/lib/admin/parse-product-text.ts for the format.
+  function handleParse() {
+    const { values: parsed, contentBlocks: parsedBlocks, warnings } = parseProductText(pasteText, brands);
+    setValues((v) => ({ ...v, ...parsed }));
+    if (parsedBlocks) setContentBlocks(parsedBlocks);
+    setPasteWarnings(warnings);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -192,6 +206,44 @@ export function ProductForm({
     <form onSubmit={handleSubmit} className="max-w-4xl space-y-5 rounded-xl border border-border bg-surface p-6">
       {error && (
         <p className="rounded-md bg-destructive-tint px-3 py-2 text-sm text-destructive">{error}</p>
+      )}
+
+      {!productId && (
+        <div className="rounded-lg border border-dashed border-border-strong p-4">
+          <button
+            type="button"
+            onClick={() => setPasteOpen((o) => !o)}
+            className="focus-ring cursor-pointer text-sm font-medium text-blue-700 hover:text-blue-600"
+          >
+            {pasteOpen ? "Hide" : "Paste product text to fill this form"}
+          </button>
+          {pasteOpen && (
+            <div className="mt-3 space-y-3">
+              <p className="text-xs text-ink-faint">
+                Paste &ldquo;Label: value&rdquo; text (from a supplier sheet, ChatGPT, or written by hand) and click
+                Parse to fill in the fields below — nothing is saved until you review and click Create Product
+                yourself.
+              </p>
+              <textarea
+                rows={8}
+                value={pasteText}
+                onChange={(e) => setPasteText(e.target.value)}
+                placeholder={"Name: L4\nBrand: LightMake\nCategory: machines\nSubcategory: Robots\nPrice: 250000\nStock: 5\nShort description: ...\nFull description: ...\n\nSpecifications:\nToolheads: 4, independent"}
+                className={`${inputClass} font-mono text-xs`}
+              />
+              <Button type="button" variant="secondary" size="sm" onClick={handleParse}>
+                Parse
+              </Button>
+              {pasteWarnings.length > 0 && (
+                <ul className="space-y-1 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  {pasteWarnings.map((w, i) => (
+                    <li key={i}>{w}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
       )}
 
       <div className="grid grid-cols-2 gap-4">
