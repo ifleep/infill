@@ -15,14 +15,14 @@ site settings — all without a code change or redeploy.
 npm install
 cp .env.example .env   # set DATABASE_URL / ADMIN_PASSWORD / ADMIN_SESSION_SECRET
 npm run db:migrate
-npm run db:seed
 npm run dev
 ```
 
-`db:migrate`/`db:seed` need a running MySQL or MariaDB server reachable at `DATABASE_URL` — for
-local development that's usually `mysql://root@127.0.0.1:3306/infillpk` against a MySQL/MariaDB
-install on your machine (or a Docker container). Create the empty database first if it doesn't
-exist yet (`mysql -e "CREATE DATABASE infillpk"`); `db:migrate` creates the tables inside it.
+`db:migrate` needs a running MySQL or MariaDB server reachable at `DATABASE_URL` — for local
+development that's usually `mysql://root@127.0.0.1:3306/infillpk` against a MySQL/MariaDB install
+on your machine (or a Docker container). Create the empty database first if it doesn't exist yet
+(`mysql -e "CREATE DATABASE infillpk"`); `db:migrate` creates the tables inside it. There's no demo
+catalog to seed — add your own brands and products from `/admin` once the tables exist.
 
 Visit `http://localhost:3000` for the site and `http://localhost:3000/admin` for the dashboard
 (login with the `ADMIN_PASSWORD` you set).
@@ -98,7 +98,7 @@ Set these in the same Node.js app settings screen — don't commit real secrets 
   ```
 - `NODE_ENV=production`
 
-### 4. Install, migrate, seed, build
+### 4. Install, migrate, build
 
 Hostinger's Node.js app screen has a "Run NPM Install" button and a terminal/SSH option — either
 way, from the app's root run, **in this order**:
@@ -106,18 +106,14 @@ way, from the app's root run, **in this order**:
 ```bash
 npm install
 npm run db:migrate:deploy
-npm run db:seed        # first deploy only — loads the demo catalog (34 products, 18 brands, 6 articles)
 npm run build
 ```
 
 `npm run build` also runs `prisma migrate deploy` automatically first (a `prebuild` hook), so an
-automated pipeline that only runs `npm install && npm run build` still won't crash — but running
-`db:seed` before `build` is still worth doing manually so the product pages are pre-rendered with
-real data instead of generated empty and filled in on first visit.
+automated pipeline that only runs `npm install && npm run build` still won't crash even if the
+migrate step above is skipped.
 
-**No SSH/terminal access on your plan?** Skip `npm run db:seed` above and instead log into `/admin`
-after the first deploy and click **Seed Demo Catalog** on the dashboard — it does the same thing
-through the app itself.
+There's no demo catalog — add your own brands and products from `/admin` after the first deploy.
 
 ### 5. Start (or restart) the application
 
