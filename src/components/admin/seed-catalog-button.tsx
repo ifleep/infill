@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 /**
- * Loads the 34-item demo catalog into the database — for hosts that give no
+ * Loads the demo catalog into the database — for hosts that give no
  * shell/SSH access, so `npm run db:seed` can never be run directly. Safe to
- * click more than once (upserts, doesn't duplicate).
+ * click more than once: only fills in demo items that don't exist yet, never
+ * overwrites one you've since customized into a real listing.
  */
 export function SeedCatalogButton() {
   const router = useRouter();
