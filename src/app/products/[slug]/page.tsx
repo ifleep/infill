@@ -209,7 +209,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <p className="mt-3 max-w-2xl text-ink-muted">{product.description}</p>
           )}
 
-          {product.specifications.length > 0 && (
+          {product.specifications.length > 0 && !(product.contentBlocks && product.contentBlocks.length > 0) && (
             <>
               <h2 className="font-display mt-10 text-xl font-semibold text-ink">Specifications</h2>
               <div className="mt-4 overflow-hidden rounded-lg border border-border">
