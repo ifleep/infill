@@ -22,12 +22,18 @@ export async function POST() {
   // customized into a real listing (renamed, repriced, rewritten — see the
   // Bambu Lab A1 CN-variant listing this was built to protect), and this
   // button re-running later must not silently overwrite that. Matches by
-  // the same id/slug the CLI seed script (prisma/seed.ts) uses, so a
+  // the same id the CLI seed script (prisma/seed.ts) uses, so a
   // partially-seeded catalog just fills in whatever's still missing.
+  //
+  // Checked by slug too, not just id: deleting a seeded row (e.g. after
+  // duplicating it into your own listing) frees its id, but the slug can
+  // easily have been reclaimed by something else in the meantime (a
+  // duplicate renamed to take over the clean slug) — creating by id alone
+  // would then crash on the database's own slug-uniqueness constraint.
 
   // Product.brandId is a foreign key into Brand — seed these first.
   for (const b of brands) {
-    const exists = await prisma.brand.findUnique({ where: { id: b.id }, select: { id: true } });
+    const exists = await prisma.brand.findFirst({ where: { OR: [{ id: b.id }, { slug: b.slug }] }, select: { id: true } });
     if (exists) continue;
     await prisma.brand.create({
       data: { id: b.id, name: b.name, slug: b.slug, country: b.country, description: b.description },
@@ -37,7 +43,10 @@ export async function POST() {
   let count = 0;
   for (const p of seedProducts) {
     const row = seedProductToRow(p);
-    const exists = await prisma.product.findUnique({ where: { id: row.id }, select: { id: true } });
+    const exists = await prisma.product.findFirst({
+      where: { OR: [{ id: row.id }, { slug: row.slug }] },
+      select: { id: true },
+    });
     if (exists) continue;
     await prisma.product.create({ data: row });
     count++;
