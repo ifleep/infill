@@ -22,7 +22,7 @@ function renderIcon(product: Product, props: IconProps) {
     if (product.machineCategory === "robots") return <Robot {...props} />;
     return <Cube {...props} />;
   }
-  if (product.technology === "Resin") return <Drop {...props} />;
+  if (product.technology?.includes("Resin")) return <Drop {...props} />;
   return <Printer {...props} />;
 }
 

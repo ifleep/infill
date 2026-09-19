@@ -94,9 +94,10 @@ export function CategoryFilters({
     value: s,
   }));
 
-  const techOptions = Array.from(
-    new Set(productsInCategory.map((p) => p.technology).filter((t): t is NonNullable<typeof t> => Boolean(t)))
-  ).map((t) => ({ label: t, value: t }));
+  const techOptions = Array.from(new Set(productsInCategory.flatMap((p) => p.technology ?? []))).map((t) => ({
+    label: t,
+    value: t,
+  }));
 
   const levelOptions = ["Beginner", "Intermediate", "Professional", "Industrial"].map((l) => ({
     label: l,

@@ -145,16 +145,21 @@ export function parseProductText(text: string, brands: Brand[]): ParsedProductTe
     }
   }
 
-  // Technology: same accept-a-friendly-label pattern as category.
+  // Technology: a printer can be more than one at once (e.g. a large-format
+  // CoreXY FDM machine), so this accepts a comma-separated list — same
+  // accept-a-friendly-label pattern as category, applied per item.
   if (typeof values.technology === "string") {
-    const key = (values.technology as string).trim().toLowerCase();
-    const resolved = TECHNOLOGY_ALIASES[key];
-    if (resolved) {
-      values.technology = resolved;
-    } else {
-      warnings.push(`Technology "${values.technology}" not recognized — left unset, pick one manually.`);
-      delete values.technology;
+    const items = (values.technology as unknown as string).split(",").map((s) => s.trim()).filter(Boolean);
+    const resolvedList: string[] = [];
+    for (const item of items) {
+      const resolved = TECHNOLOGY_ALIASES[item.toLowerCase()];
+      if (resolved) {
+        resolvedList.push(resolved);
+      } else {
+        warnings.push(`Technology "${item}" not recognized — skipped, check it manually if it should apply.`);
+      }
     }
+    (values as Record<string, unknown>).technology = resolvedList;
   }
 
   // Brand: match by name, case-insensitive — brands must already exist

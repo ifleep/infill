@@ -58,7 +58,7 @@ function fromRow(row: ProductWithMedia): Product {
     categoryId: row.categoryId ?? undefined,
     subcategory: row.subcategory,
     machineCategory: (row.machineCategory as Product["machineCategory"]) ?? undefined,
-    technology: (row.technology as Product["technology"]) ?? undefined,
+    technology: jsonStringArray(row.technology) as Product["technology"],
     experienceLevel: jsonStringArray(row.experienceLevel) as Product["experienceLevel"],
     useCases: jsonStringArray(row.useCases) as Product["useCases"],
     price: row.price,
@@ -204,7 +204,7 @@ export interface ProductInput {
   categoryId?: string | null;
   subcategory: string;
   /** Drives the "Technology" / "Shop by Experience" / "Shop by Use" filters on the 3D Printers category page and mega menu — only meaningful for `category: "printers"`. `undefined` leaves the existing value untouched on an update. */
-  technology?: PrinterTechnology | null;
+  technology?: PrinterTechnology[];
   experienceLevel?: ExperienceLevel[];
   useCases?: UseCase[];
   price: number;
@@ -280,7 +280,7 @@ function toDbInput(input: ProductInput) {
     ...(input.contentBlocks !== undefined
       ? { contentBlocks: input.contentBlocks as unknown as Prisma.InputJsonValue }
       : {}),
-    ...(input.technology !== undefined ? { technology: input.technology } : {}),
+    ...(input.technology !== undefined ? { technology: input.technology as Prisma.InputJsonValue } : {}),
     ...(input.experienceLevel !== undefined
       ? { experienceLevel: input.experienceLevel as Prisma.InputJsonValue }
       : {}),
@@ -367,7 +367,7 @@ export async function duplicateProduct(id: string): Promise<Product | null> {
       category: source.category,
       subcategory: source.subcategory,
       machineCategory: source.machineCategory,
-      technology: source.technology,
+      technology: source.technology as Prisma.InputJsonValue,
       experienceLevel: source.experienceLevel as Prisma.InputJsonValue,
       useCases: source.useCases as Prisma.InputJsonValue,
       price: source.price,

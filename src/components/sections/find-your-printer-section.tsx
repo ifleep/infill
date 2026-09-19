@@ -55,7 +55,7 @@ function score(product: Product, answers: Answers): number {
       s += Math.max(0, 3 - product.price / 100000);
       break;
     case "Quality":
-      if (product.technology === "Resin" || (product.rating ?? 0) >= 4.7) s += 3;
+      if (product.technology?.includes("Resin") || (product.rating ?? 0) >= 4.7) s += 3;
       break;
   }
   return s;

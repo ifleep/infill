@@ -66,7 +66,7 @@ model Product {
   category        String // legacy enum string — see Category model comment above
   subcategory     String
   machineCategory String?
-  technology      String?
+  technology      Json    @default("[]") // string[]
   experienceLevel Json    @default("[]") // string[]
   useCases        Json    @default("[]") // string[]
 

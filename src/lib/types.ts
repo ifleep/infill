@@ -89,7 +89,7 @@ export interface Product extends SeoFields {
   categoryId?: string;
   subcategory: string;
   machineCategory?: MachineCategory;
-  technology?: PrinterTechnology;
+  technology?: PrinterTechnology[];
   experienceLevel?: ExperienceLevel[];
   useCases?: UseCase[];
   price: number;

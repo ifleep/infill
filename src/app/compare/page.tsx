@@ -11,7 +11,7 @@ import { LinkButton } from "@/components/ui/button";
 
 const fields: { label: string; get: (p: Product) => string }[] = [
   { label: "Price", get: (p) => formatPKR(p.price) },
-  { label: "Technology", get: (p) => p.technology ?? p.subcategory },
+  { label: "Technology", get: (p) => (p.technology && p.technology.length > 0 ? p.technology.join(", ") : p.subcategory) },
   {
     label: "Build volume",
     get: (p) => (p.buildVolume ? `${p.buildVolume.x} × ${p.buildVolume.y} × ${p.buildVolume.z} mm` : "—"),

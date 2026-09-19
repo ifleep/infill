@@ -56,7 +56,7 @@ export default async function CategoryPage({
   const priceMax = current.priceMax ? Number(current.priceMax) : undefined;
 
   const filtered = productsInCategory.filter((p) => {
-    if (current.tech && p.technology !== current.tech) return false;
+    if (current.tech && !p.technology?.includes(current.tech as never)) return false;
     if (current.sub && p.subcategory !== current.sub) return false;
     if (current.level && !p.experienceLevel?.includes(current.level as never)) return false;
     if (current.use && !p.useCases?.includes(current.use as never)) return false;

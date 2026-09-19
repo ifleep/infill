@@ -33,7 +33,7 @@ export interface ProductFormValues {
   category: Product["category"];
   categoryId: string;
   subcategory: string;
-  technology: PrinterTechnology | "";
+  technology: PrinterTechnology[];
   experienceLevel: ExperienceLevel[];
   useCases: UseCase[];
   price: number | "";
@@ -78,7 +78,7 @@ function fromProduct(p: Product): ProductFormValues {
     category: p.category,
     categoryId: p.categoryId ?? "",
     subcategory: p.subcategory,
-    technology: p.technology ?? "",
+    technology: p.technology ?? [],
     experienceLevel: p.experienceLevel ?? [],
     useCases: p.useCases ?? [],
     price: p.price,
@@ -113,7 +113,7 @@ const empty: ProductFormValues = {
   category: "printers",
   categoryId: "",
   subcategory: "",
-  technology: "",
+  technology: [],
   experienceLevel: [],
   useCases: [],
   price: "",
@@ -186,7 +186,6 @@ export function ProductForm({
     const body = {
       ...values,
       categoryId: values.categoryId || null,
-      technology: values.technology === "" ? null : values.technology,
       price: values.price === "" ? 0 : values.price,
       compareAtPrice: values.compareAtPrice === "" ? null : values.compareAtPrice,
       stock: values.stock === "" ? 0 : values.stock,
@@ -347,20 +346,27 @@ export function ProductForm({
             hide the product — it still shows in the main, unfiltered 3D Printers list — it just won&rsquo;t
             appear when a visitor narrows down by one of these.
           </p>
-          <Field label="Technology">
-            <select
-              value={values.technology}
-              onChange={(e) => set("technology", e.target.value as ProductFormValues["technology"])}
-              className={inputClass}
-            >
-              <option value="">None</option>
+          <div>
+            <span className="mb-1.5 block text-sm font-medium text-ink">Technology</span>
+            <p className="mb-1.5 text-xs text-ink-faint">Check all that genuinely apply — e.g. a large-format CoreXY FDM printer can be all three at once.</p>
+            <div className="flex flex-wrap gap-x-5 gap-y-1.5">
               {TECHNOLOGIES.map((t) => (
-                <option key={t} value={t}>
+                <label key={t} className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+                  <input
+                    type="checkbox"
+                    checked={values.technology.includes(t)}
+                    onChange={(e) =>
+                      set(
+                        "technology",
+                        e.target.checked ? [...values.technology, t] : values.technology.filter((x) => x !== t)
+                      )
+                    }
+                  />
                   {t}
-                </option>
+                </label>
               ))}
-            </select>
-          </Field>
+            </div>
+          </div>
           <div className="mt-4 grid grid-cols-2 gap-4">
             <div>
               <span className="mb-1.5 block text-sm font-medium text-ink">Experience level</span>
