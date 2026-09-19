@@ -171,8 +171,28 @@ export function parseProductText(text: string, brands: Brand[]): ParsedProductTe
     }
   }
 
-  const contentBlocks =
-    specRows.length > 0 ? [{ id: newBlockId(), type: "specTable" as const, rows: specRows }] : null;
+  // Content blocks fully replace the legacy description on the product page
+  // (see product page's Overview section) — so if we hand back a specs-only
+  // block here, the pasted Full Description would silently stop showing up
+  // on the live site even though it's still saved. Carry it along as the
+  // first block instead, so nothing pasted in gets dropped.
+  let contentBlocks: ContentBlock[] | null = null;
+  if (specRows.length > 0) {
+    contentBlocks = [];
+    const description = typeof values.description === "string" ? values.description.trim() : "";
+    if (description) {
+      const html = description
+        .split(/\n{2,}/)
+        .map((para) => `<p>${escapeHtml(para).replace(/\n/g, "<br />")}</p>`)
+        .join("");
+      contentBlocks.push({ id: newBlockId(), type: "richText", html });
+    }
+    contentBlocks.push({ id: newBlockId(), type: "specTable", rows: specRows });
+  }
 
   return { values, contentBlocks, warnings };
+}
+
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
