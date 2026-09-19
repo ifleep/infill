@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Brand, Product } from "@/lib/types";
+import type { Brand, Product, PrinterTechnology, ExperienceLevel, UseCase } from "@/lib/types";
 import type { ContentBlock } from "@/lib/content-blocks/types";
 import type { MediaItem } from "@/lib/admin/media-types";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,14 @@ const categories: { value: Product["category"]; label: string }[] = [
   { value: "machines", label: "Machine (CNC/UV/Laser/Robots)" },
 ];
 
+// Must match the mega menu's filter links (nav-data.ts) and the 3D Printers
+// category page's filter logic (category/[slug]/page.tsx) exactly — these
+// are what a product needs set to actually show up under "CoreXY", "Hobby",
+// etc. instead of just the main unfiltered category list.
+const TECHNOLOGIES: PrinterTechnology[] = ["FDM", "Resin", "CoreXY", "Large Format", "Industrial", "Educational", "DIY"];
+const EXPERIENCE_LEVELS: ExperienceLevel[] = ["Beginner", "Intermediate", "Professional", "Industrial"];
+const USE_CASES: UseCase[] = ["Hobby", "Engineering", "Prototyping", "Education", "Business", "Industrial"];
+
 export interface ProductFormValues {
   slug: string;
   name: string;
@@ -25,6 +33,9 @@ export interface ProductFormValues {
   category: Product["category"];
   categoryId: string;
   subcategory: string;
+  technology: PrinterTechnology | "";
+  experienceLevel: ExperienceLevel[];
+  useCases: UseCase[];
   price: number | "";
   compareAtPrice: number | "";
   stock: number | "";
@@ -67,6 +78,9 @@ function fromProduct(p: Product): ProductFormValues {
     category: p.category,
     categoryId: p.categoryId ?? "",
     subcategory: p.subcategory,
+    technology: p.technology ?? "",
+    experienceLevel: p.experienceLevel ?? [],
+    useCases: p.useCases ?? [],
     price: p.price,
     compareAtPrice: p.compareAtPrice ?? "",
     stock: p.stock,
@@ -99,6 +113,9 @@ const empty: ProductFormValues = {
   category: "printers",
   categoryId: "",
   subcategory: "",
+  technology: "",
+  experienceLevel: [],
+  useCases: [],
   price: "",
   compareAtPrice: "",
   stock: 0,
@@ -169,6 +186,7 @@ export function ProductForm({
     const body = {
       ...values,
       categoryId: values.categoryId || null,
+      technology: values.technology === "" ? null : values.technology,
       price: values.price === "" ? 0 : values.price,
       compareAtPrice: values.compareAtPrice === "" ? null : values.compareAtPrice,
       stock: values.stock === "" ? 0 : values.stock,
@@ -319,6 +337,78 @@ export function ProductForm({
           </select>
         </Field>
       </div>
+
+      {values.category === "printers" && (
+        <div className="border-t border-border pt-5">
+          <span className="mb-1.5 block text-sm font-medium text-ink">Printer filters</span>
+          <p className="mb-3 text-xs text-ink-faint">
+            Controls which filters on the 3D Printers page and the header&rsquo;s mega menu (Technology,
+            Shop by Experience, Shop by Use) this product shows up under. Leaving these unset doesn&rsquo;t
+            hide the product — it still shows in the main, unfiltered 3D Printers list — it just won&rsquo;t
+            appear when a visitor narrows down by one of these.
+          </p>
+          <Field label="Technology">
+            <select
+              value={values.technology}
+              onChange={(e) => set("technology", e.target.value as ProductFormValues["technology"])}
+              className={inputClass}
+            >
+              <option value="">None</option>
+              {TECHNOLOGIES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            <div>
+              <span className="mb-1.5 block text-sm font-medium text-ink">Experience level</span>
+              <div className="flex flex-col gap-1.5">
+                {EXPERIENCE_LEVELS.map((level) => (
+                  <label key={level} className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+                    <input
+                      type="checkbox"
+                      checked={values.experienceLevel.includes(level)}
+                      onChange={(e) =>
+                        set(
+                          "experienceLevel",
+                          e.target.checked
+                            ? [...values.experienceLevel, level]
+                            : values.experienceLevel.filter((l) => l !== level)
+                        )
+                      }
+                    />
+                    {level}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div>
+              <span className="mb-1.5 block text-sm font-medium text-ink">Use cases</span>
+              <div className="flex flex-col gap-1.5">
+                {USE_CASES.map((use) => (
+                  <label key={use} className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+                    <input
+                      type="checkbox"
+                      checked={values.useCases.includes(use)}
+                      onChange={(e) =>
+                        set(
+                          "useCases",
+                          e.target.checked
+                            ? [...values.useCases, use]
+                            : values.useCases.filter((u) => u !== use)
+                        )
+                      }
+                    />
+                    {use}
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-4">
         <Field label="Price (PKR)" required>

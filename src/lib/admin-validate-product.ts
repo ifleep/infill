@@ -1,6 +1,10 @@
 import { slugify, type ProductInput } from "@/lib/data/products";
 import { parseContentBlocks } from "@/lib/content-blocks/types";
 
+const VALID_TECHNOLOGIES = ["FDM", "Resin", "CoreXY", "Large Format", "Industrial", "Educational", "DIY"];
+const VALID_EXPERIENCE_LEVELS = ["Beginner", "Intermediate", "Professional", "Industrial"];
+const VALID_USE_CASES = ["Hobby", "Engineering", "Prototyping", "Education", "Business", "Industrial"];
+
 export function validateProductInput(body: unknown, fallbackSlug?: string): { input: ProductInput } | { error: string } {
   if (typeof body !== "object" || body === null) return { error: "Invalid request body." };
   const b = body as Record<string, unknown>;
@@ -59,6 +63,17 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
         : Number(b.limitedStockQuantity)
       : undefined;
   const warrantyMonths = "warrantyMonths" in b ? Number(b.warrantyMonths) : undefined;
+  // Same "absent => leave alone" convention as mediaIds/contentBlocks —
+  // drives the Technology/Shop by Experience/Shop by Use filters on the
+  // 3D Printers category page and mega menu.
+  const technology =
+    "technology" in b ? (b.technology === null || b.technology === "" ? null : String(b.technology)) : undefined;
+  const experienceLevel = Array.isArray(b.experienceLevel)
+    ? b.experienceLevel.filter((v): v is string => typeof v === "string" && VALID_EXPERIENCE_LEVELS.includes(v))
+    : undefined;
+  const useCases = Array.isArray(b.useCases)
+    ? b.useCases.filter((v): v is string => typeof v === "string" && VALID_USE_CASES.includes(v))
+    : undefined;
 
   if (!name) return { error: "Name is required." };
   if (!brandId) return { error: "Brand is required." };
@@ -99,6 +114,9 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
   if (warrantyMonths !== undefined && (!Number.isFinite(warrantyMonths) || warrantyMonths < 0)) {
     return { error: "Warranty must be a non-negative number of months." };
   }
+  if (technology !== undefined && technology !== null && !VALID_TECHNOLOGIES.includes(technology)) {
+    return { error: "Invalid technology." };
+  }
 
   const rawSlug = typeof b.slug === "string" && b.slug.trim() ? b.slug : (fallbackSlug ?? name);
   const slug = slugify(rawSlug);
@@ -136,6 +154,9 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
       limitedStockEnabled,
       limitedStockQuantity,
       warrantyMonths,
+      technology: technology as ProductInput["technology"],
+      experienceLevel: experienceLevel as ProductInput["experienceLevel"],
+      useCases: useCases as ProductInput["useCases"],
     },
   };
 }

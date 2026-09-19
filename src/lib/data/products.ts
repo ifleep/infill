@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import type { Product } from "@/lib/types";
+import type { Product, PrinterTechnology, ExperienceLevel, UseCase } from "@/lib/types";
 import { parseContentBlocks, type ContentBlock } from "@/lib/content-blocks/types";
 import type {
   Product as ProductRow,
@@ -203,6 +203,10 @@ export interface ProductInput {
   /** `undefined` leaves the product's existing category assignment untouched; `null` clears it. */
   categoryId?: string | null;
   subcategory: string;
+  /** Drives the "Technology" / "Shop by Experience" / "Shop by Use" filters on the 3D Printers category page and mega menu — only meaningful for `category: "printers"`. `undefined` leaves the existing value untouched on an update. */
+  technology?: PrinterTechnology | null;
+  experienceLevel?: ExperienceLevel[];
+  useCases?: UseCase[];
   price: number;
   compareAtPrice: number | null;
   stock: number;
@@ -276,6 +280,11 @@ function toDbInput(input: ProductInput) {
     ...(input.contentBlocks !== undefined
       ? { contentBlocks: input.contentBlocks as unknown as Prisma.InputJsonValue }
       : {}),
+    ...(input.technology !== undefined ? { technology: input.technology } : {}),
+    ...(input.experienceLevel !== undefined
+      ? { experienceLevel: input.experienceLevel as Prisma.InputJsonValue }
+      : {}),
+    ...(input.useCases !== undefined ? { useCases: input.useCases as Prisma.InputJsonValue } : {}),
   };
 }
 
@@ -294,8 +303,6 @@ export async function createProduct(input: ProductInput): Promise<Product> {
     data: {
       id: `p-${input.slug}`,
       ...toDbInput(input),
-      experienceLevel: [],
-      useCases: [],
       currency: "PKR",
       specifications: "[]",
       tags: [],

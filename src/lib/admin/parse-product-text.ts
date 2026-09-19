@@ -1,4 +1,4 @@
-import type { Brand, Product } from "@/lib/types";
+import type { Brand, Product, PrinterTechnology } from "@/lib/types";
 import type { ContentBlock } from "@/lib/content-blocks/types";
 import { newBlockId } from "@/lib/content-blocks/types";
 import type { ProductFormValues } from "@/components/admin/product-form";
@@ -25,6 +25,7 @@ const FIELD_ALIASES: Record<string, keyof ProductFormValues> = {
   subcategory: "subcategory",
   type: "subcategory",
   "type / subcategory": "subcategory",
+  technology: "technology",
   price: "price",
   "sale price": "compareAtPrice",
   "compare at price": "compareAtPrice",
@@ -54,6 +55,19 @@ const CATEGORY_ALIASES: Record<string, Product["category"]> = {
   "parts and accessories": "parts",
   machines: "machines",
   machine: "machines",
+};
+
+// Drives the "Technology" filter on the 3D Printers category page and mega
+// menu (nav-data.ts) — only meaningful when category is "printers".
+const TECHNOLOGY_ALIASES: Record<string, PrinterTechnology> = {
+  fdm: "FDM",
+  resin: "Resin",
+  corexy: "CoreXY",
+  "core xy": "CoreXY",
+  "large format": "Large Format",
+  industrial: "Industrial",
+  educational: "Educational",
+  diy: "DIY",
 };
 
 function parseBoolean(raw: string): boolean {
@@ -128,6 +142,18 @@ export function parseProductText(text: string, brands: Brand[]): ParsedProductTe
     } else {
       warnings.push(`Category "${values.category}" not recognized — left unset, pick one manually.`);
       delete values.category;
+    }
+  }
+
+  // Technology: same accept-a-friendly-label pattern as category.
+  if (typeof values.technology === "string") {
+    const key = (values.technology as string).trim().toLowerCase();
+    const resolved = TECHNOLOGY_ALIASES[key];
+    if (resolved) {
+      values.technology = resolved;
+    } else {
+      warnings.push(`Technology "${values.technology}" not recognized — left unset, pick one manually.`);
+      delete values.technology;
     }
   }
 
