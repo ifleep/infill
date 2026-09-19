@@ -25,13 +25,13 @@ const channels = [
   {
     icon: WhatsappLogo,
     label: "WhatsApp",
-    value: "+92 300 0000000",
+    value: "+8616621610013",
     note: "Quick questions, quote requests",
   },
   {
     icon: MapPin,
     label: "Location",
-    value: "Lahore, Pakistan",
+    value: "Islamabad, Pakistan",
     note: "Nationwide shipping",
   },
 ];
