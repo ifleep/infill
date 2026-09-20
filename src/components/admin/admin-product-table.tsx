@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { PencilSimple, Trash, Copy, CheckCircle, WarningCircle } from "@phosphor-icons/react";
+import { PencilSimple, Trash, Copy, CheckCircle, WarningCircle, CaretUp, CaretDown } from "@phosphor-icons/react";
 import type { Availability, Brand, Product } from "@/lib/types";
 
 type RowStatus = "idle" | "saving" | "saved" | "error";
@@ -28,7 +28,20 @@ export function AdminProductTable({
   const [status, setStatus] = useState<Record<string, RowStatus>>({});
   const [deleting, setDeleting] = useState<string | null>(null);
   const [duplicating, setDuplicating] = useState<string | null>(null);
+  const [categorySort, setCategorySort] = useState<"asc" | "desc" | null>(null);
   const brandName = (id: string) => brands.find((b) => b.id === id)?.name ?? id;
+
+  function toggleCategorySort() {
+    setCategorySort((dir) => (dir === "asc" ? "desc" : "asc"));
+  }
+
+  const displayProducts =
+    categorySort === null
+      ? products
+      : [...products].sort((a, b) => {
+          const cmp = categoryLabels[a.category].localeCompare(categoryLabels[b.category]);
+          return categorySort === "asc" ? cmp : -cmp;
+        });
 
   async function save(product: Product) {
     setStatus((s) => ({ ...s, [product.id]: "saving" }));
@@ -97,7 +110,23 @@ export function AdminProductTable({
         <thead>
           <tr className="border-b border-border bg-surface-sunken text-left text-xs uppercase tracking-wide text-ink-faint">
             <th className="px-4 py-3 font-medium">Product</th>
-            <th className="px-4 py-3 font-medium">Category</th>
+            <th className="px-4 py-3 font-medium">
+              <button
+                type="button"
+                onClick={toggleCategorySort}
+                className="focus-ring flex cursor-pointer items-center gap-1 font-medium uppercase tracking-wide text-ink-faint hover:text-ink"
+              >
+                Category
+                <span className="flex flex-col">
+                  <CaretUp size={8} weight="bold" className={categorySort === "asc" ? "text-ink" : "text-ink-faint"} />
+                  <CaretDown
+                    size={8}
+                    weight="bold"
+                    className={categorySort === "desc" ? "text-ink" : "text-ink-faint"}
+                  />
+                </span>
+              </button>
+            </th>
             <th className="px-4 py-3 font-medium">Price (PKR)</th>
             <th className="px-4 py-3 font-medium">Sale Price</th>
             <th className="px-4 py-3 font-medium">Stock</th>
@@ -107,7 +136,7 @@ export function AdminProductTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {products.map((p) => {
+          {displayProducts.map((p) => {
             const rowStatus = status[p.id] ?? "idle";
             return (
               <tr key={p.id}>
