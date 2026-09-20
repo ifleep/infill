@@ -135,6 +135,11 @@ body {
   -webkit-appearance: none;
   appearance: none;
   background: transparent;
+  /* Without this, each input's full-width hit area stays draggable, not
+     just its thumb — so the one stacked on top (the max handle, rendered
+     second) swallows every drag, including ones started near the min
+     handle. Only the thumb pseudo-elements below re-enable pointer events. */
+  pointer-events: none;
 }
 .price-range-thumb::-webkit-slider-runnable-track {
   -webkit-appearance: none;
