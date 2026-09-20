@@ -26,6 +26,17 @@ const TECHNOLOGIES: PrinterTechnology[] = ["FDM", "Resin", "CoreXY", "Large Form
 const EXPERIENCE_LEVELS: ExperienceLevel[] = ["Beginner", "Intermediate", "Professional", "Industrial"];
 const USE_CASES: UseCase[] = ["Hobby", "Engineering", "Prototyping", "Education", "Business", "Industrial"];
 
+interface FormVariant {
+  id?: string;
+  label: string;
+  price: number | "";
+  compareAtPrice: number | "";
+  stock: number | "";
+  sku: string;
+  availability: Product["availability"];
+  isDefault: boolean;
+}
+
 export interface ProductFormValues {
   slug: string;
   name: string;
@@ -155,6 +166,18 @@ export function ProductForm({
   productId?: string;
 }) {
   const [values, setValues] = useState<ProductFormValues>(product ? fromProduct(product) : empty);
+  const [variants, setVariants] = useState<FormVariant[]>(
+    (product?.variants ?? []).map((v) => ({
+      id: v.id,
+      label: v.label,
+      price: v.price,
+      compareAtPrice: v.compareAtPrice ?? "",
+      stock: v.stock,
+      sku: v.sku ?? "",
+      availability: v.availability,
+      isDefault: v.isDefault,
+    }))
+  );
   const [photos, setPhotos] = useState<MediaItem[]>(mediaItems ?? []);
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>(product?.contentBlocks ?? []);
   const [error, setError] = useState<string | null>(null);
@@ -167,6 +190,30 @@ export function ProductForm({
   function set<K extends keyof ProductFormValues>(key: K, value: ProductFormValues[K]) {
     setValues((v) => ({ ...v, [key]: value }));
   }
+
+  function addVariant() {
+    setVariants((vs) => [
+      ...vs,
+      { label: "", price: "", compareAtPrice: "", stock: "", sku: "", availability: "in-stock", isDefault: vs.length === 0 },
+    ]);
+  }
+  function updateVariant(index: number, patch: Partial<FormVariant>) {
+    setVariants((vs) => vs.map((v, i) => (i === index ? { ...v, ...patch } : v)));
+  }
+  function removeVariant(index: number) {
+    setVariants((vs) => vs.filter((_, i) => i !== index));
+  }
+  function setDefaultVariant(index: number) {
+    setVariants((vs) => vs.map((v, i) => ({ ...v, isDefault: i === index })));
+  }
+
+  // Once variants exist, they're the real source of truth for price/stock —
+  // the plain fields below become a read-only summary (see toDbInput's
+  // matching logic in products.ts for why this stays consistent server-side
+  // even if a request somehow skips the form).
+  const derivedPrice = variants.length > 0 ? Math.min(...variants.map((v) => (v.price === "" ? 0 : v.price))) : null;
+  const derivedStock =
+    variants.length > 0 ? variants.reduce((sum, v) => sum + (v.stock === "" ? 0 : v.stock), 0) : null;
 
   // Only fills the form fields below — the product still isn't created
   // until you review and click "Create Product" yourself, same as typing
@@ -197,6 +244,16 @@ export function ProductForm({
       limitedStockQuantity: values.limitedStockQuantity === "" ? null : values.limitedStockQuantity,
       mediaIds: photos.map((p) => p.id),
       contentBlocks,
+      variants: variants.map((v) => ({
+        id: v.id,
+        label: v.label,
+        price: v.price === "" ? 0 : v.price,
+        compareAtPrice: v.compareAtPrice === "" ? null : v.compareAtPrice,
+        stock: v.stock === "" ? 0 : v.stock,
+        sku: v.sku || null,
+        availability: v.availability,
+        isDefault: v.isDefault,
+      })),
     };
 
     try {
@@ -417,33 +474,47 @@ export function ProductForm({
       )}
 
       <div className="grid grid-cols-3 gap-4">
-        <Field label="Price (PKR)" required>
+        <Field
+          label="Price (PKR)"
+          required
+          hint={variants.length > 0 ? "Set from the cheapest variant below" : undefined}
+        >
           <input
             type="number"
             min={0}
             required
-            value={values.price}
+            disabled={variants.length > 0}
+            value={variants.length > 0 ? (derivedPrice ?? 0) : values.price}
             onChange={(e) => set("price", e.target.value === "" ? "" : Number(e.target.value))}
-            className={inputClass}
+            className={`${inputClass} disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-ink-faint`}
           />
         </Field>
-        <Field label="Sale price (PKR)" hint="Optional — shows as a strikethrough sale">
+        <Field
+          label="Sale price (PKR)"
+          hint={variants.length > 0 ? "Set per-variant below instead" : "Optional — shows as a strikethrough sale"}
+        >
           <input
             type="number"
             min={0}
-            value={values.compareAtPrice}
+            disabled={variants.length > 0}
+            value={variants.length > 0 ? "" : values.compareAtPrice}
             onChange={(e) => set("compareAtPrice", e.target.value === "" ? "" : Number(e.target.value))}
-            className={inputClass}
+            className={`${inputClass} disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-ink-faint`}
           />
         </Field>
-        <Field label="Stock count" required>
+        <Field
+          label="Stock count"
+          required
+          hint={variants.length > 0 ? "Summed across variants below" : undefined}
+        >
           <input
             type="number"
             min={0}
             required
-            value={values.stock}
+            disabled={variants.length > 0}
+            value={variants.length > 0 ? (derivedStock ?? 0) : values.stock}
             onChange={(e) => set("stock", e.target.value === "" ? "" : Number(e.target.value))}
-            className={inputClass}
+            className={`${inputClass} disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-ink-faint`}
           />
         </Field>
         <Field label="Low stock warning" hint="Show 'Only N left' below this count. Leave blank to disable.">
@@ -466,7 +537,11 @@ export function ProductForm({
         </Field>
       </div>
 
-      <Field label="Availability" required>
+      <Field
+        label="Availability"
+        required
+        hint={variants.length > 0 ? "Unused once variants exist — set availability per variant below" : undefined}
+      >
         <select
           required
           value={values.availability}
@@ -478,6 +553,114 @@ export function ProductForm({
           <option value="preorder">Preorder</option>
         </select>
       </Field>
+
+      <div className="border-t border-border pt-5">
+        <div className="flex items-center justify-between">
+          <span className="block text-sm font-medium text-ink">Variants</span>
+          <button
+            type="button"
+            onClick={addVariant}
+            className="focus-ring cursor-pointer text-sm font-medium text-blue-700 hover:text-blue-600"
+          >
+            + Add variant
+          </button>
+        </div>
+        <p className="mt-1 text-xs text-ink-faint">
+          Optional. Add purchasable configurations of this same listing (e.g. &ldquo;Standard&rdquo; and
+          &ldquo;Combo (AMS Lite)&rdquo;), each with its own price and stock — shown as a selector on the
+          product page instead of one fixed price. Leave empty to use the Price/Stock fields above directly.
+        </p>
+        {variants.length > 0 && (
+          <div className="mt-3 space-y-3">
+            {variants.map((v, i) => (
+              <div key={i} className="rounded-lg border border-border-strong p-3">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <Field label="Label" required>
+                    <input
+                      required
+                      value={v.label}
+                      onChange={(e) => updateVariant(i, { label: e.target.value })}
+                      placeholder='e.g. "Combo (AMS Lite)"'
+                      className={inputClass}
+                    />
+                  </Field>
+                  <Field label="Price (PKR)" required>
+                    <input
+                      type="number"
+                      min={0}
+                      required
+                      value={v.price}
+                      onChange={(e) =>
+                        updateVariant(i, { price: e.target.value === "" ? "" : Number(e.target.value) })
+                      }
+                      className={inputClass}
+                    />
+                  </Field>
+                  <Field label="Sale price (PKR)" hint="Optional">
+                    <input
+                      type="number"
+                      min={0}
+                      value={v.compareAtPrice}
+                      onChange={(e) =>
+                        updateVariant(i, { compareAtPrice: e.target.value === "" ? "" : Number(e.target.value) })
+                      }
+                      className={inputClass}
+                    />
+                  </Field>
+                  <Field label="Stock" required>
+                    <input
+                      type="number"
+                      min={0}
+                      required
+                      value={v.stock}
+                      onChange={(e) =>
+                        updateVariant(i, { stock: e.target.value === "" ? "" : Number(e.target.value) })
+                      }
+                      className={inputClass}
+                    />
+                  </Field>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <Field label="Availability">
+                    <select
+                      value={v.availability}
+                      onChange={(e) =>
+                        updateVariant(i, { availability: e.target.value as Product["availability"] })
+                      }
+                      className={inputClass}
+                    >
+                      <option value="in-stock">In stock</option>
+                      <option value="out-of-stock">Out of stock</option>
+                      <option value="preorder">Preorder</option>
+                    </select>
+                  </Field>
+                  <Field label="SKU" hint="Optional">
+                    <input value={v.sku} onChange={(e) => updateVariant(i, { sku: e.target.value })} className={inputClass} />
+                  </Field>
+                </div>
+                <div className="mt-3 flex items-center justify-between">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+                    <input
+                      type="radio"
+                      name="defaultVariant"
+                      checked={v.isDefault}
+                      onChange={() => setDefaultVariant(i)}
+                    />
+                    Default (pre-selected on the product page)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => removeVariant(i)}
+                    className="focus-ring cursor-pointer text-xs text-destructive hover:underline"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="flex gap-6">
         <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">

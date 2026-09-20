@@ -89,7 +89,7 @@ export default function CheckoutClient({
           city: form.city,
           province: form.province,
           paymentMethod: form.paymentMethod,
-          lines: lines.map((l) => ({ productId: l.productId, quantity: l.quantity })),
+          lines: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, quantity: l.quantity })),
         }),
       });
       const data = await res.json();
@@ -153,9 +153,10 @@ export default function CheckoutClient({
             <h2 className="font-display text-lg font-semibold text-ink">Order summary</h2>
             <ul className="mt-4 space-y-2">
               {lines.map((l) => (
-                <li key={l.productId} className="flex justify-between text-sm text-ink-muted">
+                <li key={`${l.productId}-${l.variantId ?? ""}`} className="flex justify-between text-sm text-ink-muted">
                   <span>
-                    {l.name} × {l.quantity}
+                    {l.name}
+                    {l.variantLabel ? ` (${l.variantLabel})` : ""} × {l.quantity}
                   </span>
                   <span className="tabular">{formatPKR(l.price * l.quantity)}</span>
                 </li>

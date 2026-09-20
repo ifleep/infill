@@ -134,6 +134,7 @@ model Product {
   reviews    ProductReview[]
   orderItems OrderItem[]
   quoteRequests QuoteRequest[]
+  variants   ProductVariant[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -142,6 +143,31 @@ model Product {
   @@index([brandId])
   @@index([categoryId])
   @@index([featured])
+}
+
+// Optional purchasable configurations of the same product listing (e.g.
+// "Standard" vs "Combo (AMS Lite)") — admin-named and admin-priced, not a
+// fixed set. A product with zero rows here behaves exactly as it always
+// has: Product.price/stock are used directly. Once a product has variant
+// rows, Product.price/stock are derived at read time (see fromRow in
+// src/lib/data/products.ts) as the cheapest variant's price and the summed
+// variant stock, so every other page that already reads product.price/stock
+// (cards, category filters/sort, compare, cart defaults) keeps working
+// unchanged without knowing variants exist.
+model ProductVariant {
+  id             String  @id @default(cuid())
+  productId      String
+  product        Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  label          String
+  price          Int
+  compareAtPrice Int?
+  stock          Int     @default(0)
+  sku            String? @unique
+  availability   String  @default("in-stock") // "in-stock" | "out-of-stock" | "preorder"
+  isDefault      Boolean @default(false)
+  position       Int     @default(0)
+
+  @@index([productId])
 }
 
 // The product photo gallery — a join table (not just Product.images JSON)

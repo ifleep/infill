@@ -76,6 +76,17 @@ export interface SeoFields {
   includeInSitemap?: boolean;
 }
 
+export interface ProductVariant {
+  id: string;
+  label: string;
+  price: number;
+  compareAtPrice?: number;
+  stock: number;
+  sku?: string;
+  availability: Availability;
+  isDefault: boolean;
+}
+
 export interface Product extends SeoFields {
   id: string;
   slug: string;
@@ -92,6 +103,16 @@ export interface Product extends SeoFields {
   technology?: PrinterTechnology[];
   experienceLevel?: ExperienceLevel[];
   useCases?: UseCase[];
+  /**
+   * Optional purchasable configurations of this same listing (e.g. "Standard"
+   * vs "Combo (AMS Lite)"), each with its own price/stock — see
+   * ProductVariant. Empty when the product has none, in which case `price`/
+   * `stock` below are used directly, exactly as before variants existed.
+   * When non-empty, `price` is the cheapest variant's price and `stock` is
+   * the summed variant stock (derived in products.ts's `fromRow`), so every
+   * page that isn't variant-aware still shows something correct.
+   */
+  variants: ProductVariant[];
   price: number;
   compareAtPrice?: number;
   currency: "PKR";

@@ -2,11 +2,14 @@
 
 import { create } from "zustand";
 import { useEffect } from "react";
-import type { Product } from "@/lib/types";
+import type { Product, ProductVariant } from "@/lib/types";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 
 export interface CartLine {
   productId: string;
+  /** Set when this line is a specific variant (see ProductVariant) rather than the product's plain price/stock. Two different variants of the same product are two separate lines. */
+  variantId?: string;
+  variantLabel?: string;
   slug: string;
   name: string;
   brandName: string;
@@ -22,9 +25,9 @@ interface CartState {
   hydrated: boolean;
   open: () => void;
   close: () => void;
-  addItem: (product: Product, brandName: string, quantity?: number) => void;
-  removeItem: (productId: string) => void;
-  setQuantity: (productId: string, quantity: number) => void;
+  addItem: (product: Product, brandName: string, quantity?: number, variant?: ProductVariant) => void;
+  removeItem: (productId: string, variantId?: string) => void;
+  setQuantity: (productId: string, quantity: number, variantId?: string) => void;
   hydrate: () => void;
 }
 
@@ -54,18 +57,20 @@ export const useCartStore = create<CartState>((set, get) => ({
     }
     set({ hydrated: true });
   },
-  addItem: (product, brandName, quantity = 1) => {
+  addItem: (product, brandName, quantity = 1, variant) => {
     const lines = [...get().lines];
-    const existing = lines.find((l) => l.productId === product.id);
+    const existing = lines.find((l) => l.productId === product.id && l.variantId === variant?.id);
     if (existing) {
       existing.quantity += quantity;
     } else {
       lines.push({
         productId: product.id,
+        variantId: variant?.id,
+        variantLabel: variant?.label,
         slug: product.slug,
         name: product.name,
         brandName,
-        price: product.price,
+        price: variant?.price ?? product.price,
         quantity,
         weightKg: product.weightKg,
       });
@@ -73,14 +78,14 @@ export const useCartStore = create<CartState>((set, get) => ({
     persist(lines);
     set({ lines, isOpen: true });
   },
-  removeItem: (productId) => {
-    const lines = get().lines.filter((l) => l.productId !== productId);
+  removeItem: (productId, variantId) => {
+    const lines = get().lines.filter((l) => !(l.productId === productId && l.variantId === variantId));
     persist(lines);
     set({ lines });
   },
-  setQuantity: (productId, quantity) => {
+  setQuantity: (productId, quantity, variantId) => {
     const lines = get()
-      .lines.map((l) => (l.productId === productId ? { ...l, quantity } : l))
+      .lines.map((l) => (l.productId === productId && l.variantId === variantId ? { ...l, quantity } : l))
       .filter((l) => l.quantity > 0);
     persist(lines);
     set({ lines });

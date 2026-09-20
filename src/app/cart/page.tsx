@@ -23,9 +23,9 @@ export default function CartPage() {
     hydrateWishlist();
   }, [hydrateWishlist]);
 
-  function saveForLater(productId: string) {
+  function saveForLater(productId: string, variantId?: string) {
     addToWishlist(productId);
-    removeItem(productId);
+    removeItem(productId, variantId);
   }
   const [products, setProducts] = useState<Product[]>([]);
 
@@ -60,7 +60,7 @@ export default function CartPage() {
         <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-[1fr_360px]">
           <ul className="divide-y divide-border rounded-xl border border-border">
             {lines.map((line) => (
-              <li key={line.productId} className="flex flex-wrap items-center gap-4 p-5">
+              <li key={`${line.productId}-${line.variantId ?? ""}`} className="flex flex-wrap items-center gap-4 p-5">
                 <div className="flex-1 min-w-[200px]">
                   <p className="text-xs uppercase tracking-wide text-ink-faint">{line.brandName}</p>
                   <Link
@@ -69,11 +69,12 @@ export default function CartPage() {
                   >
                     {line.name}
                   </Link>
+                  {line.variantLabel && <p className="text-xs text-ink-faint">{line.variantLabel}</p>}
                 </div>
                 <div className="flex items-center rounded-md border border-border-strong">
                   <button
                     aria-label={`Decrease quantity of ${line.name}`}
-                    onClick={() => setQuantity(line.productId, line.quantity - 1)}
+                    onClick={() => setQuantity(line.productId, line.quantity - 1, line.variantId)}
                     className="focus-ring flex h-9 w-9 cursor-pointer items-center justify-center text-ink hover:bg-surface-sunken"
                   >
                     <Minus size={13} />
@@ -81,7 +82,7 @@ export default function CartPage() {
                   <span className="tabular w-8 text-center text-sm">{line.quantity}</span>
                   <button
                     aria-label={`Increase quantity of ${line.name}`}
-                    onClick={() => setQuantity(line.productId, line.quantity + 1)}
+                    onClick={() => setQuantity(line.productId, line.quantity + 1, line.variantId)}
                     className="focus-ring flex h-9 w-9 cursor-pointer items-center justify-center text-ink hover:bg-surface-sunken"
                   >
                     <Plus size={13} />
@@ -92,13 +93,13 @@ export default function CartPage() {
                 </p>
                 <div className="flex flex-col items-end gap-1">
                   <button
-                    onClick={() => saveForLater(line.productId)}
+                    onClick={() => saveForLater(line.productId, line.variantId)}
                     className="focus-ring cursor-pointer text-xs text-ink-faint underline-offset-2 hover:text-blue-700 hover:underline"
                   >
                     Save for later
                   </button>
                   <button
-                    onClick={() => removeItem(line.productId)}
+                    onClick={() => removeItem(line.productId, line.variantId)}
                     className="focus-ring cursor-pointer text-xs text-ink-faint underline-offset-2 hover:text-destructive hover:underline"
                   >
                     Remove

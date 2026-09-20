@@ -30,7 +30,11 @@ export async function POST(request: Request) {
     if (typeof raw !== "object" || raw === null) continue;
     const l = raw as Record<string, unknown>;
     if (typeof l.productId === "string" && typeof l.quantity === "number") {
-      parsedLines.push({ productId: l.productId, quantity: Math.floor(l.quantity) });
+      parsedLines.push({
+        productId: l.productId,
+        variantId: typeof l.variantId === "string" ? l.variantId : undefined,
+        quantity: Math.floor(l.quantity),
+      });
     }
   }
 

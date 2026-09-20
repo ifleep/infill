@@ -4,6 +4,7 @@ import { parseContentBlocks } from "@/lib/content-blocks/types";
 const VALID_TECHNOLOGIES = ["FDM", "Resin", "CoreXY", "Large Format", "Industrial", "Educational", "DIY"];
 const VALID_EXPERIENCE_LEVELS = ["Beginner", "Intermediate", "Professional", "Industrial"];
 const VALID_USE_CASES = ["Hobby", "Engineering", "Prototyping", "Education", "Business", "Industrial"];
+const VALID_AVAILABILITY = ["in-stock", "out-of-stock", "preorder"];
 
 export function validateProductInput(body: unknown, fallbackSlug?: string): { input: ProductInput } | { error: string } {
   if (typeof body !== "object" || body === null) return { error: "Invalid request body." };
@@ -76,6 +77,57 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
     ? b.useCases.filter((v): v is string => typeof v === "string" && VALID_USE_CASES.includes(v))
     : undefined;
 
+  // Same "absent => leave alone" convention as mediaIds/contentBlocks.
+  // A row missing a label is silently dropped rather than erroring — an
+  // easy thing to leave blank by accident while still filling in the rest.
+  const rawVariants = Array.isArray(b.variants) ? (b.variants as unknown[]) : undefined;
+  let variants: ProductInput["variants"];
+  if (rawVariants !== undefined) {
+    variants = [];
+    for (const raw of rawVariants) {
+      if (typeof raw !== "object" || raw === null) continue;
+      const v = raw as Record<string, unknown>;
+      const label = typeof v.label === "string" ? v.label.trim() : "";
+      if (!label) continue;
+      const vPrice = Number(v.price);
+      const vStock = Number(v.stock);
+      const vCompareAtPrice =
+        v.compareAtPrice === null || v.compareAtPrice === undefined || v.compareAtPrice === ""
+          ? null
+          : Number(v.compareAtPrice);
+      const vAvailability =
+        typeof v.availability === "string" && VALID_AVAILABILITY.includes(v.availability) ? v.availability : "in-stock";
+      if (!Number.isFinite(vPrice) || vPrice < 0) return { error: `Variant "${label}" needs a non-negative price.` };
+      if (!Number.isFinite(vStock) || vStock < 0) {
+        return { error: `Variant "${label}" needs a non-negative stock count.` };
+      }
+      if (vCompareAtPrice !== null && (!Number.isFinite(vCompareAtPrice) || vCompareAtPrice < 0)) {
+        return { error: `Variant "${label}"'s sale price must be a non-negative number.` };
+      }
+      variants.push({
+        id: typeof v.id === "string" ? v.id : undefined,
+        label,
+        price: vPrice,
+        compareAtPrice: vCompareAtPrice,
+        stock: vStock,
+        sku: typeof v.sku === "string" && v.sku.trim() ? v.sku.trim() : null,
+        availability: vAvailability as ProductInput["availability"],
+        isDefault: Boolean(v.isDefault),
+      });
+    }
+    // Exactly one default variant — auto-fix rather than error if none was
+    // marked, so the storefront always has a variant to pre-select.
+    if (variants.length > 0 && !variants.some((v) => v.isDefault)) {
+      variants[0].isDefault = true;
+    }
+  }
+
+  // Once a product has variants, they're the real source of truth for
+  // price/stock — the plain fields become a derived summary (cheapest
+  // variant's price, summed stock) rather than something entered directly.
+  const effectivePrice = variants && variants.length > 0 ? Math.min(...variants.map((v) => v.price)) : price;
+  const effectiveStock = variants && variants.length > 0 ? variants.reduce((sum, v) => sum + v.stock, 0) : stock;
+
   if (!name) return { error: "Name is required." };
   if (!brandId) return { error: "Brand is required." };
   if (!["printers", "filament", "resin", "parts", "machines"].includes(category)) {
@@ -84,8 +136,8 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
   if (!subcategory) return { error: "Type/subcategory is required." };
   if (!shortDescription) return { error: "Short description is required." };
   if (!description) return { error: "Description is required." };
-  if (!Number.isFinite(price) || price < 0) return { error: "Price must be a non-negative number." };
-  if (!Number.isFinite(stock) || stock < 0) return { error: "Stock must be a non-negative number." };
+  if (!Number.isFinite(effectivePrice) || effectivePrice < 0) return { error: "Price must be a non-negative number." };
+  if (!Number.isFinite(effectiveStock) || effectiveStock < 0) return { error: "Stock must be a non-negative number." };
   if (
     lowStockThreshold !== undefined &&
     lowStockThreshold !== null &&
@@ -128,9 +180,9 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
       category: category as ProductInput["category"],
       categoryId,
       subcategory,
-      price,
+      price: effectivePrice,
       compareAtPrice,
-      stock,
+      stock: effectiveStock,
       lowStockThreshold,
       availability: availability as ProductInput["availability"],
       quoteOnly,
@@ -155,6 +207,7 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
       technology: technology as ProductInput["technology"],
       experienceLevel: experienceLevel as ProductInput["experienceLevel"],
       useCases: useCases as ProductInput["useCases"],
+      variants,
     },
   };
 }

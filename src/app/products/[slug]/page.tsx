@@ -13,11 +13,9 @@ import { ProductCard } from "@/components/product/product-card";
 import { AddToCartPanel } from "@/components/product/add-to-cart-panel";
 import { CompareToggle } from "@/components/compare/compare-toggle";
 import { WishlistToggle } from "@/components/wishlist/wishlist-toggle";
-import { AvailabilityStatus } from "@/components/product/availability-badge";
 import { LimitedStockBadge } from "@/components/product/limited-stock-badge";
 import { SaleTimer } from "@/components/product/sale-timer";
 import { SoldCount } from "@/components/product/sold-count";
-import { formatPKR } from "@/lib/format";
 import { Faq } from "@/components/product/faq";
 import { ReviewSection } from "@/components/product/review-section";
 import { Star } from "@phosphor-icons/react/ssr";
@@ -85,12 +83,24 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     name: product.name,
     brand: { "@type": "Brand", name: product.brandName },
     description: product.shortDescription,
-    offers: {
-      "@type": "Offer",
-      priceCurrency: "PKR",
-      price: product.price,
-      availability: schemaAvailability(product.availability),
-    },
+    // A product with more than one variant has more than one real price —
+    // AggregateOffer (with the cheapest as lowPrice) is schema.org's way of
+    // declaring that, rather than pretending there's a single fixed price.
+    offers:
+      product.variants.length > 1
+        ? {
+            "@type": "AggregateOffer",
+            priceCurrency: "PKR",
+            lowPrice: Math.min(...product.variants.map((v) => v.price)),
+            highPrice: Math.max(...product.variants.map((v) => v.price)),
+            offerCount: product.variants.length,
+          }
+        : {
+            "@type": "Offer",
+            priceCurrency: "PKR",
+            price: product.price,
+            availability: schemaAvailability(product.availability),
+          },
     ...(product.rating && product.reviewCount
       ? {
           aggregateRating: {
@@ -163,16 +173,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
           <p className="mt-4 text-base text-ink-muted">{product.shortDescription}</p>
 
-          <div className="mt-5 flex items-baseline gap-3">
-            <span className="tabular text-3xl font-semibold text-ink">{formatPKR(product.price)}</span>
-            {product.compareAtPrice && (
-              <span className="tabular text-base text-ink-faint line-through">
-                {formatPKR(product.compareAtPrice)}
-              </span>
-            )}
-          </div>
           <div className="mt-3">
-            <AvailabilityStatus availability={product.availability} stock={product.stock} />
             <LimitedStockBadge product={product} className="mt-1.5" />
             <SaleTimer saleEndsAt={product.saleEndsAt} className="mt-1.5" />
             <SoldCount product={product} className="mt-1.5" />

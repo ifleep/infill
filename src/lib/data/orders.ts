@@ -13,6 +13,8 @@ const FALLBACK_ITEM_WEIGHT_KG = 1;
 
 export interface CheckoutLineInput {
   productId: string;
+  /** When set, this line is a specific ProductVariant — price/stock come from that variant, not the product's own fields. */
+  variantId?: string;
   quantity: number;
 }
 
@@ -55,7 +57,10 @@ export async function createOrder(input: CreateOrderInput) {
 
   return prisma.$transaction(async (tx) => {
     const productIds = input.lines.map((l) => l.productId);
-    const products = await tx.product.findMany({ where: { id: { in: productIds } } });
+    const products = await tx.product.findMany({
+      where: { id: { in: productIds } },
+      include: { variants: true },
+    });
     const productMap = new Map(products.map((p) => [p.id, p]));
 
     let subtotal = 0;
@@ -68,25 +73,41 @@ export async function createOrder(input: CreateOrderInput) {
       quantity: number;
       total: number;
     }[] = [];
+    // Which variant's stock to decrement, per product — collected separately
+    // from `items` since a variant purchase doesn't touch Product.stock at all.
+    const variantDecrements: { variantId: string; quantity: number }[] = [];
 
     for (const line of input.lines) {
       const product = productMap.get(line.productId);
       if (!product) throw new OrderError(`A product in your cart is no longer available.`);
       if (line.quantity < 1) throw new OrderError(`Invalid quantity for ${product.name}.`);
-      if (product.availability === "out-of-stock" || product.stock < line.quantity) {
-        throw new OrderError(`${product.name} doesn't have enough stock left (only ${product.stock} available).`);
+
+      const variant = line.variantId ? product.variants.find((v) => v.id === line.variantId) : undefined;
+      if (line.variantId && !variant) {
+        throw new OrderError(`A configuration of ${product.name} in your cart is no longer available.`);
       }
-      const lineTotal = product.price * line.quantity;
+
+      const name = variant ? `${product.name} (${variant.label})` : product.name;
+      const price = variant ? variant.price : product.price;
+      const availability = variant ? variant.availability : product.availability;
+      const stock = variant ? variant.stock : product.stock;
+      const sku = variant ? (variant.sku ?? product.sku) : product.sku;
+
+      if (availability === "out-of-stock" || stock < line.quantity) {
+        throw new OrderError(`${name} doesn't have enough stock left (only ${stock} available).`);
+      }
+      const lineTotal = price * line.quantity;
       subtotal += lineTotal;
       totalWeightKg += (product.weightKg ?? FALLBACK_ITEM_WEIGHT_KG) * line.quantity;
       items.push({
         productId: product.id,
-        productName: product.name,
-        sku: product.sku,
-        unitPrice: product.price,
+        productName: name,
+        sku,
+        unitPrice: price,
         quantity: line.quantity,
         total: lineTotal,
       });
+      if (variant) variantDecrements.push({ variantId: variant.id, quantity: line.quantity });
     }
 
     const shippingCost = Math.min(Math.round(totalWeightKg * SHIPPING_COST_PER_KG), SHIPPING_COST_CAP);
@@ -119,9 +140,21 @@ export async function createOrder(input: CreateOrderInput) {
     });
 
     for (const line of input.lines) {
-      await tx.product.update({
-        where: { id: line.productId },
-        data: { stock: { decrement: line.quantity } },
+      // A variant line doesn't touch Product.stock at all — with variants,
+      // that column is just a stale write-time snapshot the app never reads
+      // (see fromRow in products.ts), so decrementing it would be a no-op
+      // that only confuses anyone inspecting the raw row.
+      if (!line.variantId) {
+        await tx.product.update({
+          where: { id: line.productId },
+          data: { stock: { decrement: line.quantity } },
+        });
+      }
+    }
+    for (const dec of variantDecrements) {
+      await tx.productVariant.update({
+        where: { id: dec.variantId },
+        data: { stock: { decrement: dec.quantity } },
       });
     }
 

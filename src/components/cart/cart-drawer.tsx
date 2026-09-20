@@ -55,7 +55,7 @@ export function CartDrawer() {
           <>
             <ul className="flex-1 overflow-y-auto divide-y divide-border px-5">
               {lines.map((line) => (
-                <li key={line.productId} className="flex gap-3 py-4">
+                <li key={`${line.productId}-${line.variantId ?? ""}`} className="flex gap-3 py-4">
                   <div className="flex-1">
                     <p className="text-xs uppercase tracking-wide text-ink-faint">{line.brandName}</p>
                     <Link
@@ -65,10 +65,11 @@ export function CartDrawer() {
                     >
                       {line.name}
                     </Link>
+                    {line.variantLabel && <p className="text-xs text-ink-faint">{line.variantLabel}</p>}
                     <div className="mt-2 flex items-center gap-2">
                       <button
                         aria-label={`Decrease quantity of ${line.name}`}
-                        onClick={() => setQuantity(line.productId, line.quantity - 1)}
+                        onClick={() => setQuantity(line.productId, line.quantity - 1, line.variantId)}
                         className="focus-ring flex h-7 w-7 cursor-pointer items-center justify-center rounded border border-border-strong hover:bg-surface-sunken"
                       >
                         <Minus size={12} />
@@ -76,13 +77,13 @@ export function CartDrawer() {
                       <span className="tabular w-6 text-center text-sm">{line.quantity}</span>
                       <button
                         aria-label={`Increase quantity of ${line.name}`}
-                        onClick={() => setQuantity(line.productId, line.quantity + 1)}
+                        onClick={() => setQuantity(line.productId, line.quantity + 1, line.variantId)}
                         className="focus-ring flex h-7 w-7 cursor-pointer items-center justify-center rounded border border-border-strong hover:bg-surface-sunken"
                       >
                         <Plus size={12} />
                       </button>
                       <button
-                        onClick={() => removeItem(line.productId)}
+                        onClick={() => removeItem(line.productId, line.variantId)}
                         className="focus-ring ml-2 cursor-pointer text-xs text-ink-faint underline-offset-2 hover:text-destructive hover:underline"
                       >
                         Remove

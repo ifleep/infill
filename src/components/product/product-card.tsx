@@ -96,7 +96,14 @@ export function ProductCard({ product }: { product: Product }) {
             </button>
           ) : (
             <button
-              onClick={() => addItem(product, product.brandName)}
+              onClick={() => {
+                // A quick-add from a card can't offer the variant picker the
+                // product page has — add whichever variant is marked default
+                // (or the first one) so the cart line is tagged with a real
+                // configuration instead of an ambiguous one.
+                const variant = product.variants.find((v) => v.isDefault) ?? product.variants[0];
+                addItem(product, product.brandName, 1, variant);
+              }}
               className="focus-ring flex h-9 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded bg-blue-700 px-3 text-sm font-medium text-white hover:bg-blue-600"
             >
               <Plus size={14} weight="bold" />

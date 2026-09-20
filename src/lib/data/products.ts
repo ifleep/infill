@@ -6,6 +6,7 @@ import type {
   ProductMedia as ProductMediaRow,
   Media as MediaRow,
   Brand as BrandRow,
+  ProductVariant as ProductVariantRow,
   Prisma,
 } from "@/generated/prisma/client";
 
@@ -36,16 +37,36 @@ const productWithMediaInclude = {
     include: { media: true },
   },
   brand: true,
+  variants: { orderBy: { position: "asc" } },
 } satisfies Prisma.ProductInclude;
 
 type ProductWithMedia = ProductRow & {
   media: (ProductMediaRow & { media: MediaRow })[];
   brand: BrandRow;
+  variants: ProductVariantRow[];
 };
 
 function fromRow(row: ProductWithMedia): Product {
   const hasBuildVolume = row.buildVolumeX != null && row.buildVolumeY != null && row.buildVolumeZ != null;
   const hasDimensions = row.dimWidth != null && row.dimDepth != null && row.dimHeight != null;
+
+  const variants: Product["variants"] = row.variants.map((v) => ({
+    id: v.id,
+    label: v.label,
+    price: v.price,
+    compareAtPrice: v.compareAtPrice ?? undefined,
+    stock: v.stock,
+    sku: v.sku ?? undefined,
+    availability: v.availability as Product["availability"],
+    isDefault: v.isDefault,
+  }));
+  // Once a product has variants, they're the real source of truth for price/
+  // stock — every page that just reads product.price/stock (cards, category
+  // filters/sort, compare, cart defaults) still shows something correct
+  // without needing to know variants exist: the cheapest price, and total
+  // stock across configurations.
+  const effectivePrice = variants.length > 0 ? Math.min(...variants.map((v) => v.price)) : row.price;
+  const effectiveStock = variants.length > 0 ? variants.reduce((sum, v) => sum + v.stock, 0) : row.stock;
 
   return {
     id: row.id,
@@ -61,10 +82,11 @@ function fromRow(row: ProductWithMedia): Product {
     technology: jsonStringArray(row.technology) as Product["technology"],
     experienceLevel: jsonStringArray(row.experienceLevel) as Product["experienceLevel"],
     useCases: jsonStringArray(row.useCases) as Product["useCases"],
-    price: row.price,
+    variants,
+    price: effectivePrice,
     compareAtPrice: row.compareAtPrice ?? undefined,
     currency: "PKR",
-    stock: row.stock,
+    stock: effectiveStock,
     lowStockThreshold: row.lowStockThreshold ?? undefined,
     availability: row.availability as Product["availability"],
     quoteOnly: row.quoteOnly,
@@ -239,6 +261,25 @@ export interface ProductInput {
   limitedStockEnabled?: boolean;
   limitedStockQuantity?: number | null;
   warrantyMonths?: number;
+  /**
+   * Optional purchasable configurations of this listing — see ProductVariant
+   * in the schema. `undefined` leaves the product's existing variants
+   * untouched on an update (same convention as mediaIds/contentBlocks);
+   * pass `[]` explicitly to remove all variants and fall back to the plain
+   * price/stock fields above.
+   */
+  variants?: ProductVariantInput[];
+}
+
+export interface ProductVariantInput {
+  id?: string;
+  label: string;
+  price: number;
+  compareAtPrice?: number | null;
+  stock: number;
+  sku?: string | null;
+  availability: Product["availability"];
+  isDefault: boolean;
 }
 
 function toDbInput(input: ProductInput) {
@@ -298,6 +339,19 @@ function mediaCreateInput(mediaIds: string[]) {
   }));
 }
 
+function variantCreateInput(variants: ProductVariantInput[]) {
+  return variants.map((v, i) => ({
+    label: v.label,
+    price: v.price,
+    compareAtPrice: v.compareAtPrice ?? null,
+    stock: v.stock,
+    sku: v.sku ?? null,
+    availability: v.availability,
+    isDefault: v.isDefault,
+    position: i,
+  }));
+}
+
 export async function createProduct(input: ProductInput): Promise<Product> {
   const row = await prisma.product.create({
     data: {
@@ -307,6 +361,7 @@ export async function createProduct(input: ProductInput): Promise<Product> {
       specifications: "[]",
       tags: [],
       media: { create: mediaCreateInput(input.mediaIds ?? []) },
+      ...(input.variants !== undefined ? { variants: { create: variantCreateInput(input.variants) } } : {}),
     },
     include: productWithMediaInclude,
   });
@@ -318,11 +373,19 @@ export async function updateProduct(id: string, input: ProductInput): Promise<Pr
     if (input.mediaIds !== undefined) {
       await tx.productMedia.deleteMany({ where: { productId: id } });
     }
+    // Variants are replaced wholesale rather than diffed, same approach as
+    // media above — simpler and safe since variants have no external
+    // references of their own to preserve (an order's variant is recorded
+    // as a text snapshot, not a foreign key — see OrderItem/orders.ts).
+    if (input.variants !== undefined) {
+      await tx.productVariant.deleteMany({ where: { productId: id } });
+    }
     return tx.product.update({
       where: { id },
       data: {
         ...toDbInput(input),
         ...(input.mediaIds !== undefined ? { media: { create: mediaCreateInput(input.mediaIds) } } : {}),
+        ...(input.variants !== undefined ? { variants: { create: variantCreateInput(input.variants) } } : {}),
       },
       include: productWithMediaInclude,
     });
@@ -416,6 +479,18 @@ export async function duplicateProduct(id: string): Promise<Product | null> {
           isPrimary: pm.isPrimary,
           caption: pm.caption,
           alt: pm.alt,
+        })),
+      },
+      variants: {
+        create: source.variants.map((v) => ({
+          label: v.label,
+          price: v.price,
+          compareAtPrice: v.compareAtPrice,
+          stock: v.stock,
+          sku: null, // sku is unique — same reasoning as the product's own sku above
+          availability: v.availability,
+          isDefault: v.isDefault,
+          position: v.position,
         })),
       },
     },
