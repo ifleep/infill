@@ -288,3 +288,20 @@ export function parseProductText(text: string, brands: Brand[]): ParsedProductTe
 
   return { values, contentBlocks, variants: variants.length > 0 ? variants : null, warnings };
 }
+
+export interface ParsedBulkBlock extends ParsedProductText {
+  /** The raw text of just this block, so a failed/edited item can be re-submitted without retyping the whole batch. */
+  raw: string;
+}
+
+// Splits a multi-product paste on lines containing only "===" and parses
+// each block with the exact same parseProductText used for a single
+// product — bulk creation is just this run in a loop against the same
+// POST /api/admin/products endpoint, nothing about validation changes.
+export function parseBulkProductText(text: string, brands: Brand[]): ParsedBulkBlock[] {
+  const blocks = text
+    .split(/^\s*={3,}\s*$/m)
+    .map((b) => b.trim())
+    .filter(Boolean);
+  return blocks.map((raw) => ({ raw, ...parseProductText(raw, brands) }));
+}

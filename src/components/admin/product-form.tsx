@@ -117,7 +117,7 @@ function fromProduct(p: Product): ProductFormValues {
   };
 }
 
-const empty: ProductFormValues = {
+export const emptyProductFormValues: ProductFormValues = {
   slug: "",
   name: "",
   brandId: "",
@@ -165,7 +165,7 @@ export function ProductForm({
   mediaItems?: MediaItem[];
   productId?: string;
 }) {
-  const [values, setValues] = useState<ProductFormValues>(product ? fromProduct(product) : empty);
+  const [values, setValues] = useState<ProductFormValues>(product ? fromProduct(product) : emptyProductFormValues);
   const [variants, setVariants] = useState<FormVariant[]>(
     (product?.variants ?? []).map((v) => ({
       id: v.id,

@@ -17,6 +17,9 @@ export default async function AdminDashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <LinkButton href="/admin/products/bulk" variant="secondary">
+            Bulk Add
+          </LinkButton>
           <LinkButton href="/admin/products/new">Add Product</LinkButton>
         </div>
       </div>
