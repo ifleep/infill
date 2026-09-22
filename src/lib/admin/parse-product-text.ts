@@ -1,7 +1,7 @@
 import type { Brand, Product, PrinterTechnology } from "@/lib/types";
 import type { ContentBlock } from "@/lib/content-blocks/types";
 import { newBlockId } from "@/lib/content-blocks/types";
-import type { ProductFormValues } from "@/components/admin/product-form";
+import type { ProductFormValues, FormVariant } from "@/components/admin/product-form";
 
 // Parses the plain-text "paste to fill" format into the same fields the Add
 // Product form already has — this only ever fills in the form, it never
@@ -15,6 +15,11 @@ import type { ProductFormValues } from "@/components/admin/product-form";
 // continuation of the previous field. A line that's exactly
 // "Specifications:" switches into spec-row mode, where every following
 // "Label: value" line becomes a row in a Specification table content block.
+// A line that's exactly "Variants:" switches into variant-row mode, where
+// every following line is one pipe-separated variant:
+//   Label | Price: 45000 | Stock: 10 | Sale price: 40000 | SKU: ABC | Default
+// Only Label/Price/Stock are required per row; "Default" (anywhere in the
+// line) marks which variant is pre-selected on the product page.
 
 const FIELD_ALIASES: Record<string, keyof ProductFormValues> = {
   name: "name",
@@ -77,17 +82,68 @@ function parseBoolean(raw: string): boolean {
 export interface ParsedProductText {
   values: Partial<ProductFormValues>;
   contentBlocks: ContentBlock[] | null;
+  variants: FormVariant[] | null;
   warnings: string[];
+}
+
+function parseVariantLine(line: string, warnings: string[]): FormVariant | null {
+  const parts = line.split("|").map((p) => p.trim()).filter(Boolean);
+  const label = parts[0];
+  if (!label) return null;
+
+  const variant: FormVariant = {
+    label,
+    price: "",
+    compareAtPrice: "",
+    stock: "",
+    sku: "",
+    availability: "in-stock",
+    isDefault: false,
+  };
+
+  for (const part of parts.slice(1)) {
+    if (/^default$/i.test(part)) {
+      variant.isDefault = true;
+      continue;
+    }
+    const m = part.match(/^([A-Za-z ]+):\s*(.*)$/);
+    if (!m) {
+      warnings.push(`Didn't recognize "${part}" in variant "${label}" — skipped that part.`);
+      continue;
+    }
+    const key = m[1].trim().toLowerCase();
+    const value = m[2].trim();
+    if (key === "price" || key === "stock" || key === "sale price" || key === "compare at price") {
+      const n = Number(value.replace(/[,\s]/g, ""));
+      if (!Number.isFinite(n)) {
+        warnings.push(`Couldn't read "${value}" as a number for variant "${label}"'s ${key} — left blank.`);
+        continue;
+      }
+      if (key === "price") variant.price = n;
+      else if (key === "stock") variant.stock = n;
+      else variant.compareAtPrice = n;
+    } else if (key === "sku") {
+      variant.sku = value;
+    } else {
+      warnings.push(`Didn't recognize "${m[1].trim()}" in variant "${label}" — skipped that part.`);
+    }
+  }
+
+  if (variant.price === "") warnings.push(`Variant "${label}" is missing a price — set it manually.`);
+  if (variant.stock === "") warnings.push(`Variant "${label}" is missing a stock count — set it manually.`);
+  return variant;
 }
 
 export function parseProductText(text: string, brands: Brand[]): ParsedProductText {
   const warnings: string[] = [];
   const values: Partial<ProductFormValues> = {};
   const specRows: { label: string; value: string }[] = [];
+  const variants: FormVariant[] = [];
 
   const lines = text.split(/\r?\n/);
   let currentField: keyof ProductFormValues | null = null;
   let inSpecs = false;
+  let inVariants = false;
 
   const flushMultiline = (field: keyof ProductFormValues, extra: string) => {
     const existing = values[field];
@@ -99,6 +155,13 @@ export function parseProductText(text: string, brands: Brand[]): ParsedProductTe
     const line = rawLine.trimEnd();
     if (/^specifications:\s*$/i.test(line.trim())) {
       inSpecs = true;
+      inVariants = false;
+      currentField = null;
+      continue;
+    }
+    if (/^variants:\s*$/i.test(line.trim())) {
+      inVariants = true;
+      inSpecs = false;
       currentField = null;
       continue;
     }
@@ -110,6 +173,13 @@ export function parseProductText(text: string, brands: Brand[]): ParsedProductTe
       }
       // Blank/unmatched lines inside the spec section are just skipped —
       // specs are single-line label/value pairs, unlike the free-text fields.
+      continue;
+    }
+    if (inVariants) {
+      if (line.trim()) {
+        const variant = parseVariantLine(line.trim(), warnings);
+        if (variant) variants.push(variant);
+      }
       continue;
     }
 
@@ -210,5 +280,11 @@ export function parseProductText(text: string, brands: Brand[]): ParsedProductTe
   const contentBlocks =
     specRows.length > 0 ? [{ id: newBlockId(), type: "specTable" as const, rows: specRows }] : null;
 
-  return { values, contentBlocks, warnings };
+  // Exactly one default variant — auto-fix rather than warn if none was
+  // marked, same as the bulk/admin-side fallback.
+  if (variants.length > 0 && !variants.some((v) => v.isDefault)) {
+    variants[0].isDefault = true;
+  }
+
+  return { values, contentBlocks, variants: variants.length > 0 ? variants : null, warnings };
 }

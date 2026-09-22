@@ -26,7 +26,7 @@ const TECHNOLOGIES: PrinterTechnology[] = ["FDM", "Resin", "CoreXY", "Large Form
 const EXPERIENCE_LEVELS: ExperienceLevel[] = ["Beginner", "Intermediate", "Professional", "Industrial"];
 const USE_CASES: UseCase[] = ["Hobby", "Engineering", "Prototyping", "Education", "Business", "Industrial"];
 
-interface FormVariant {
+export interface FormVariant {
   id?: string;
   label: string;
   price: number | "";
@@ -219,9 +219,15 @@ export function ProductForm({
   // until you review and click "Create Product" yourself, same as typing
   // it in by hand. See src/lib/admin/parse-product-text.ts for the format.
   function handleParse() {
-    const { values: parsed, contentBlocks: parsedBlocks, warnings } = parseProductText(pasteText, brands);
+    const {
+      values: parsed,
+      contentBlocks: parsedBlocks,
+      variants: parsedVariants,
+      warnings,
+    } = parseProductText(pasteText, brands);
     setValues((v) => ({ ...v, ...parsed }));
     if (parsedBlocks) setContentBlocks(parsedBlocks);
+    if (parsedVariants) setVariants(parsedVariants);
     setPasteWarnings(warnings);
   }
 
@@ -296,13 +302,15 @@ export function ProductForm({
               <p className="text-xs text-ink-faint">
                 Paste &ldquo;Label: value&rdquo; text (from a supplier sheet, ChatGPT, or written by hand) and click
                 Parse to fill in the fields below — nothing is saved until you review and click Create Product
-                yourself.
+                yourself. A &ldquo;Specifications:&rdquo; section fills the spec table; a &ldquo;Variants:&rdquo;
+                section (one pipe-separated variant per line, e.g. <code>Combo | Price: 65000 | Stock: 4 | Default</code>)
+                fills the Variants section below instead of adding them by hand.
               </p>
               <textarea
                 rows={8}
                 value={pasteText}
                 onChange={(e) => setPasteText(e.target.value)}
-                placeholder={"Name: L4\nBrand: LightMake\nCategory: machines\nSubcategory: Robots\nPrice: 250000\nStock: 5\nShort description: ...\nFull description: ...\n\nSpecifications:\nToolheads: 4, independent"}
+                placeholder={"Name: L4\nBrand: LightMake\nCategory: machines\nSubcategory: Robots\nPrice: 250000\nStock: 5\nShort description: ...\nFull description: ...\n\nSpecifications:\nToolheads: 4, independent\n\nVariants:\nStandard | Price: 45000 | Stock: 10\nCombo (AMS Lite) | Price: 65000 | Stock: 4 | Default"}
                 className={`${inputClass} font-mono text-xs`}
               />
               <Button type="button" variant="secondary" size="sm" onClick={handleParse}>
