@@ -14,6 +14,19 @@ import { RegionalMotifEdge } from "@/components/patterns/regional-motif-edge";
 import { getProductsByCategory } from "@/lib/data/products";
 import { getSiteSettings } from "@/lib/data/settings";
 
+// Without this, the homepage is cached indefinitely (Next's default for a
+// route with no request-time APIs) and only regenerates on-demand via
+// revalidateSite() after an admin edit — see src/lib/revalidate.ts. That
+// on-demand call reaches this app's own server correctly, but anything
+// sitting in front of it (a CDN, a host-level page cache) that isn't told
+// about the edit has no reason to stop serving what it already cached, since
+// Next's default Cache-Control for an unbounded-static page is
+// s-maxage=31536000 (one year). Capping revalidation here means any such
+// layer that respects standard cache headers self-corrects within a minute
+// instead of holding a stale homepage (featured products, promo banner)
+// forever. See node_modules/next/dist/docs/01-app/02-guides/cdn-caching.md.
+export const revalidate = 60;
+
 export default async function Home() {
   const [printers, settings] = await Promise.all([getProductsByCategory("printers"), getSiteSettings()]);
 

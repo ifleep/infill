@@ -23,6 +23,10 @@ import type { Product } from "@/lib/types";
 import { ContentRenderer } from "@/components/content-blocks/content-renderer";
 import { getRedirectTarget } from "@/lib/data/redirects";
 
+// See the comment on `revalidate` in src/app/page.tsx — same reasoning
+// applies here (price/stock/availability/description are admin-editable).
+export const revalidate = 60;
+
 export async function generateStaticParams() {
   const products = await getAllProducts();
   return products.map((p) => ({ slug: p.slug }));

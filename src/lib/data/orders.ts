@@ -44,9 +44,16 @@ export async function getAllOrders() {
   });
 }
 
+// e.g. INF-260924-4821 — today's date plus 4 random digits, so an order
+// number is legible at a glance (roughly when it was placed) rather than
+// an opaque 6-digit string, while staying short enough to read over the
+// phone or write on a shipping label.
 function generateOrderNumber(): string {
-  const digits = crypto.getRandomValues(new Uint32Array(1))[0] % 900000;
-  return `INF-${100000 + digits}`;
+  const datePart = new Date()
+    .toLocaleDateString("en-CA", { year: "2-digit", month: "2-digit", day: "2-digit", timeZone: "Asia/Karachi" })
+    .replace(/-/g, "");
+  const digits = crypto.getRandomValues(new Uint32Array(1))[0] % 10000;
+  return `INF-${datePart}-${String(digits).padStart(4, "0")}`;
 }
 
 // Prices, stock, and totals are always recomputed server-side from the

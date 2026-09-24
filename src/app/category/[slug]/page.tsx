@@ -9,6 +9,10 @@ import { Pagination } from "@/components/category/pagination";
 
 const PAGE_SIZE = 24;
 
+// See the comment on `revalidate` in src/app/page.tsx — same reasoning
+// applies here (listed prices/stock/availability are admin-editable).
+export const revalidate = 60;
+
 export function generateStaticParams() {
   return categoryDefs.map((c) => ({ slug: c.slug }));
 }
