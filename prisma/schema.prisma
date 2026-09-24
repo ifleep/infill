@@ -77,6 +77,8 @@ model Product {
   lowStockThreshold Int?
   /** Set directly by an admin — not derived from `stock`, so a preorder or a temporarily out-of-stock item can be flagged independently of the count. */
   availability      String   @default("in-stock") // "in-stock" | "out-of-stock" | "preorder"
+  /** Overrides SiteSetting's site-wide default preorder lead time for this specific product. Null means "use the site default" — see getEffectivePreorderLeadDays in products.ts. */
+  preorderLeadDays  Int?
   quoteOnly         Boolean  @default(false)
   badges            Json? // string[], e.g. ["New", "Best Seller"]
 

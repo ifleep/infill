@@ -240,6 +240,26 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
         <span className="mt-1 block text-xs text-ink-faint">Flat handling fee added to every quote.</span>
       </label>
 
+      <div className="border-t border-border pt-5">
+        <h2 className="font-display text-base font-semibold text-ink">Preorders</h2>
+        <p className="mt-1 text-sm text-ink-muted">
+          Shown next to &ldquo;Available for preorder&rdquo; so customers know roughly when to expect the item.
+        </p>
+      </div>
+      <label className="block text-sm">
+        <span className="mb-1.5 block font-medium text-ink">Default preorder lead time (days)</span>
+        <input
+          type="number"
+          min="1"
+          value={values.preorderLeadTimeDays}
+          onChange={(e) => setValues((v) => ({ ...v, preorderLeadTimeDays: Number(e.target.value) }))}
+          className={inputClass}
+        />
+        <span className="mt-1 block text-xs text-ink-faint">
+          Applies to every preorder product unless a product sets its own override on its edit page.
+        </span>
+      </label>
+
       <div className="flex items-center gap-3">
         <button
           type="submit"

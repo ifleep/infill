@@ -68,7 +68,7 @@ export function AddToCartPanel({ product, brandName }: { product: Product; brand
       )}
 
       <div className="mt-3">
-        <AvailabilityStatus availability={availability} stock={stock} />
+        <AvailabilityStatus availability={availability} stock={stock} preorderLeadDays={product.preorderLeadDays} />
       </div>
 
       {product.quoteOnly ? (
@@ -121,7 +121,9 @@ export function AddToCartPanel({ product, brandName }: { product: Product; brand
             Buy Now
           </Button>
           {availability === "preorder" && (
-            <p className="w-full text-xs text-ink-faint">This item ships once new stock arrives.</p>
+            <p className="w-full text-xs text-ink-faint">
+              Ships in approximately {product.preorderLeadDays} days.
+            </p>
           )}
           {availability === "out-of-stock" && (
             <p className="w-full text-xs text-ink-faint">

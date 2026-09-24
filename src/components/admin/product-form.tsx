@@ -52,6 +52,8 @@ export interface ProductFormValues {
   stock: number | "";
   lowStockThreshold: number | "";
   availability: Product["availability"];
+  /** Blank means "use the site-wide default from Settings" — see ProductInput.preorderLeadDays. */
+  preorderLeadDays: number | "";
   quoteOnly: boolean;
   featured: boolean;
   shortDescription: string;
@@ -81,7 +83,7 @@ function toDatetimeLocal(iso: string | undefined): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function fromProduct(p: Product): ProductFormValues {
+function fromProduct(p: Product, preorderLeadDaysOverride: number | null): ProductFormValues {
   return {
     slug: p.slug,
     name: p.name,
@@ -97,6 +99,7 @@ function fromProduct(p: Product): ProductFormValues {
     stock: p.stock,
     lowStockThreshold: p.lowStockThreshold ?? "",
     availability: p.availability,
+    preorderLeadDays: preorderLeadDaysOverride ?? "",
     quoteOnly: p.quoteOnly ?? false,
     featured: p.featured ?? false,
     shortDescription: p.shortDescription,
@@ -132,6 +135,7 @@ export const emptyProductFormValues: ProductFormValues = {
   stock: 0,
   lowStockThreshold: "",
   availability: "in-stock",
+  preorderLeadDays: "",
   quoteOnly: false,
   featured: false,
   shortDescription: "",
@@ -157,6 +161,8 @@ export function ProductForm({
   product,
   mediaItems,
   productId,
+  preorderLeadDaysOverride,
+  siteDefaultPreorderLeadDays,
 }: {
   brands: Brand[];
   /** The admin-managed Category taxonomy (see /admin/categories) — optional, separate from the required `category` shop-section field above. */
@@ -164,8 +170,14 @@ export function ProductForm({
   product?: Product;
   mediaItems?: MediaItem[];
   productId?: string;
+  /** The raw, unresolved DB value (null = no override set) — see getProductAdminById. */
+  preorderLeadDaysOverride?: number | null;
+  /** Current site-wide default, just for the field's helper text — see Settings → Preorder lead time. */
+  siteDefaultPreorderLeadDays: number;
 }) {
-  const [values, setValues] = useState<ProductFormValues>(product ? fromProduct(product) : emptyProductFormValues);
+  const [values, setValues] = useState<ProductFormValues>(
+    product ? fromProduct(product, preorderLeadDaysOverride ?? null) : emptyProductFormValues
+  );
   const [variants, setVariants] = useState<FormVariant[]>(
     (product?.variants ?? []).map((v) => ({
       id: v.id,
@@ -243,6 +255,7 @@ export function ProductForm({
       compareAtPrice: values.compareAtPrice === "" ? null : values.compareAtPrice,
       stock: values.stock === "" ? 0 : values.stock,
       lowStockThreshold: values.lowStockThreshold === "" ? null : values.lowStockThreshold,
+      preorderLeadDays: values.preorderLeadDays === "" ? null : values.preorderLeadDays,
       weightKg: values.weightKg === "" ? null : values.weightKg,
       warrantyMonths: values.warrantyMonths === "" ? 0 : values.warrantyMonths,
       soldCount: values.soldCount === "" ? 0 : values.soldCount,
@@ -561,6 +574,22 @@ export function ProductForm({
           <option value="preorder">Preorder</option>
         </select>
       </Field>
+
+      {values.availability === "preorder" && (
+        <Field
+          label="Preorder lead time override (days)"
+          hint={`Leave blank to use the site-wide default of ~${siteDefaultPreorderLeadDays} days (Settings → Preorder lead time). Shown as "Available for preorder (~N days)".`}
+        >
+          <input
+            type="number"
+            min={1}
+            value={values.preorderLeadDays}
+            onChange={(e) => set("preorderLeadDays", e.target.value === "" ? "" : Number(e.target.value))}
+            placeholder={String(siteDefaultPreorderLeadDays)}
+            className={inputClass}
+          />
+        </Field>
+      )}
 
       <div className="border-t border-border pt-5">
         <div className="flex items-center justify-between">

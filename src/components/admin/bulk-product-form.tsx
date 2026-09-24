@@ -53,6 +53,7 @@ export function BulkProductForm({ brands }: { brands: Brand[] }) {
         compareAtPrice: values.compareAtPrice === "" ? null : values.compareAtPrice,
         stock: values.stock === "" ? 0 : values.stock,
         lowStockThreshold: values.lowStockThreshold === "" ? null : values.lowStockThreshold,
+        preorderLeadDays: values.preorderLeadDays === "" ? null : values.preorderLeadDays,
         weightKg: values.weightKg === "" ? null : values.weightKg,
         warrantyMonths: values.warrantyMonths === "" ? 0 : values.warrantyMonths,
         soldCount: values.soldCount === "" ? 0 : values.soldCount,

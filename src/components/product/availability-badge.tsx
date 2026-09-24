@@ -7,22 +7,43 @@ const config: Record<Availability, { label: string; textClass: string; Icon: typ
   "out-of-stock": { label: "Currently unavailable", textClass: "text-destructive", Icon: XCircle },
 };
 
+/** "Available for preorder" -> "Available for preorder (~25 days)" — same label everywhere a lead time is known, so it's opt-in via an optional prop rather than every caller having to pass it. */
+function labelFor(availability: Availability, preorderLeadDays?: number): string {
+  if (availability === "preorder" && preorderLeadDays) {
+    return `${config.preorder.label} (~${preorderLeadDays} days)`;
+  }
+  return config[availability].label;
+}
+
 /** Small pill for product cards / listing grids. */
-export function AvailabilityBadge({ availability }: { availability: Availability }) {
-  const { label, textClass, Icon } = config[availability];
+export function AvailabilityBadge({
+  availability,
+  preorderLeadDays,
+}: {
+  availability: Availability;
+  preorderLeadDays?: number;
+}) {
+  const { textClass, Icon } = config[availability];
   return (
     <span className={`inline-flex items-center gap-1 text-xs font-medium ${textClass}`}>
       <Icon size={13} weight="fill" />
-      {label}
+      {labelFor(availability, preorderLeadDays)}
     </span>
   );
 }
 
 /** Fuller status line for the product detail page, including stock count when in stock. */
-export function AvailabilityStatus({ availability, stock }: { availability: Availability; stock: number }) {
+export function AvailabilityStatus({
+  availability,
+  stock,
+  preorderLeadDays,
+}: {
+  availability: Availability;
+  stock: number;
+  preorderLeadDays?: number;
+}) {
   const { textClass, Icon } = config[availability];
-  const label =
-    availability === "in-stock" ? `In stock — ${stock} available` : config[availability].label;
+  const label = availability === "in-stock" ? `In stock — ${stock} available` : labelFor(availability, preorderLeadDays);
   return (
     <p className={`flex items-center gap-1.5 text-sm ${textClass}`}>
       <Icon size={16} weight="fill" />

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import type { Product, PrinterTechnology, ExperienceLevel, UseCase } from "@/lib/types";
 import { parseContentBlocks, type ContentBlock } from "@/lib/content-blocks/types";
+import { getSiteSettings } from "@/lib/data/settings";
 import type {
   Product as ProductRow,
   ProductMedia as ProductMediaRow,
@@ -46,7 +47,15 @@ type ProductWithMedia = ProductRow & {
   variants: ProductVariantRow[];
 };
 
-function fromRow(row: ProductWithMedia): Product {
+// getSiteSettings is itself React-cache()'d, so calling this from several
+// sibling data functions in the same request (e.g. a page that fetches
+// featured + related products) only hits the database once.
+async function getEffectivePreorderLeadDays(): Promise<number> {
+  const settings = await getSiteSettings();
+  return settings.preorderLeadTimeDays;
+}
+
+function fromRow(row: ProductWithMedia, defaultPreorderLeadDays: number): Product {
   const hasBuildVolume = row.buildVolumeX != null && row.buildVolumeY != null && row.buildVolumeZ != null;
   const hasDimensions = row.dimWidth != null && row.dimDepth != null && row.dimHeight != null;
 
@@ -89,6 +98,7 @@ function fromRow(row: ProductWithMedia): Product {
     stock: effectiveStock,
     lowStockThreshold: row.lowStockThreshold ?? undefined,
     availability: row.availability as Product["availability"],
+    preorderLeadDays: row.preorderLeadDays ?? defaultPreorderLeadDays,
     quoteOnly: row.quoteOnly,
     images: row.media.map((pm) => pm.media.url),
     shortDescription: row.shortDescription,
@@ -129,60 +139,84 @@ function fromRow(row: ProductWithMedia): Product {
 // ---------------------------------------------------------------- Public reads
 
 export async function getAllProducts(): Promise<Product[]> {
-  const rows = await prisma.product.findMany({ orderBy: { name: "asc" }, include: productWithMediaInclude });
-  return rows.map(fromRow);
+  const [rows, leadDays] = await Promise.all([
+    prisma.product.findMany({ orderBy: { name: "asc" }, include: productWithMediaInclude }),
+    getEffectivePreorderLeadDays(),
+  ]);
+  return rows.map((r) => fromRow(r, leadDays));
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
-  const row = await prisma.product.findUnique({ where: { slug }, include: productWithMediaInclude });
-  return row ? fromRow(row) : null;
+  const [row, leadDays] = await Promise.all([
+    prisma.product.findUnique({ where: { slug }, include: productWithMediaInclude }),
+    getEffectivePreorderLeadDays(),
+  ]);
+  return row ? fromRow(row, leadDays) : null;
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
-  const row = await prisma.product.findUnique({ where: { id }, include: productWithMediaInclude });
-  return row ? fromRow(row) : null;
+  const [row, leadDays] = await Promise.all([
+    prisma.product.findUnique({ where: { id }, include: productWithMediaInclude }),
+    getEffectivePreorderLeadDays(),
+  ]);
+  return row ? fromRow(row, leadDays) : null;
 }
 
 export async function getProductsByCategory(category: Product["category"]): Promise<Product[]> {
-  const rows = await prisma.product.findMany({
-    where: { category },
-    orderBy: { name: "asc" },
-    include: productWithMediaInclude,
-  });
-  return rows.map(fromRow);
+  const [rows, leadDays] = await Promise.all([
+    prisma.product.findMany({
+      where: { category },
+      orderBy: { name: "asc" },
+      include: productWithMediaInclude,
+    }),
+    getEffectivePreorderLeadDays(),
+  ]);
+  return rows.map((r) => fromRow(r, leadDays));
 }
 
 export async function getFeaturedProducts(): Promise<Product[]> {
-  const rows = await prisma.product.findMany({
-    where: { featured: true },
-    orderBy: { name: "asc" },
-    include: productWithMediaInclude,
-  });
-  return rows.map(fromRow);
+  const [rows, leadDays] = await Promise.all([
+    prisma.product.findMany({
+      where: { featured: true },
+      orderBy: { name: "asc" },
+      include: productWithMediaInclude,
+    }),
+    getEffectivePreorderLeadDays(),
+  ]);
+  return rows.map((r) => fromRow(r, leadDays));
 }
 
 export async function getRelatedProducts(product: Product): Promise<Product[]> {
   const ids = product.relatedProductIds ?? [];
   if (ids.length === 0) return [];
-  const rows = await prisma.product.findMany({ where: { id: { in: ids } }, include: productWithMediaInclude });
-  return rows.map(fromRow);
+  const [rows, leadDays] = await Promise.all([
+    prisma.product.findMany({ where: { id: { in: ids } }, include: productWithMediaInclude }),
+    getEffectivePreorderLeadDays(),
+  ]);
+  return rows.map((r) => fromRow(r, leadDays));
 }
 
 export async function getAccessories(product: Product): Promise<Product[]> {
   const ids = product.accessoryIds ?? [];
   if (ids.length === 0) return [];
-  const rows = await prisma.product.findMany({ where: { id: { in: ids } }, include: productWithMediaInclude });
-  return rows.map(fromRow);
+  const [rows, leadDays] = await Promise.all([
+    prisma.product.findMany({ where: { id: { in: ids } }, include: productWithMediaInclude }),
+    getEffectivePreorderLeadDays(),
+  ]);
+  return rows.map((r) => fromRow(r, leadDays));
 }
 
 export async function getCompatibleFilaments(product: Product): Promise<Product[]> {
   const tags = product.compatibleFilamentTags ?? [];
   if (tags.length === 0) return [];
-  const rows = await prisma.product.findMany({
-    where: { category: { in: ["filament", "resin"] } },
-    include: productWithMediaInclude,
-  });
-  return rows.map(fromRow).filter((p) => p.tags.some((t) => tags.includes(t)));
+  const [rows, leadDays] = await Promise.all([
+    prisma.product.findMany({
+      where: { category: { in: ["filament", "resin"] } },
+      include: productWithMediaInclude,
+    }),
+    getEffectivePreorderLeadDays(),
+  ]);
+  return rows.map((r) => fromRow(r, leadDays)).filter((p) => p.tags.some((t) => tags.includes(t)));
 }
 
 // ---------------------------------------------------------------- Admin writes
@@ -203,11 +237,22 @@ export interface ProductMediaItem {
 // isn't enough to resubmit — we need the underlying Media ids).
 export async function getProductAdminById(
   id: string
-): Promise<(Product & { mediaItems: ProductMediaItem[] }) | null> {
-  const row = await prisma.product.findUnique({ where: { id }, include: productWithMediaInclude });
+): Promise<
+  | (Product & {
+      mediaItems: ProductMediaItem[];
+      /** The raw DB column, unlike Product.preorderLeadDays which is always resolved against the site default — the edit form needs to tell "no override set" (null) apart from "override explicitly set to the same number as the current site default" so it doesn't pin every product to today's default the moment someone re-saves it. */
+      preorderLeadDaysOverride: number | null;
+    })
+  | null
+> {
+  const [row, leadDays] = await Promise.all([
+    prisma.product.findUnique({ where: { id }, include: productWithMediaInclude }),
+    getEffectivePreorderLeadDays(),
+  ]);
   if (!row) return null;
   return {
-    ...fromRow(row),
+    ...fromRow(row, leadDays),
+    preorderLeadDaysOverride: row.preorderLeadDays,
     mediaItems: row.media.map((pm) => ({
       id: pm.mediaId,
       url: pm.media.url,
@@ -234,6 +279,8 @@ export interface ProductInput {
   stock: number;
   lowStockThreshold?: number | null;
   availability: Product["availability"];
+  /** Per-product override of the site-wide preorder lead time (Settings → Preorder lead time). `null`/`undefined` falls back to that site default. */
+  preorderLeadDays?: number | null;
   quoteOnly: boolean;
   shortDescription: string;
   description: string;
@@ -295,6 +342,7 @@ function toDbInput(input: ProductInput) {
     stock: input.stock,
     ...(input.lowStockThreshold !== undefined ? { lowStockThreshold: input.lowStockThreshold } : {}),
     availability: input.availability,
+    ...(input.preorderLeadDays !== undefined ? { preorderLeadDays: input.preorderLeadDays } : {}),
     quoteOnly: input.quoteOnly,
     shortDescription: input.shortDescription,
     description: input.description,
@@ -365,7 +413,7 @@ export async function createProduct(input: ProductInput): Promise<Product> {
     },
     include: productWithMediaInclude,
   });
-  return fromRow(row);
+  return fromRow(row, await getEffectivePreorderLeadDays());
 }
 
 export async function updateProduct(id: string, input: ProductInput): Promise<Product> {
@@ -390,7 +438,7 @@ export async function updateProduct(id: string, input: ProductInput): Promise<Pr
       include: productWithMediaInclude,
     });
   });
-  return fromRow(row);
+  return fromRow(row, await getEffectivePreorderLeadDays());
 }
 
 export async function deleteProduct(id: string): Promise<void> {
@@ -439,6 +487,7 @@ export async function duplicateProduct(id: string): Promise<Product | null> {
       stock: source.stock,
       lowStockThreshold: source.lowStockThreshold,
       availability: source.availability,
+      preorderLeadDays: source.preorderLeadDays,
       quoteOnly: source.quoteOnly,
       badges: source.badges as Prisma.InputJsonValue | undefined,
       shortDescription: source.shortDescription,
@@ -496,5 +545,5 @@ export async function duplicateProduct(id: string): Promise<Product | null> {
     },
     include: productWithMediaInclude,
   });
-  return fromRow(row);
+  return fromRow(row, await getEffectivePreorderLeadDays());
 }

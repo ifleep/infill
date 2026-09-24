@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma } from "@/lib/db";
 import type { Prisma } from "@/generated/prisma/client";
 import type { BlockImageRef } from "@/lib/content-blocks/types";
@@ -22,6 +23,8 @@ export interface SiteSettings {
   printSupportOverheadPercent: number;
   /** Flat handling/labor fee added on top of material cost. */
   printServiceFeePkr: number;
+  /** Default "ships in ~N days" shown next to Preorder anywhere a product doesn't set its own preorderLeadDays override — see Product.preorderLeadDays. */
+  preorderLeadTimeDays: number;
 }
 
 // Real physical densities (g/cm³) — safe defaults, these are material
@@ -45,15 +48,19 @@ const DEFAULTS: SiteSettings = {
   printMaterials: DEFAULT_PRINT_MATERIALS,
   printSupportOverheadPercent: 15,
   printServiceFeePkr: 200,
+  preorderLeadTimeDays: 25,
 };
 
-export async function getSiteSettings(): Promise<SiteSettings> {
+// Wrapped in React's cache() so the several product-listing data functions
+// that each need this (see getEffectivePreorderLeadDays in products.ts) hit
+// the database once per request instead of once per function call.
+export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
   const rows = await prisma.siteSetting.findMany({
     where: { key: { in: Object.keys(DEFAULTS) } },
   });
   const overrides = Object.fromEntries(rows.map((r) => [r.key, r.value]));
   return { ...DEFAULTS, ...overrides } as SiteSettings;
-}
+});
 
 export async function updateSiteSettings(patch: Partial<SiteSettings>): Promise<void> {
   await prisma.$transaction(

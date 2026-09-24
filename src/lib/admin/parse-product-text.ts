@@ -42,6 +42,8 @@ const FIELD_ALIASES: Record<string, keyof ProductFormValues> = {
   featured: "featured",
   warranty: "warrantyMonths",
   "warranty (months)": "warrantyMonths",
+  "preorder lead days": "preorderLeadDays",
+  "preorder lead time": "preorderLeadDays",
   "short description": "shortDescription",
   "full description": "description",
   description: "description",
@@ -261,7 +263,14 @@ export function parseProductText(text: string, brands: Brand[]): ParsedProductTe
   if (typeof values.quoteOnly === "string") values.quoteOnly = parseBoolean(values.quoteOnly as unknown as string);
   if (typeof values.featured === "string") values.featured = parseBoolean(values.featured as unknown as string);
 
-  for (const numField of ["price", "compareAtPrice", "stock", "lowStockThreshold", "warrantyMonths"] as const) {
+  for (const numField of [
+    "price",
+    "compareAtPrice",
+    "stock",
+    "lowStockThreshold",
+    "warrantyMonths",
+    "preorderLeadDays",
+  ] as const) {
     const raw = values[numField];
     if (typeof raw === "string") {
       const n = Number(raw.replace(/[,\s]/g, ""));

@@ -121,6 +121,8 @@ export interface Product extends SeoFields {
   lowStockThreshold?: number;
   /** Set directly by an admin — not derived from `stock`, so a preorder or a temporarily out-of-stock item can be flagged independently of the count. */
   availability: Availability;
+  /** Effective preorder lead time in days — this product's own override if set, otherwise the site-wide default (see getEffectivePreorderLeadDays in products.ts). Always a resolved number, never needs a settings lookup at render time. */
+  preorderLeadDays: number;
   quoteOnly?: boolean;
   images: string[];
   shortDescription: string;

@@ -2,14 +2,16 @@ import { notFound } from "next/navigation";
 import { getProductAdminById } from "@/lib/data/products";
 import { getAllBrandsAdmin } from "@/lib/data/brands-admin";
 import { getCategoryOptions } from "@/lib/data/categories-admin";
+import { getSiteSettings } from "@/lib/data/settings";
 import { ProductForm } from "@/components/admin/product-form";
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [product, brands, categoryOptions] = await Promise.all([
+  const [product, brands, categoryOptions, settings] = await Promise.all([
     getProductAdminById(id),
     getAllBrandsAdmin(),
     getCategoryOptions(),
+    getSiteSettings(),
   ]);
   if (!product) notFound();
 
@@ -22,6 +24,8 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
         product={product}
         mediaItems={product.mediaItems}
         productId={product.id}
+        preorderLeadDaysOverride={product.preorderLeadDaysOverride}
+        siteDefaultPreorderLeadDays={settings.preorderLeadTimeDays}
       />
     </div>
   );

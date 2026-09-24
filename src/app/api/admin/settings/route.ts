@@ -66,6 +66,7 @@ export async function PATCH(request: Request) {
     printMaterials?: PrintMaterial[];
     printSupportOverheadPercent?: number;
     printServiceFeePkr?: number;
+    preorderLeadTimeDays?: number;
   } = {};
   if (typeof b.whatsappNumber === "string") patch.whatsappNumber = b.whatsappNumber.replace(/[^0-9]/g, "");
   if (typeof b.whatsappMessage === "string") patch.whatsappMessage = b.whatsappMessage;
@@ -83,6 +84,9 @@ export async function PATCH(request: Request) {
   }
   if (typeof b.printServiceFeePkr === "number" && b.printServiceFeePkr >= 0) {
     patch.printServiceFeePkr = Math.round(b.printServiceFeePkr);
+  }
+  if (typeof b.preorderLeadTimeDays === "number" && b.preorderLeadTimeDays >= 1) {
+    patch.preorderLeadTimeDays = Math.round(b.preorderLeadTimeDays);
   }
 
   await updateSiteSettings(patch);

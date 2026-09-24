@@ -52,7 +52,7 @@ export function ProductCard({ product }: { product: Product }) {
 
         {product.availability !== "in-stock" && (
           <div className="mt-1.5">
-            <AvailabilityBadge availability={product.availability} />
+            <AvailabilityBadge availability={product.availability} preorderLeadDays={product.preorderLeadDays} />
           </div>
         )}
         <StockUrgency product={product} className="mt-1.5" />
@@ -70,7 +70,11 @@ export function ProductCard({ product }: { product: Product }) {
           <p className="mt-1.5 text-xs text-ink-faint">No reviews yet</p>
         )}
 
-        <div className="mt-3 flex items-baseline gap-2">
+        {/* mt-auto pushes price+buttons to the bottom regardless of how many
+            badge lines (stock urgency, sale timer, sold count, ...) render
+            above for this particular product, so every card in a grid row
+            lines up at the same height even when their content doesn't. */}
+        <div className="mt-auto flex items-baseline gap-2 pt-3">
           <span className="tabular text-base font-semibold text-ink">{formatPKR(product.price)}</span>
           {product.compareAtPrice && (
             <span className="tabular text-xs text-ink-faint line-through">

@@ -56,6 +56,12 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
   const soldCount = "soldCount" in b ? Number(b.soldCount) : undefined;
   const saleEndsAt =
     "saleEndsAt" in b ? (b.saleEndsAt === null || b.saleEndsAt === "" ? null : String(b.saleEndsAt)) : undefined;
+  const preorderLeadDays =
+    "preorderLeadDays" in b
+      ? b.preorderLeadDays === null || b.preorderLeadDays === ""
+        ? null
+        : Number(b.preorderLeadDays)
+      : undefined;
   const limitedStockEnabled = "limitedStockEnabled" in b ? Boolean(b.limitedStockEnabled) : undefined;
   const limitedStockQuantity =
     "limitedStockQuantity" in b
@@ -167,6 +173,13 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
   if (warrantyMonths !== undefined && (!Number.isFinite(warrantyMonths) || warrantyMonths < 0)) {
     return { error: "Warranty must be a non-negative number of months." };
   }
+  if (
+    preorderLeadDays !== undefined &&
+    preorderLeadDays !== null &&
+    (!Number.isFinite(preorderLeadDays) || preorderLeadDays < 1)
+  ) {
+    return { error: "Preorder lead time must be a positive number of days." };
+  }
 
   const rawSlug = typeof b.slug === "string" && b.slug.trim() ? b.slug : (fallbackSlug ?? name);
   const slug = slugify(rawSlug);
@@ -185,6 +198,7 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
       stock: effectiveStock,
       lowStockThreshold,
       availability: availability as ProductInput["availability"],
+      preorderLeadDays,
       quoteOnly,
       shortDescription,
       description,
