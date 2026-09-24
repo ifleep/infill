@@ -96,13 +96,14 @@ export async function createOrder(input: CreateOrderInput) {
 
       const name = variant ? `${product.name} (${variant.label})` : product.name;
       const price = variant ? variant.price : product.price;
-      const availability = variant ? variant.availability : product.availability;
-      const stock = variant ? variant.stock : product.stock;
       const sku = variant ? (variant.sku ?? product.sku) : product.sku;
 
-      if (availability === "out-of-stock" || stock < line.quantity) {
-        throw new OrderError(`${name} doesn't have enough stock left (only ${stock} available).`);
-      }
+      // Deliberately no stock/availability check here — out-of-stock and
+      // preorder items are both orderable (backordered against the admin's
+      // existing stock field, which can go negative to reflect demand
+      // ahead of real inventory). See this session's discussion: the store
+      // wants to always take the order and handle fulfillment timing with
+      // the customer directly rather than block the purchase outright.
       const lineTotal = price * line.quantity;
       subtotal += lineTotal;
       totalWeightKg += (product.weightKg ?? FALLBACK_ITEM_WEIGHT_KG) * line.quantity;

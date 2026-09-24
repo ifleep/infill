@@ -87,13 +87,6 @@ export function ProductCard({ product }: { product: Product }) {
             >
               Request a Quote
             </Link>
-          ) : product.availability === "out-of-stock" ? (
-            <button
-              disabled
-              className="flex h-9 flex-1 cursor-not-allowed items-center justify-center rounded bg-surface-sunken px-3 text-sm font-medium text-ink-faint"
-            >
-              Out of Stock
-            </button>
           ) : (
             <button
               onClick={() => {
@@ -107,7 +100,11 @@ export function ProductCard({ product }: { product: Product }) {
               className="focus-ring flex h-9 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded bg-blue-700 px-3 text-sm font-medium text-white hover:bg-blue-600"
             >
               <Plus size={14} weight="bold" />
-              {product.availability === "preorder" ? "Preorder" : "Add to Cart"}
+              {product.availability === "preorder"
+                ? "Preorder"
+                : product.availability === "out-of-stock"
+                  ? "Backorder"
+                  : "Add to Cart"}
             </button>
           )}
           <Link

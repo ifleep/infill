@@ -31,7 +31,8 @@ export function AddToCartPanel({ product, brandName }: { product: Product; brand
   const compareAtPrice = variant?.compareAtPrice ?? product.compareAtPrice;
   const availability = variant?.availability ?? product.availability;
   const stock = variant?.stock ?? product.stock;
-  const addLabel = availability === "preorder" ? "Preorder" : "Add to Cart";
+  const addLabel =
+    availability === "preorder" ? "Preorder" : availability === "out-of-stock" ? "Backorder" : "Add to Cart";
 
   return (
     <div className="mt-5">
@@ -82,15 +83,6 @@ export function AddToCartPanel({ product, brandName }: { product: Product; brand
             Industrial equipment — pricing confirmed with our sales team.
           </p>
         </div>
-      ) : availability === "out-of-stock" ? (
-        <div className="mt-6">
-          <Button size="lg" disabled>
-            Out of Stock
-          </Button>
-          <p className="mt-2 text-xs text-ink-faint">
-            Contact us to be notified when this is back in stock.
-          </p>
-        </div>
       ) : (
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <div className="flex items-center rounded-md border border-border-strong">
@@ -130,6 +122,11 @@ export function AddToCartPanel({ product, brandName }: { product: Product; brand
           </Button>
           {availability === "preorder" && (
             <p className="w-full text-xs text-ink-faint">This item ships once new stock arrives.</p>
+          )}
+          {availability === "out-of-stock" && (
+            <p className="w-full text-xs text-ink-faint">
+              Currently out of stock — we&rsquo;ll confirm delivery timing with you directly after you order.
+            </p>
           )}
           <StockUrgency product={product} className="w-full" />
         </div>
