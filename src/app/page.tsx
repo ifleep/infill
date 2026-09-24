@@ -3,7 +3,6 @@ import { InstantQuoteSection } from "@/components/sections/instant-quote-section
 import { PrintingDiscoverySection } from "@/components/sections/printing-discovery-section";
 import { FindYourPrinterSection } from "@/components/sections/find-your-printer-section";
 import { FeaturedPrintersSection } from "@/components/sections/featured-printers-section";
-import { NewArrivalsSection } from "@/components/sections/new-arrivals-section";
 import { ReviewVideoCard } from "@/components/sections/review-video-card";
 import { HomepagePromoSections } from "@/components/sections/homepage-promo-sections";
 import { MaterialsSection } from "@/components/sections/materials-section";
@@ -37,7 +36,6 @@ export default async function Home() {
       <RegionalMotifEdge motif="punjab" side="right" />
       <HomepageHero heroImages={settings.heroImages} heroImagesMobile={settings.heroImagesMobile} />
       <FeaturedPrintersSection />
-      <NewArrivalsSection />
       <ReviewVideoCard />
       <HomepagePromoSections />
       <InstantQuoteSection
