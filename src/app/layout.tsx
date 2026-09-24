@@ -65,7 +65,14 @@ export const metadata: Metadata = {
     follow: true,
   },
   icons: {
-    icon: "/favicon.svg",
+    // SVG first for browsers that support it; PNG fallbacks for Google
+    // Search and anything that doesn't render SVG favicons reliably.
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
   // Set GOOGLE_SITE_VERIFICATION once you add the site in Google Search
   // Console (Settings → Ownership verification → HTML tag → copy just the
