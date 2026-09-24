@@ -151,13 +151,16 @@ export async function createOrder(input: CreateOrderInput) {
       // A variant line doesn't touch Product.stock at all — with variants,
       // that column is just a stale write-time snapshot the app never reads
       // (see fromRow in products.ts), so decrementing it would be a no-op
-      // that only confuses anyone inspecting the raw row.
-      if (!line.variantId) {
-        await tx.product.update({
-          where: { id: line.productId },
-          data: { stock: { decrement: line.quantity } },
-        });
-      }
+      // that only confuses anyone inspecting the raw row. soldCount isn't
+      // variant-specific though — it's a product-level "N sold" social
+      // proof number (see sold-count.tsx), so it increments either way.
+      await tx.product.update({
+        where: { id: line.productId },
+        data: {
+          soldCount: { increment: line.quantity },
+          ...(line.variantId ? {} : { stock: { decrement: line.quantity } }),
+        },
+      });
     }
     for (const dec of variantDecrements) {
       await tx.productVariant.update({
