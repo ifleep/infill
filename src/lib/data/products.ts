@@ -161,6 +161,21 @@ export async function getFeaturedProducts(): Promise<Product[]> {
   return rows.map(fromRow);
 }
 
+// Powers the homepage "New Arrivals" section — every newly created product
+// gets a real, crawlable link from the homepage the moment it's added,
+// rather than relying solely on the sitemap (which tells Google a URL
+// exists, but not that it's worth crawling soon) or on an admin remembering
+// to manually feature/relate it. See the "New Arrivals" discussion in this
+// session for why this matters for indexing on a new, low-authority domain.
+export async function getRecentProducts(limit: number): Promise<Product[]> {
+  const rows = await prisma.product.findMany({
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    include: productWithMediaInclude,
+  });
+  return rows.map(fromRow);
+}
+
 export async function getRelatedProducts(product: Product): Promise<Product[]> {
   const ids = product.relatedProductIds ?? [];
   if (ids.length === 0) return [];
