@@ -17,9 +17,11 @@ import type { ProductFormValues, FormVariant } from "@/components/admin/product-
 // "Label: value" line becomes a row in a Specification table content block.
 // A line that's exactly "Variants:" switches into variant-row mode, where
 // every following line is one pipe-separated variant:
-//   Label | Price: 45000 | Stock: 10 | Sale price: 40000 | SKU: ABC | Default
+//   Label | Price: 45000 | Stock: 10 | Sale price: 40000 | SKU: ABC | Color: #2e7d32 | Default
 // Only Label/Price/Stock are required per row; "Default" (anywhere in the
-// line) marks which variant is pre-selected on the product page.
+// line) marks which variant is pre-selected on the product page. "Color"
+// (a #rrggbb hex code) only renders as a swatch on filament/resin/parts
+// products — see categoryUsesColorVariants — but is accepted on any product.
 
 const FIELD_ALIASES: Record<string, keyof ProductFormValues> = {
   name: "name",
@@ -128,6 +130,12 @@ function parseVariantLine(line: string, warnings: string[]): FormVariant | null 
       else variant.compareAtPrice = n;
     } else if (key === "sku") {
       variant.sku = value;
+    } else if (key === "color") {
+      if (!/^#[0-9a-fA-F]{6}$/.test(value)) {
+        warnings.push(`Variant "${label}"'s color "${value}" isn't a #rrggbb hex code — left blank.`);
+        continue;
+      }
+      variant.colorHex = value;
     } else {
       warnings.push(`Didn't recognize "${m[1].trim()}" in variant "${label}" — skipped that part.`);
     }
