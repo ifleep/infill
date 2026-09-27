@@ -17,11 +17,13 @@ import type { ProductFormValues, FormVariant } from "@/components/admin/product-
 // "Label: value" line becomes a row in a Specification table content block.
 // A line that's exactly "Variants:" switches into variant-row mode, where
 // every following line is one pipe-separated variant:
-//   Label | Price: 45000 | Stock: 10 | Sale price: 40000 | SKU: ABC | Color: #2e7d32 | Default
+//   Label | Price: 45000 | Stock: 10 | Sale price: 40000 | SKU: ABC | Color: #2e7d32 | Availability: Out of stock | Default
 // Only Label/Price/Stock are required per row; "Default" (anywhere in the
 // line) marks which variant is pre-selected on the product page. "Color"
 // (a #rrggbb hex code) only renders as a swatch on filament/resin/parts
 // products — see categoryUsesColorVariants — but is accepted on any product.
+// "Availability" per variant defaults to In stock when omitted — accepts
+// "In stock" / "Out of stock" / "Preorder", same values as the top-level field.
 
 const FIELD_ALIASES: Record<string, keyof ProductFormValues> = {
   name: "name",
@@ -136,6 +138,12 @@ function parseVariantLine(line: string, warnings: string[]): FormVariant | null 
         continue;
       }
       variant.colorHex = value;
+    } else if (key === "availability") {
+      const av = value.trim().toLowerCase();
+      if (av === "in stock" || av === "in-stock") variant.availability = "in-stock";
+      else if (av === "out of stock" || av === "out-of-stock") variant.availability = "out-of-stock";
+      else if (av === "preorder") variant.availability = "preorder";
+      else warnings.push(`Variant "${label}"'s availability "${value}" not recognized — defaulted to In stock.`);
     } else {
       warnings.push(`Didn't recognize "${m[1].trim()}" in variant "${label}" — skipped that part.`);
     }
