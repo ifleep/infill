@@ -168,6 +168,10 @@ model ProductVariant {
   availability   String  @default("in-stock") // "in-stock" | "out-of-stock" | "preorder"
   isDefault      Boolean @default(false)
   position       Int     @default(0)
+  /** Swatch color for filament/resin/parts color variants (e.g. "#2e7d32"). Null on variants that aren't a color (e.g. printer configurations). */
+  colorHex       String?
+  /** Per-color product photo, shown in place of the product's own gallery when this variant is selected. Null falls back to the product's normal photos. */
+  imageUrl       String?
 
   @@index([productId])
 }

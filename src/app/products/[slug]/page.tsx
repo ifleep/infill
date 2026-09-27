@@ -8,17 +8,10 @@ import {
   getAccessories,
   getCompatibleFilaments,
 } from "@/lib/data/products";
-import { ProductGallery } from "@/components/product/product-gallery";
+import { ProductPurchaseSection } from "@/components/product/product-purchase-section";
 import { ProductCard } from "@/components/product/product-card";
-import { AddToCartPanel } from "@/components/product/add-to-cart-panel";
-import { CompareToggle } from "@/components/compare/compare-toggle";
-import { WishlistToggle } from "@/components/wishlist/wishlist-toggle";
-import { LimitedStockBadge } from "@/components/product/limited-stock-badge";
-import { SaleTimer } from "@/components/product/sale-timer";
-import { SoldCount } from "@/components/product/sold-count";
 import { Faq } from "@/components/product/faq";
 import { ReviewSection } from "@/components/product/review-section";
-import { Star } from "@phosphor-icons/react/ssr";
 import type { Product } from "@/lib/types";
 import { ContentRenderer } from "@/components/content-blocks/content-renderer";
 import { getRedirectTarget } from "@/lib/data/redirects";
@@ -156,52 +149,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <span className="text-ink">{product.name}</span>
       </nav>
 
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-        <div>
-          <ProductGallery product={product} />
-        </div>
-
-        <div>
-          <p className="text-sm font-medium uppercase tracking-wide text-ink-faint">{product.brandName}</p>
-          <h1 className="font-display mt-1 text-3xl font-semibold text-ink sm:text-4xl">{product.name}</h1>
-
-          {product.rating && product.reviewCount ? (
-            <div className="mt-3 flex items-center gap-1.5 text-sm text-ink-muted">
-              <Star size={16} weight="fill" className="text-amber-600" />
-              <span className="tabular font-medium text-ink">{product.rating}</span>
-              <span>({product.reviewCount} reviews)</span>
-            </div>
-          ) : (
-            <p className="mt-3 text-sm text-ink-faint">No reviews yet</p>
-          )}
-
-          <p className="mt-4 text-base text-ink-muted">{product.shortDescription}</p>
-
-          <div className="mt-3">
-            <LimitedStockBadge product={product} className="mt-1.5" />
-            <SaleTimer saleEndsAt={product.saleEndsAt} className="mt-1.5" />
-            <SoldCount product={product} className="mt-1.5" />
-          </div>
-
-          <AddToCartPanel product={product} brandName={product.brandName} />
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            <WishlistToggle productId={product.id} />
-            <CompareToggle productId={product.id} />
-          </div>
-
-          {stats.length > 0 && (
-            <div className="mt-8 grid grid-cols-2 gap-4 border-t border-border pt-6 sm:grid-cols-4">
-              {stats.map((s) => (
-                <div key={s.label}>
-                  <p className="text-xs uppercase tracking-wide text-ink-faint">{s.label}</p>
-                  <p className="tabular mt-1 text-sm font-semibold text-ink">{s.value}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      <ProductPurchaseSection product={product} stats={stats} />
 
       <div className="mt-16 grid grid-cols-1 gap-12 lg:grid-cols-[1fr_320px]">
         <div>

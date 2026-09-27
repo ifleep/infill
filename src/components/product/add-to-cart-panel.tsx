@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { StockUrgency } from "@/components/product/stock-urgency";
 import { AvailabilityStatus } from "@/components/product/availability-badge";
 import { formatPKR } from "@/lib/format";
+import { categoryUsesColorVariants } from "@/lib/product-variant-colors";
 
 /**
  * Renders the price, the variant selector (when the product has more than
@@ -17,15 +18,32 @@ import { formatPKR } from "@/lib/format";
  * variant is currently selected. A product with no variants behaves
  * exactly as before this existed: price/availability/stock come straight
  * from the product itself.
+ *
+ * `selectedVariantId`/`onSelectVariant` are optional — pass them (from
+ * ProductPurchaseSection) so the product photo can follow the selected
+ * color; omitted, the panel tracks the selection itself.
  */
-export function AddToCartPanel({ product, brandName }: { product: Product; brandName: string }) {
+export function AddToCartPanel({
+  product,
+  brandName,
+  selectedVariantId: controlledVariantId,
+  onSelectVariant,
+}: {
+  product: Product;
+  brandName: string;
+  selectedVariantId?: string;
+  onSelectVariant?: (id: string) => void;
+}) {
   const [qty, setQty] = useState(1);
-  const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>(
+  const [internalVariantId, setInternalVariantId] = useState<string | undefined>(
     product.variants.find((v) => v.isDefault)?.id ?? product.variants[0]?.id
   );
+  const selectedVariantId = controlledVariantId ?? internalVariantId;
+  const setSelectedVariantId = onSelectVariant ?? setInternalVariantId;
   const addItem = useCartStore((s) => s.addItem);
   const openCart = useCartStore((s) => s.open);
 
+  const showSwatches = categoryUsesColorVariants(product.category) && product.variants.some((v) => v.colorHex);
   const variant = product.variants.find((v) => v.id === selectedVariantId);
   const price = variant?.price ?? product.price;
   const compareAtPrice = variant?.compareAtPrice ?? product.compareAtPrice;
@@ -44,28 +62,54 @@ export function AddToCartPanel({ product, brandName }: { product: Product; brand
       </div>
 
       {product.variants.length > 1 && (
-        <div className="mt-4 flex flex-wrap gap-2" role="radiogroup" aria-label="Choose a configuration">
-          {product.variants.map((v) => (
-            <button
-              key={v.id}
-              type="button"
-              role="radio"
-              aria-checked={v.id === selectedVariantId}
-              onClick={() => {
-                setSelectedVariantId(v.id);
-                setQty(1);
-              }}
-              className={`focus-ring cursor-pointer rounded-md border px-3 py-2 text-sm font-medium ${
-                v.id === selectedVariantId
-                  ? "border-blue-700 bg-blue-50 text-blue-700"
-                  : "border-border-strong text-ink hover:bg-surface-sunken"
-              }`}
-            >
-              {v.label}
-            </button>
-          ))}
+        <div
+          className={showSwatches ? "mt-4 flex flex-wrap gap-3" : "mt-4 flex flex-wrap gap-2"}
+          role="radiogroup"
+          aria-label={showSwatches ? "Choose a color" : "Choose a configuration"}
+        >
+          {product.variants.map((v) =>
+            showSwatches ? (
+              <button
+                key={v.id}
+                type="button"
+                role="radio"
+                aria-checked={v.id === selectedVariantId}
+                aria-label={v.label}
+                title={v.label}
+                onClick={() => {
+                  setSelectedVariantId(v.id);
+                  setQty(1);
+                }}
+                className={`focus-ring h-9 w-9 cursor-pointer rounded-full border-2 transition ${
+                  v.id === selectedVariantId
+                    ? "border-blue-700 ring-2 ring-blue-200"
+                    : "border-border-strong hover:border-ink-muted"
+                }`}
+                style={{ backgroundColor: v.colorHex || "#d4d4d8" }}
+              />
+            ) : (
+              <button
+                key={v.id}
+                type="button"
+                role="radio"
+                aria-checked={v.id === selectedVariantId}
+                onClick={() => {
+                  setSelectedVariantId(v.id);
+                  setQty(1);
+                }}
+                className={`focus-ring cursor-pointer rounded-md border px-3 py-2 text-sm font-medium ${
+                  v.id === selectedVariantId
+                    ? "border-blue-700 bg-blue-50 text-blue-700"
+                    : "border-border-strong text-ink hover:bg-surface-sunken"
+                }`}
+              >
+                {v.label}
+              </button>
+            )
+          )}
         </div>
       )}
+      {showSwatches && variant && <p className="mt-1.5 text-xs text-ink-muted">{variant.label}</p>}
 
       <div className="mt-3">
         <AvailabilityStatus availability={availability} stock={stock} preorderLeadDays={product.preorderLeadDays} />

@@ -70,6 +70,8 @@ export function BulkProductForm({ brands }: { brands: Brand[] }) {
           sku: v.sku || null,
           availability: v.availability,
           isDefault: v.isDefault,
+          colorHex: v.colorHex || null,
+          imageUrl: v.imageUrl || null,
         })),
       };
 

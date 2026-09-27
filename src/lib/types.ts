@@ -85,6 +85,10 @@ export interface ProductVariant {
   sku?: string;
   availability: Availability;
   isDefault: boolean;
+  /** Swatch color, e.g. "#2e7d32" — set on filament/resin/parts color variants (see product-variant-colors.ts). */
+  colorHex?: string;
+  /** Per-color photo shown in place of the product's own gallery when this variant is selected. */
+  imageUrl?: string;
 }
 
 export interface Product extends SeoFields {

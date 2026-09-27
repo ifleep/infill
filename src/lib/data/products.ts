@@ -68,6 +68,8 @@ function fromRow(row: ProductWithMedia, defaultPreorderLeadDays: number): Produc
     sku: v.sku ?? undefined,
     availability: v.availability as Product["availability"],
     isDefault: v.isDefault,
+    colorHex: v.colorHex ?? undefined,
+    imageUrl: v.imageUrl ?? undefined,
   }));
   // Once a product has variants, they're the real source of truth for price/
   // stock — every page that just reads product.price/stock (cards, category
@@ -327,6 +329,8 @@ export interface ProductVariantInput {
   sku?: string | null;
   availability: Product["availability"];
   isDefault: boolean;
+  colorHex?: string | null;
+  imageUrl?: string | null;
 }
 
 function toDbInput(input: ProductInput) {
@@ -397,6 +401,8 @@ function variantCreateInput(variants: ProductVariantInput[]) {
     availability: v.availability,
     isDefault: v.isDefault,
     position: i,
+    colorHex: v.colorHex ?? null,
+    imageUrl: v.imageUrl ?? null,
   }));
 }
 
@@ -540,6 +546,8 @@ export async function duplicateProduct(id: string): Promise<Product | null> {
           availability: v.availability,
           isDefault: v.isDefault,
           position: v.position,
+          colorHex: v.colorHex,
+          imageUrl: v.imageUrl,
         })),
       },
     },

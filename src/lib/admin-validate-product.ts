@@ -5,6 +5,7 @@ const VALID_TECHNOLOGIES = ["FDM", "Resin", "CoreXY", "Large Format", "Industria
 const VALID_EXPERIENCE_LEVELS = ["Beginner", "Intermediate", "Professional", "Industrial"];
 const VALID_USE_CASES = ["Hobby", "Engineering", "Prototyping", "Education", "Business", "Industrial"];
 const VALID_AVAILABILITY = ["in-stock", "out-of-stock", "preorder"];
+const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 
 export function validateProductInput(body: unknown, fallbackSlug?: string): { input: ProductInput } | { error: string } {
   if (typeof body !== "object" || body === null) return { error: "Invalid request body." };
@@ -110,6 +111,10 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
       if (vCompareAtPrice !== null && (!Number.isFinite(vCompareAtPrice) || vCompareAtPrice < 0)) {
         return { error: `Variant "${label}"'s sale price must be a non-negative number.` };
       }
+      const vColorHex = typeof v.colorHex === "string" && v.colorHex.trim() ? v.colorHex.trim() : null;
+      if (vColorHex !== null && !HEX_COLOR_RE.test(vColorHex)) {
+        return { error: `Variant "${label}"'s color must be a hex code like #2e7d32.` };
+      }
       variants.push({
         id: typeof v.id === "string" ? v.id : undefined,
         label,
@@ -119,6 +124,8 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
         sku: typeof v.sku === "string" && v.sku.trim() ? v.sku.trim() : null,
         availability: vAvailability as ProductInput["availability"],
         isDefault: Boolean(v.isDefault),
+        colorHex: vColorHex,
+        imageUrl: typeof v.imageUrl === "string" && v.imageUrl.trim() ? v.imageUrl.trim() : null,
       });
     }
     // Exactly one default variant — auto-fix rather than error if none was

@@ -7,8 +7,10 @@ import type { ContentBlock } from "@/lib/content-blocks/types";
 import type { MediaItem } from "@/lib/admin/media-types";
 import { Button } from "@/components/ui/button";
 import { ImageUploader } from "@/components/admin/image-uploader";
+import { MediaPicker } from "@/components/admin/media-picker";
 import { ContentBlockEditor } from "@/components/admin/content-block-editor";
 import { parseProductText } from "@/lib/admin/parse-product-text";
+import { categoryUsesColorVariants } from "@/lib/product-variant-colors";
 
 const categories: { value: Product["category"]; label: string }[] = [
   { value: "printers", label: "3D Printer" },
@@ -35,6 +37,8 @@ export interface FormVariant {
   sku: string;
   availability: Product["availability"];
   isDefault: boolean;
+  colorHex: string;
+  imageUrl: string;
 }
 
 export interface ProductFormValues {
@@ -188,9 +192,12 @@ export function ProductForm({
       sku: v.sku ?? "",
       availability: v.availability,
       isDefault: v.isDefault,
+      colorHex: v.colorHex ?? "",
+      imageUrl: v.imageUrl ?? "",
     }))
   );
   const [photos, setPhotos] = useState<MediaItem[]>(mediaItems ?? []);
+  const [variantPhotoPickerIndex, setVariantPhotoPickerIndex] = useState<number | null>(null);
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>(product?.contentBlocks ?? []);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -206,7 +213,17 @@ export function ProductForm({
   function addVariant() {
     setVariants((vs) => [
       ...vs,
-      { label: "", price: "", compareAtPrice: "", stock: "", sku: "", availability: "in-stock", isDefault: vs.length === 0 },
+      {
+        label: "",
+        price: "",
+        compareAtPrice: "",
+        stock: "",
+        sku: "",
+        availability: "in-stock",
+        isDefault: vs.length === 0,
+        colorHex: "",
+        imageUrl: "",
+      },
     ]);
   }
   function updateVariant(index: number, patch: Partial<FormVariant>) {
@@ -272,6 +289,8 @@ export function ProductForm({
         sku: v.sku || null,
         availability: v.availability,
         isDefault: v.isDefault,
+        colorHex: v.colorHex || null,
+        imageUrl: v.imageUrl || null,
       })),
     };
 
@@ -675,6 +694,50 @@ export function ProductForm({
                     <input value={v.sku} onChange={(e) => updateVariant(i, { sku: e.target.value })} className={inputClass} />
                   </Field>
                 </div>
+                {categoryUsesColorVariants(values.category) && (
+                  <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <Field label="Color" hint="Shown as a swatch on the product page">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={v.colorHex || "#cccccc"}
+                          onChange={(e) => updateVariant(i, { colorHex: e.target.value })}
+                          className="h-9 w-9 cursor-pointer rounded border border-border-strong p-0.5"
+                        />
+                        <input
+                          value={v.colorHex}
+                          onChange={(e) => updateVariant(i, { colorHex: e.target.value })}
+                          placeholder="#2e7d32"
+                          className={inputClass}
+                        />
+                      </div>
+                    </Field>
+                    <Field label="Photo" hint="Optional — falls back to the product's own photos">
+                      <div className="flex items-center gap-2">
+                        {v.imageUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element -- uploaded file, not a static import
+                          <img src={v.imageUrl} alt="" className="h-9 w-9 rounded object-cover" />
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setVariantPhotoPickerIndex(i)}
+                          className="focus-ring cursor-pointer rounded-md border border-border-strong px-3 py-2 text-sm text-ink hover:bg-surface-sunken"
+                        >
+                          {v.imageUrl ? "Change" : "Choose"}
+                        </button>
+                        {v.imageUrl && (
+                          <button
+                            type="button"
+                            onClick={() => updateVariant(i, { imageUrl: "" })}
+                            className="focus-ring cursor-pointer text-xs text-destructive hover:underline"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </Field>
+                  </div>
+                )}
                 <div className="mt-3 flex items-center justify-between">
                   <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
                     <input
@@ -697,6 +760,17 @@ export function ProductForm({
             ))}
           </div>
         )}
+        <MediaPicker
+          open={variantPhotoPickerIndex !== null}
+          onClose={() => setVariantPhotoPickerIndex(null)}
+          multiple={false}
+          onSelect={(items) => {
+            if (variantPhotoPickerIndex !== null && items[0]) {
+              updateVariant(variantPhotoPickerIndex, { imageUrl: items[0].url });
+            }
+            setVariantPhotoPickerIndex(null);
+          }}
+        />
       </div>
 
       <div className="flex gap-6">

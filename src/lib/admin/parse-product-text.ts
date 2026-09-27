@@ -101,6 +101,8 @@ function parseVariantLine(line: string, warnings: string[]): FormVariant | null 
     sku: "",
     availability: "in-stock",
     isDefault: false,
+    colorHex: "",
+    imageUrl: "",
   };
 
   for (const part of parts.slice(1)) {
