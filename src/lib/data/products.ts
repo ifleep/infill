@@ -124,6 +124,7 @@ function fromRow(row: ProductWithMedia, defaultPreorderLeadDays: number): Produc
     rating: row.rating ?? undefined,
     reviewCount: row.reviewCount ?? undefined,
     featured: row.featured,
+    hidden: row.hidden,
     soldCount: row.soldCount,
     saleEndsAt: row.saleEndsAt?.toISOString(),
     limitedStockEnabled: row.limitedStockEnabled,
@@ -141,6 +142,10 @@ function fromRow(row: ProductWithMedia, defaultPreorderLeadDays: number): Produc
 
 // ---------------------------------------------------------------- Public reads
 
+// Sees every product regardless of `hidden` — admin dashboard/inventory
+// and the admin products API. Public-facing code should use
+// getVisibleProducts below instead (same split as getAllArticles vs
+// getPublishedArticles for Articles).
 export async function getAllProducts(): Promise<Product[]> {
   const [rows, leadDays] = await Promise.all([
     prisma.product.findMany({ orderBy: { name: "asc" }, include: productWithMediaInclude }),
@@ -149,12 +154,26 @@ export async function getAllProducts(): Promise<Product[]> {
   return rows.map((r) => fromRow(r, leadDays));
 }
 
+// What the public site is allowed to show: listings, search, the public
+// product feed (/api/products — which wishlist/compare/cart/search all
+// read from), sitemap, generateStaticParams.
+export async function getVisibleProducts(): Promise<Product[]> {
+  const [rows, leadDays] = await Promise.all([
+    prisma.product.findMany({ where: { hidden: false }, orderBy: { name: "asc" }, include: productWithMediaInclude }),
+    getEffectivePreorderLeadDays(),
+  ]);
+  return rows.map((r) => fromRow(r, leadDays));
+}
+
+// Used only by the public product page — a hidden product's own page
+// 404s, same as an unpublished Article's does (getPublishedArticleBySlug).
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   const [row, leadDays] = await Promise.all([
     prisma.product.findUnique({ where: { slug }, include: productWithMediaInclude }),
     getEffectivePreorderLeadDays(),
   ]);
-  return row ? fromRow(row, leadDays) : null;
+  if (!row || row.hidden) return null;
+  return fromRow(row, leadDays);
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
@@ -165,10 +184,12 @@ export async function getProductById(id: string): Promise<Product | null> {
   return row ? fromRow(row, leadDays) : null;
 }
 
+// Storefront only (category pages, homepage category sections) — excludes
+// hidden products.
 export async function getProductsByCategory(category: Product["category"]): Promise<Product[]> {
   const [rows, leadDays] = await Promise.all([
     prisma.product.findMany({
-      where: { category },
+      where: { category, hidden: false },
       orderBy: { name: "asc" },
       include: productWithMediaInclude,
     }),
@@ -177,10 +198,11 @@ export async function getProductsByCategory(category: Product["category"]): Prom
   return rows.map((r) => fromRow(r, leadDays));
 }
 
+// Storefront only (homepage) — excludes hidden products.
 export async function getFeaturedProducts(): Promise<Product[]> {
   const [rows, leadDays] = await Promise.all([
     prisma.product.findMany({
-      where: { featured: true },
+      where: { featured: true, hidden: false },
       orderBy: { name: "asc" },
       include: productWithMediaInclude,
     }),
@@ -189,32 +211,45 @@ export async function getFeaturedProducts(): Promise<Product[]> {
   return rows.map((r) => fromRow(r, leadDays));
 }
 
-export async function getRelatedProducts(product: Product): Promise<Product[]> {
+/**
+ * `includeHidden` defaults to false (the storefront product page's "You
+ * may also like" section — a hidden product never appears as a cross-sell
+ * on someone else's page). The admin product form passes `true` when
+ * resolving a product's own relatedProductIds/accessoryIds into the
+ * picker's pre-filled selection — otherwise a hidden product that's
+ * already selected would silently vanish from the form, and saving would
+ * drop it from the list for real.
+ */
+export async function getRelatedProducts(product: Product, options?: { includeHidden?: boolean }): Promise<Product[]> {
   const ids = product.relatedProductIds ?? [];
   if (ids.length === 0) return [];
+  const where = options?.includeHidden ? { id: { in: ids } } : { id: { in: ids }, hidden: false };
   const [rows, leadDays] = await Promise.all([
-    prisma.product.findMany({ where: { id: { in: ids } }, include: productWithMediaInclude }),
+    prisma.product.findMany({ where, include: productWithMediaInclude }),
     getEffectivePreorderLeadDays(),
   ]);
   return rows.map((r) => fromRow(r, leadDays));
 }
 
-export async function getAccessories(product: Product): Promise<Product[]> {
+// See getRelatedProducts above for the includeHidden reasoning.
+export async function getAccessories(product: Product, options?: { includeHidden?: boolean }): Promise<Product[]> {
   const ids = product.accessoryIds ?? [];
   if (ids.length === 0) return [];
+  const where = options?.includeHidden ? { id: { in: ids } } : { id: { in: ids }, hidden: false };
   const [rows, leadDays] = await Promise.all([
-    prisma.product.findMany({ where: { id: { in: ids } }, include: productWithMediaInclude }),
+    prisma.product.findMany({ where, include: productWithMediaInclude }),
     getEffectivePreorderLeadDays(),
   ]);
   return rows.map((r) => fromRow(r, leadDays));
 }
 
+// Storefront only — excludes hidden products.
 export async function getCompatibleFilaments(product: Product): Promise<Product[]> {
   const tags = product.compatibleFilamentTags ?? [];
   if (tags.length === 0) return [];
   const [rows, leadDays] = await Promise.all([
     prisma.product.findMany({
-      where: { category: { in: ["filament", "resin"] } },
+      where: { category: { in: ["filament", "resin"] }, hidden: false },
       include: productWithMediaInclude,
     }),
     getEffectivePreorderLeadDays(),
@@ -288,6 +323,7 @@ export interface ProductInput {
   shortDescription: string;
   description: string;
   featured: boolean;
+  hidden: boolean;
   /** `undefined` leaves the product's existing content blocks untouched (same reasoning as mediaIds below). */
   contentBlocks?: ContentBlock[];
   /**
@@ -356,6 +392,7 @@ function toDbInput(input: ProductInput) {
     shortDescription: input.shortDescription,
     description: input.description,
     featured: input.featured,
+    hidden: input.hidden,
     // undefined => omit the key entirely, so Prisma leaves the existing
     // column untouched on a partial update (see ProductInput.mediaIds for
     // why: the dashboard's quick-edit row never sends these fields).
@@ -468,9 +505,12 @@ export async function deleteProduct(id: string): Promise<void> {
 // rating/reviewCount (see seed-data.ts — a review total belongs to the
 // product people actually reviewed), soldCount/saleEndsAt/limitedStock*
 // (per-listing merchandising, not a template default), featured (an
-// editorial choice, not something a copy should inherit), and canonicalUrl
+// editorial choice, not something a copy should inherit), canonicalUrl
 // (copying it would point the duplicate's canonical at the original,
-// hiding the duplicate from search entirely).
+// hiding the duplicate from search entirely), and hidden — always starts
+// true regardless of the source, so a duplicate used as a starting-point
+// template never goes live before the admin has actually finished editing
+// it and chosen to unhide it.
 export async function duplicateProduct(id: string): Promise<Product | null> {
   const source = await prisma.product.findUnique({ where: { id }, include: productWithMediaInclude });
   if (!source) return null;
@@ -524,6 +564,7 @@ export async function duplicateProduct(id: string): Promise<Product | null> {
       compatibleFilamentTags: source.compatibleFilamentTags as Prisma.InputJsonValue | undefined,
       tags: source.tags as Prisma.InputJsonValue,
       featured: false,
+      hidden: true,
       soldCount: 0,
       saleEndsAt: null,
       limitedStockEnabled: false,

@@ -147,6 +147,8 @@ export interface Product extends SeoFields {
   rating?: number;
   reviewCount?: number;
   featured?: boolean;
+  /** Pulled from every public page (listings, search, sitemap, cross-sells) — its own page 404s too. Admin always sees it regardless. Separate from `availability` (purchasability, not visibility). */
+  hidden?: boolean;
   soldCount?: number;
   saleEndsAt?: string;
   limitedStockEnabled?: boolean;

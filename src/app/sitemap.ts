@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getAllProducts } from "@/lib/data/products";
+import { getVisibleProducts } from "@/lib/data/products";
 import { getAllPublishedPages } from "@/lib/data/pages";
 import { getPublishedArticles } from "@/lib/data/articles";
 import { categoryDefs } from "@/components/category/category-config";
@@ -8,7 +8,7 @@ const BASE_URL = "https://infillpk.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [products, cmsPages, articles] = await Promise.all([
-    getAllProducts(),
+    getVisibleProducts(),
     getAllPublishedPages(),
     getPublishedArticles(),
   ]);

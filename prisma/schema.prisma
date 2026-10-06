@@ -113,6 +113,8 @@ model Product {
   rating      Float?
   reviewCount Int?
   featured    Boolean @default(false)
+  /** Pulled from every public surface (listings, search, sitemap, cross-sells) and its own page 404s — but existing orders/cart checkouts referencing it are unaffected. Separate from `availability`, which is about purchasability, not visibility. */
+  hidden      Boolean @default(false)
 
   /** Admin-entered "X sold" social-proof count — not derived from real orders. */
   soldCount Int @default(0)
@@ -145,6 +147,7 @@ model Product {
   @@index([brandId])
   @@index([categoryId])
   @@index([featured])
+  @@index([hidden])
 }
 
 // Optional purchasable configurations of the same product listing (e.g.

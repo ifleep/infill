@@ -34,6 +34,7 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
   const availability = typeof b.availability === "string" ? b.availability : "in-stock";
   const quoteOnly = Boolean(b.quoteOnly);
   const featured = Boolean(b.featured);
+  const hidden = Boolean(b.hidden);
   // Absent entirely => leave existing photos alone (see ProductInput.mediaIds).
   const mediaIds = Array.isArray(b.mediaIds)
     ? b.mediaIds.filter((i): i is string => typeof i === "string")
@@ -217,6 +218,7 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
       shortDescription,
       description,
       featured,
+      hidden,
       mediaIds,
       contentBlocks,
       seoTitle,

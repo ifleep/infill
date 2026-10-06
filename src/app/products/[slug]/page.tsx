@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import {
-  getAllProducts,
+  getVisibleProducts,
   getProductBySlug,
   getRelatedProducts,
   getAccessories,
@@ -21,7 +21,7 @@ import { getRedirectTarget } from "@/lib/data/redirects";
 export const revalidate = 60;
 
 export async function generateStaticParams() {
-  const products = await getAllProducts();
+  const products = await getVisibleProducts();
   return products.map((p) => ({ slug: p.slug }));
 }
 

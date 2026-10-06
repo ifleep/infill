@@ -60,9 +60,10 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
     ? products
         .filter(
           (p) =>
-            p.name.toLowerCase().includes(q) ||
-            p.subcategory.toLowerCase().includes(q) ||
-            p.brandName.toLowerCase().includes(q)
+            !p.hidden &&
+            (p.name.toLowerCase().includes(q) ||
+              p.subcategory.toLowerCase().includes(q) ||
+              p.brandName.toLowerCase().includes(q))
         )
         .slice(0, 6)
     : [];

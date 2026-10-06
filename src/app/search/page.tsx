@@ -1,4 +1,4 @@
-import { getAllProducts } from "@/lib/data/products";
+import { getVisibleProducts } from "@/lib/data/products";
 import { ProductCard } from "@/components/product/product-card";
 
 export default async function SearchPage({
@@ -8,7 +8,7 @@ export default async function SearchPage({
 }) {
   const { q } = await searchParams;
   const query = (q ?? "").trim().toLowerCase();
-  const products = query ? await getAllProducts() : [];
+  const products = query ? await getVisibleProducts() : [];
 
   const results = query
     ? products.filter(

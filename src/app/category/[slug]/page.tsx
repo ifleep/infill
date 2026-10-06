@@ -76,34 +76,14 @@ export default async function CategoryPage({
 
   const showPrinterFacets = def.productCategory === "printers";
 
-  // in-stock/preorder are both purchasable right now (preorder just has a
-  // wait); out-of-stock isn't, so it always sorts last regardless of mode.
-  const availabilityRank: Record<string, number> = { "in-stock": 0, preorder: 1, "out-of-stock": 2 };
-
   const sort = firstParam(sp.sort) ?? "featured";
   const sorted = [...filtered].sort((a, b) => {
     switch (sort) {
-      case "newest":
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      case "best-selling":
-        if ((b.soldCount ?? 0) !== (a.soldCount ?? 0)) return (b.soldCount ?? 0) - (a.soldCount ?? 0);
-        return a.name.localeCompare(b.name);
-      case "rating": {
-        const hasRating = (p: typeof a) => p.rating !== undefined && p.reviewCount;
-        if (hasRating(a) !== hasRating(b)) return hasRating(a) ? -1 : 1;
-        if (hasRating(a) && hasRating(b) && a.rating !== b.rating) return (b.rating ?? 0) - (a.rating ?? 0);
-        return a.name.localeCompare(b.name);
-      }
       case "price-asc":
         return a.price - b.price;
       case "price-desc":
         return b.price - a.price;
       case "name":
-        return a.name.localeCompare(b.name);
-      case "in-stock":
-        if (availabilityRank[a.availability] !== availabilityRank[b.availability]) {
-          return availabilityRank[a.availability] - availabilityRank[b.availability];
-        }
         return a.name.localeCompare(b.name);
       case "featured":
       default:

@@ -22,8 +22,8 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   if (!product) notFound();
 
   const [relatedProducts, accessoryProducts] = await Promise.all([
-    getRelatedProducts(product),
-    getAccessories(product),
+    getRelatedProducts(product, { includeHidden: true }),
+    getAccessories(product, { includeHidden: true }),
   ]);
 
   return (

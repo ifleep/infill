@@ -7,6 +7,7 @@ import { PencilSimple, Trash, Copy, CheckCircle, WarningCircle, CaretUp, CaretDo
 import type { Availability, Brand, Product } from "@/lib/types";
 
 type RowStatus = "idle" | "saving" | "saved" | "error";
+type SortMode = "default" | "newest" | "best-selling" | "rating" | "in-stock";
 
 const categoryLabels: Record<Product["category"], string> = {
   printers: "3D Printer",
@@ -15,6 +16,18 @@ const categoryLabels: Record<Product["category"], string> = {
   parts: "Parts",
   machines: "Machine",
 };
+
+const SORT_MODE_OPTIONS: { value: SortMode; label: string }[] = [
+  { value: "default", label: "Default" },
+  { value: "newest", label: "Newest" },
+  { value: "best-selling", label: "Best Selling" },
+  { value: "rating", label: "Top Rated" },
+  { value: "in-stock", label: "In Stock First" },
+];
+
+// in-stock/preorder are both purchasable right now (preorder just has a
+// wait); out-of-stock isn't, so it always sorts last regardless of mode.
+const availabilityRank: Record<string, number> = { "in-stock": 0, preorder: 1, "out-of-stock": 2 };
 
 export function AdminProductTable({
   initialProducts,
@@ -29,19 +42,46 @@ export function AdminProductTable({
   const [deleting, setDeleting] = useState<string | null>(null);
   const [duplicating, setDuplicating] = useState<string | null>(null);
   const [categorySort, setCategorySort] = useState<"asc" | "desc" | null>(null);
+  const [sortBy, setSortBy] = useState<SortMode>("default");
   const brandName = (id: string) => brands.find((b) => b.id === id)?.name ?? id;
 
   function toggleCategorySort() {
     setCategorySort((dir) => (dir === "asc" ? "desc" : "asc"));
   }
 
+  // The "Sort by" dropdown takes priority over the Category column's own
+  // click-to-sort when set to anything but Default, so the two controls
+  // never fight over the same list at once.
   const displayProducts =
-    categorySort === null
-      ? products
-      : [...products].sort((a, b) => {
-          const cmp = categoryLabels[a.category].localeCompare(categoryLabels[b.category]);
-          return categorySort === "asc" ? cmp : -cmp;
-        });
+    sortBy !== "default"
+      ? [...products].sort((a, b) => {
+          switch (sortBy) {
+            case "newest":
+              return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            case "best-selling":
+              if ((b.soldCount ?? 0) !== (a.soldCount ?? 0)) return (b.soldCount ?? 0) - (a.soldCount ?? 0);
+              return a.name.localeCompare(b.name);
+            case "rating": {
+              const hasRating = (p: Product) => p.rating !== undefined && Boolean(p.reviewCount);
+              if (hasRating(a) !== hasRating(b)) return hasRating(a) ? -1 : 1;
+              if (hasRating(a) && hasRating(b) && a.rating !== b.rating) return (b.rating ?? 0) - (a.rating ?? 0);
+              return a.name.localeCompare(b.name);
+            }
+            case "in-stock":
+              if (availabilityRank[a.availability] !== availabilityRank[b.availability]) {
+                return availabilityRank[a.availability] - availabilityRank[b.availability];
+              }
+              return a.name.localeCompare(b.name);
+            default:
+              return 0;
+          }
+        })
+      : categorySort === null
+        ? products
+        : [...products].sort((a, b) => {
+            const cmp = categoryLabels[a.category].localeCompare(categoryLabels[b.category]);
+            return categorySort === "asc" ? cmp : -cmp;
+          });
 
   async function save(product: Product) {
     setStatus((s) => ({ ...s, [product.id]: "saving" }));
@@ -63,6 +103,7 @@ export function AdminProductTable({
           shortDescription: product.shortDescription,
           description: product.description,
           featured: product.featured ?? false,
+          hidden: product.hidden ?? false,
         }),
       });
       if (!res.ok) throw new Error();
@@ -105,7 +146,25 @@ export function AdminProductTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+    <div className="rounded-xl border border-border bg-surface">
+      <div className="flex items-center justify-end gap-2 border-b border-border px-4 py-3">
+        <label htmlFor="admin-product-sort" className="text-xs font-medium text-ink-muted">
+          Sort by
+        </label>
+        <select
+          id="admin-product-sort"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as SortMode)}
+          className="focus-ring cursor-pointer rounded-md border border-border-strong bg-surface px-2 py-1 text-sm text-ink"
+        >
+          {SORT_MODE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="overflow-x-auto">
       <table className="w-full min-w-[900px] text-sm">
         <thead>
           <tr className="border-b border-border bg-surface-sunken text-left text-xs uppercase tracking-wide text-ink-faint">
@@ -132,6 +191,7 @@ export function AdminProductTable({
             <th className="px-4 py-3 font-medium">Stock</th>
             <th className="px-4 py-3 font-medium">Availability</th>
             <th className="px-4 py-3 font-medium">Featured</th>
+            <th className="px-4 py-3 font-medium">Hidden</th>
             <th className="px-4 py-3 font-medium" />
           </tr>
         </thead>
@@ -139,9 +199,16 @@ export function AdminProductTable({
           {displayProducts.map((p) => {
             const rowStatus = status[p.id] ?? "idle";
             return (
-              <tr key={p.id}>
+              <tr key={p.id} className={p.hidden ? "bg-surface-sunken/50" : undefined}>
                 <td className="px-4 py-3">
-                  <p className="font-medium text-ink">{p.name}</p>
+                  <p className="flex items-center gap-2 font-medium text-ink">
+                    {p.name}
+                    {p.hidden && (
+                      <span className="rounded bg-amber-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                        Hidden
+                      </span>
+                    )}
+                  </p>
                   <p className="text-xs text-ink-faint">
                     {brandName(p.brandId)} · {p.slug}
                   </p>
@@ -209,6 +276,19 @@ export function AdminProductTable({
                     className="h-4 w-4"
                   />
                 </td>
+                <td className="px-4 py-3 text-center">
+                  <input
+                    type="checkbox"
+                    checked={p.hidden ?? false}
+                    title="Pulled from every public page — direct link included. Admin keeps seeing it regardless."
+                    onChange={(e) => {
+                      const hidden = e.target.checked;
+                      updateLocal(p.id, { hidden });
+                      save({ ...p, hidden });
+                    }}
+                    className="h-4 w-4"
+                  />
+                </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-2">
                     {rowStatus === "saving" && <span className="text-xs text-ink-faint">Saving…</span>}
@@ -247,6 +327,7 @@ export function AdminProductTable({
           })}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

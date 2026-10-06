@@ -61,6 +61,7 @@ export interface ProductFormValues {
   preorderLeadDays: number | "";
   quoteOnly: boolean;
   featured: boolean;
+  hidden: boolean;
   shortDescription: string;
   description: string;
   seoTitle: string;
@@ -107,6 +108,7 @@ export function fromProduct(p: Product, preorderLeadDaysOverride: number | null)
     preorderLeadDays: preorderLeadDaysOverride ?? "",
     quoteOnly: p.quoteOnly ?? false,
     featured: p.featured ?? false,
+    hidden: p.hidden ?? false,
     shortDescription: p.shortDescription,
     description: p.description,
     seoTitle: p.seoTitle ?? "",
@@ -143,6 +145,7 @@ export const emptyProductFormValues: ProductFormValues = {
   preorderLeadDays: "",
   quoteOnly: false,
   featured: false,
+  hidden: false,
   shortDescription: "",
   description: "",
   seoTitle: "",
@@ -799,6 +802,14 @@ export function ProductForm({
             onChange={(e) => set("featured", e.target.checked)}
           />
           Featured on homepage
+        </label>
+        <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+          <input
+            type="checkbox"
+            checked={values.hidden}
+            onChange={(e) => set("hidden", e.target.checked)}
+          />
+          Hidden (pulled from every public page — own page included — until unchecked)
         </label>
       </div>
 
