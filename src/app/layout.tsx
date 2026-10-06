@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Outfit, Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { SiteChrome } from "@/components/layout/site-chrome";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -10,16 +10,29 @@ import { WishlistProvider } from "@/components/wishlist/wishlist-store";
 import { CompareProvider } from "@/components/compare/compare-store";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 
-const outfit = Outfit({
+// Self-hosted rather than next/font/google: the production build on
+// Hostinger fetches Google Fonts' CSS + binary files at build time, and
+// that fetch has failed there before (build 01a1104a, "next/font/google
+// queries have exactly one entry" / unresolved font module), breaking the
+// whole deploy over a network call that has nothing to do with the app
+// itself. These are the same latin-subset variable-weight files Google
+// Fonts was serving (fetched once, vendored in src/app/fonts/), so nothing
+// about the rendered site changes — the build just no longer depends on
+// reaching fonts.gstatic.com.
+const outfit = localFont({
+  src: "./fonts/outfit-variable-latin.woff2",
   variable: "--font-outfit",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: "100 900",
+  style: "normal",
+  display: "swap",
 });
 
-const inter = Inter({
+const inter = localFont({
+  src: "./fonts/inter-variable-latin.woff2",
   variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "100 900",
+  style: "normal",
+  display: "swap",
 });
 
 const siteUrl = "https://infillpk.com";
