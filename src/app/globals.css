@@ -1,30 +1,6 @@
 @import "tailwindcss";
 
-/* Self-hosted, plain @font-face (not next/font) — see layout.tsx for why:
-   Turbopack's CSS-module pipeline (what next/font/local and next/font/google
-   both generate under the hood) panics on Hostinger's build host, even
-   though the site has no other CSS modules. Plain global CSS like this
-   doesn't go through that code path at all. */
-@font-face {
-  font-family: "Outfit";
-  src: url("/fonts/outfit-variable-latin.woff2") format("woff2");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Inter";
-  src: url("/fonts/inter-variable-latin.woff2") format("woff2");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
 :root {
-  --font-outfit: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-inter: "Inter", ui-sans-serif, system-ui, sans-serif;
-
   /* Cool, quiet base — neutral off-white, no yellow cast */
   --color-paper: #f5f6f7;
   --color-surface: #ffffff;

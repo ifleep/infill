@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Outfit, Inter } from "next/font/google";
 import "./globals.css";
 import { SiteChrome } from "@/components/layout/site-chrome";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -9,15 +10,17 @@ import { WishlistProvider } from "@/components/wishlist/wishlist-store";
 import { CompareProvider } from "@/components/compare/compare-store";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 
-// Fonts are NOT loaded via next/font here (see globals.css for the actual
-// @font-face rules + public/fonts/ for the files) — next/font/google and
-// next/font/local both generate a CSS Module under the hood, and Turbopack's
-// CSS-module pipeline panics on Hostinger's build host trying to evaluate
-// it ("Failed to write app endpoint /page" / "node process exited before
-// we could connect to it", build 01a11055), even with next/font/local's
-// purely-local, no-network version of the same fonts. Plain global CSS
-// doesn't go through that code path, so this sidesteps the crash instead
-// of working around it.
+const outfit = Outfit({
+  variable: "--font-outfit",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
 
 const siteUrl = "https://infillpk.com";
 
@@ -93,7 +96,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className={`${outfit.variable} ${inter.variable} h-full`}>
       <body className="flex min-h-full flex-col bg-paper text-ink antialiased">
         <script
           type="application/ld+json"
