@@ -16,4 +16,6 @@ export interface MediaItem {
   size?: number;
   width?: number | null;
   height?: number | null;
+  /** Whether this file is referenced anywhere on the site — only present from GET /api/admin/media (see getUsedMediaRefs). */
+  inUse?: boolean;
 }

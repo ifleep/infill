@@ -4,9 +4,13 @@ import { useRouter } from "next/navigation";
 
 const SORT_OPTIONS: { value: string; label: string }[] = [
   { value: "featured", label: "Featured" },
+  { value: "newest", label: "Newest" },
+  { value: "best-selling", label: "Best Selling" },
+  { value: "rating", label: "Top Rated" },
   { value: "price-asc", label: "Price: Low to High" },
   { value: "price-desc", label: "Price: High to Low" },
   { value: "name", label: "Name: A-Z" },
+  { value: "in-stock", label: "In Stock First" },
 ];
 
 /**

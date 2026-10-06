@@ -151,6 +151,7 @@ export interface Product extends SeoFields {
   saleEndsAt?: string;
   limitedStockEnabled?: boolean;
   limitedStockQuantity?: number;
+  createdAt: string;
 }
 
 export interface Article extends SeoFields {

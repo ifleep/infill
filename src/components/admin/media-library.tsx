@@ -8,6 +8,7 @@ interface MediaListResponse {
   total: number;
   page: number;
   pageSize: number;
+  unusedTotal: number;
 }
 
 function formatBytes(bytes: number): string {
@@ -19,24 +20,29 @@ function formatBytes(bytes: number): string {
 export function MediaLibrary() {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [total, setTotal] = useState(0);
+  const [unusedTotal, setUnusedTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
+  const [unusedOnly, setUnusedOnly] = useState(false);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [deletingUnused, setDeletingUnused] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    load(query, 1, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate: only re-run on explicit search
-  }, []);
+    load(query, 1, false, unusedOnly);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate: only re-run on explicit search/toggle
+  }, [unusedOnly]);
 
-  async function load(q: string, targetPage: number, append: boolean) {
+  async function load(q: string, targetPage: number, append: boolean, onlyUnused: boolean) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/media?q=${encodeURIComponent(q)}&page=${targetPage}`);
+      const params = new URLSearchParams({ q, page: String(targetPage) });
+      if (onlyUnused) params.set("unused", "true");
+      const res = await fetch(`/api/admin/media?${params}`);
       const data: MediaListResponse & { error?: string } = await res.json().catch(() => ({} as MediaListResponse));
       if (!res.ok) {
         setError(data.error ?? "Couldn't load the media library.");
@@ -45,6 +51,7 @@ export function MediaLibrary() {
       setItems((prev) => (append ? [...prev, ...data.items] : data.items));
       setTotal(data.total);
       setPage(data.page);
+      setUnusedTotal(data.unusedTotal);
     } catch {
       setError("Network error while loading the media library.");
     } finally {
@@ -54,7 +61,32 @@ export function MediaLibrary() {
 
   function handleSearch(value: string) {
     setQuery(value);
-    load(value, 1, false);
+    load(value, 1, false, unusedOnly);
+  }
+
+  async function handleDeleteAllUnused() {
+    if (
+      !confirm(
+        `Delete all ${unusedTotal} unused photo${unusedTotal === 1 ? "" : "s"}? These aren't used by any product, brand, article, homepage section or page. This cannot be undone.`
+      )
+    ) {
+      return;
+    }
+    setDeletingUnused(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/media/delete-unused", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error ?? "Couldn't delete unused photos.");
+        return;
+      }
+      load(query, 1, false, unusedOnly);
+    } catch {
+      setError("Network error while deleting.");
+    } finally {
+      setDeletingUnused(false);
+    }
   }
 
   async function handleUpload(fileList: FileList | null) {
@@ -71,8 +103,10 @@ export function MediaLibrary() {
         return;
       }
       const uploaded: MediaItem[] = data.media ?? [];
-      setItems((prev) => [...uploaded, ...prev]);
+      setItems((prev) => [...uploaded.map((m) => ({ ...m, inUse: false })), ...prev]);
       setTotal((t) => t + uploaded.length);
+      // A freshly uploaded file isn't attached to anything yet by definition.
+      setUnusedTotal((t) => t + uploaded.length);
     } catch {
       setError("Network error while uploading — please try again.");
     } finally {
@@ -105,6 +139,7 @@ export function MediaLibrary() {
       }
       setItems((prev) => prev.filter((i) => i.id !== item.id));
       setTotal((t) => t - 1);
+      if (item.inUse === false) setUnusedTotal((t) => Math.max(0, t - 1));
       if (selectedId === item.id) setSelectedId(null);
     } catch {
       alert("Network error while deleting.");
@@ -138,13 +173,39 @@ export function MediaLibrary() {
         </label>
       </div>
 
-      <input
-        type="search"
-        value={query}
-        onChange={(e) => handleSearch(e.target.value)}
-        placeholder="Search by filename, alt text or caption…"
-        className="focus-ring mb-4 w-full max-w-sm rounded-md border border-border-strong px-3 py-2 text-sm text-ink placeholder:text-ink-faint"
-      />
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => handleSearch(e.target.value)}
+          placeholder="Search by filename, alt text or caption…"
+          className="focus-ring w-full max-w-sm rounded-md border border-border-strong px-3 py-2 text-sm text-ink placeholder:text-ink-faint"
+        />
+        <button
+          type="button"
+          onClick={() => setUnusedOnly((v) => !v)}
+          className={`focus-ring cursor-pointer whitespace-nowrap rounded-md border px-3 py-2 text-sm font-medium ${
+            unusedOnly ? "border-blue-700 bg-blue-50 text-blue-700" : "border-border-strong text-ink-muted hover:bg-surface-sunken"
+          }`}
+        >
+          {unusedOnly ? "Showing unused only" : `Show unused only${unusedTotal > 0 ? ` (${unusedTotal})` : ""}`}
+        </button>
+        {unusedTotal > 0 && (
+          <button
+            type="button"
+            onClick={handleDeleteAllUnused}
+            disabled={deletingUnused}
+            className="focus-ring cursor-pointer whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive-tint disabled:opacity-50"
+          >
+            {deletingUnused ? "Deleting…" : `Delete all unused (${unusedTotal})`}
+          </button>
+        )}
+      </div>
+
+      <p className="mb-4 text-xs text-ink-faint">
+        &ldquo;Unused&rdquo; means not referenced by any product gallery, variant photo, brand logo, article, page,
+        homepage section or content block — safe to delete.
+      </p>
 
       {error && <p className="mb-4 rounded-md bg-destructive-tint px-3 py-2 text-sm text-destructive">{error}</p>}
 
@@ -160,6 +221,11 @@ export function MediaLibrary() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element -- uploaded files, not a static import */}
             <img src={item.url} alt={item.alt ?? ""} className="h-full w-full object-cover" />
+            {item.inUse === false && (
+              <span className="absolute left-1 top-1 rounded bg-amber-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                Unused
+              </span>
+            )}
             <span className="absolute inset-x-0 bottom-0 truncate bg-ink/70 px-2 py-1 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100">
               {item.filename}
             </span>
@@ -174,7 +240,7 @@ export function MediaLibrary() {
         <div className="mt-6 flex justify-center">
           <button
             type="button"
-            onClick={() => load(query, page + 1, true)}
+            onClick={() => load(query, page + 1, true, unusedOnly)}
             disabled={loading}
             className="focus-ring cursor-pointer rounded-md border border-border-strong px-4 py-2 text-sm font-medium text-ink hover:bg-surface-sunken disabled:opacity-50"
           >

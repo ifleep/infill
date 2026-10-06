@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ImageUploader } from "@/components/admin/image-uploader";
 import { MediaPicker } from "@/components/admin/media-picker";
 import { ContentBlockEditor } from "@/components/admin/content-block-editor";
+import { ProductRelationField, type PickableProduct } from "@/components/admin/product-picker";
 import { parseProductText } from "@/lib/admin/parse-product-text";
 import { categoryUsesColorVariants } from "@/lib/product-variant-colors";
 
@@ -167,6 +168,8 @@ export function ProductForm({
   productId,
   preorderLeadDaysOverride,
   siteDefaultPreorderLeadDays,
+  relatedProducts,
+  accessoryProducts,
 }: {
   brands: Brand[];
   /** The admin-managed Category taxonomy (see /admin/categories) — optional, separate from the required `category` shop-section field above. */
@@ -178,6 +181,9 @@ export function ProductForm({
   preorderLeadDaysOverride?: number | null;
   /** Current site-wide default, just for the field's helper text — see Settings → Preorder lead time. */
   siteDefaultPreorderLeadDays: number;
+  /** Resolved from product.relatedProductIds/accessoryIds server-side (same reasoning as mediaItems below — the form needs names/photos to show, not just ids). */
+  relatedProducts?: PickableProduct[];
+  accessoryProducts?: PickableProduct[];
 }) {
   const [values, setValues] = useState<ProductFormValues>(
     product ? fromProduct(product, preorderLeadDaysOverride ?? null) : emptyProductFormValues
@@ -199,6 +205,8 @@ export function ProductForm({
   const [photos, setPhotos] = useState<MediaItem[]>(mediaItems ?? []);
   const [variantPhotoPickerIndex, setVariantPhotoPickerIndex] = useState<number | null>(null);
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>(product?.contentBlocks ?? []);
+  const [related, setRelated] = useState<PickableProduct[]>(relatedProducts ?? []);
+  const [accessories, setAccessories] = useState<PickableProduct[]>(accessoryProducts ?? []);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [pasteText, setPasteText] = useState("");
@@ -280,6 +288,8 @@ export function ProductForm({
       limitedStockQuantity: values.limitedStockQuantity === "" ? null : values.limitedStockQuantity,
       mediaIds: photos.map((p) => p.id),
       contentBlocks,
+      relatedProductIds: related.map((p) => p.id),
+      accessoryIds: accessories.map((p) => p.id),
       variants: variants.map((v) => ({
         id: v.id,
         label: v.label,
@@ -885,6 +895,26 @@ export function ProductForm({
           added here, they replace the full description above on the product page.
         </p>
         <ContentBlockEditor blocks={contentBlocks} onChange={setContentBlocks} />
+      </div>
+
+      <div className="border-t border-border pt-5">
+        <ProductRelationField
+          label="Related products"
+          hint='Shown in a "You may also like" section on the product page — other printers, materials or parts worth cross-selling alongside this one.'
+          items={related}
+          onChange={setRelated}
+          excludeProductId={productId}
+        />
+      </div>
+
+      <div className="border-t border-border pt-5">
+        <ProductRelationField
+          label="Accessories"
+          hint='Shown in an "Accessories" section on the product page — parts or upgrades that go with this specific listing (e.g. a nozzle kit for a printer, or a specific spool holder for a filament).'
+          items={accessories}
+          onChange={setAccessories}
+          excludeProductId={productId}
+        />
       </div>
 
       <div className="border-t border-border pt-5">

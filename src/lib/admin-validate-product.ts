@@ -83,6 +83,13 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
   const useCases = Array.isArray(b.useCases)
     ? b.useCases.filter((v): v is string => typeof v === "string" && VALID_USE_CASES.includes(v))
     : undefined;
+  // Same "absent => leave alone" convention as mediaIds/contentBlocks.
+  const relatedProductIds = Array.isArray(b.relatedProductIds)
+    ? b.relatedProductIds.filter((v): v is string => typeof v === "string")
+    : undefined;
+  const accessoryIds = Array.isArray(b.accessoryIds)
+    ? b.accessoryIds.filter((v): v is string => typeof v === "string")
+    : undefined;
 
   // Same "absent => leave alone" convention as mediaIds/contentBlocks.
   // A row missing a label is silently dropped rather than erroring — an
@@ -228,6 +235,8 @@ export function validateProductInput(body: unknown, fallbackSlug?: string): { in
       technology: technology as ProductInput["technology"],
       experienceLevel: experienceLevel as ProductInput["experienceLevel"],
       useCases: useCases as ProductInput["useCases"],
+      relatedProductIds,
+      accessoryIds,
       variants,
     },
   };

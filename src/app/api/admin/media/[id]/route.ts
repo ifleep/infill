@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { hasValidAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { revalidateSite } from "@/lib/revalidate";
+import { getUsedMediaRefs, isMediaUnused } from "@/lib/data/media-usage";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await hasValidAdminSession())) {
@@ -35,13 +36,21 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     return NextResponse.json({ error: "Not found." }, { status: 404 });
   }
 
-  const usageCount = await prisma.productMedia.count({ where: { mediaId: id } });
-  if (usageCount > 0) {
+  // Checks every place a Media item can be referenced — product galleries,
+  // brand logos, article featured images, og:image fields, content-block
+  // images, homepage sections and site settings — not just product
+  // galleries (see getUsedMediaRefs for why a single combined check).
+  const used = await getUsedMediaRefs();
+  if (!isMediaUnused(media, used)) {
+    const usageCount = await prisma.productMedia.count({ where: { mediaId: id } });
     return NextResponse.json(
       {
-        error: `This image is used by ${usageCount} product${usageCount === 1 ? "" : "s"} — remove it from ${
-          usageCount === 1 ? "that product" : "those products"
-        } first.`,
+        error:
+          usageCount > 0
+            ? `This image is used by ${usageCount} product${usageCount === 1 ? "" : "s"} — remove it from ${
+                usageCount === 1 ? "that product" : "those products"
+              } first.`
+            : "This image is still referenced elsewhere on the site (a brand logo, article, homepage section, or content block) — remove it from there first.",
       },
       { status: 409 }
     );

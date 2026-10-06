@@ -128,6 +128,7 @@ function fromRow(row: ProductWithMedia, defaultPreorderLeadDays: number): Produc
     saleEndsAt: row.saleEndsAt?.toISOString(),
     limitedStockEnabled: row.limitedStockEnabled,
     limitedStockQuantity: row.limitedStockQuantity ?? undefined,
+    createdAt: row.createdAt.toISOString(),
     seoTitle: row.seoTitle ?? undefined,
     metaDescription: row.metaDescription ?? undefined,
     canonicalUrl: row.canonicalUrl ?? undefined,
@@ -297,6 +298,10 @@ export interface ProductInput {
    * photos"). Pass `[]` explicitly to remove all photos.
    */
   mediaIds?: string[];
+  /** Cross-sells shown in a "You may also like" section — `undefined` leaves the existing list untouched (same convention as mediaIds), `[]` clears it. */
+  relatedProductIds?: string[];
+  /** Shown in an "Accessories" section on the product page — same `undefined`/`[]` convention as relatedProductIds. */
+  accessoryIds?: string[];
   seoTitle?: string | null;
   metaDescription?: string | null;
   canonicalUrl?: string | null;
@@ -378,6 +383,10 @@ function toDbInput(input: ProductInput) {
       ? { experienceLevel: input.experienceLevel as Prisma.InputJsonValue }
       : {}),
     ...(input.useCases !== undefined ? { useCases: input.useCases as Prisma.InputJsonValue } : {}),
+    ...(input.relatedProductIds !== undefined
+      ? { relatedProductIds: input.relatedProductIds as Prisma.InputJsonValue }
+      : {}),
+    ...(input.accessoryIds !== undefined ? { accessoryIds: input.accessoryIds as Prisma.InputJsonValue } : {}),
   };
 }
 
