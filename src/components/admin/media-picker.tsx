@@ -2,12 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { MediaItem } from "@/lib/admin/media-types";
+import { ImportFromUrl } from "@/components/admin/import-from-url";
+
+type Mode = "library" | "import";
 
 /**
  * Modal for choosing existing Media Library items (with search + upload
- * new-files-in-place) — shared by the product photo manager and, later,
- * the block content editor and homepage CMS so nothing has to re-upload
- * the same image twice (see AGENTS spec requirement #7).
+ * new-files-in-place, or importing straight from a manufacturer link) —
+ * shared by the product photo manager and, later, the block content editor
+ * and homepage CMS so nothing has to re-upload the same image twice (see
+ * AGENTS spec requirement #7).
  */
 export function MediaPicker({
   open,
@@ -20,6 +24,7 @@ export function MediaPicker({
   onSelect: (items: MediaItem[]) => void;
   multiple?: boolean;
 }) {
+  const [mode, setMode] = useState<Mode>("library");
   const [items, setItems] = useState<MediaItem[]>([]);
   const [selected, setSelected] = useState<Record<string, MediaItem>>({});
   const [query, setQuery] = useState("");
@@ -31,9 +36,19 @@ export function MediaPicker({
   useEffect(() => {
     if (!open) return;
     setSelected({});
+    setMode("library");
     load(query);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run on open, not on every keystroke
   }, [open]);
+
+  function handleImported(imported: MediaItem[]) {
+    setItems((prev) => [...imported, ...prev]);
+    setSelected((prev) => {
+      const next = { ...prev };
+      for (const m of imported) next[m.id] = m;
+      return next;
+    });
+  }
 
   async function load(q: string) {
     setLoading(true);
@@ -115,64 +130,93 @@ export function MediaPicker({
           </button>
         </div>
 
-        <div className="flex items-center gap-3 border-b border-border px-5 py-3">
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              load(e.target.value);
-            }}
-            placeholder="Search by filename, alt text or caption…"
-            className="focus-ring w-full rounded-md border border-border-strong px-3 py-1.5 text-sm text-ink placeholder:text-ink-faint"
-          />
-          <label className="focus-ring cursor-pointer whitespace-nowrap rounded-md bg-surface-sunken px-3 py-1.5 text-sm font-medium text-ink hover:bg-border">
-            {uploading ? "Uploading…" : "Upload new"}
-            <input
-              ref={inputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              disabled={uploading}
-              onChange={(e) => handleUpload(e.target.files)}
-              className="hidden"
-            />
-          </label>
+        <div className="flex items-center gap-2 border-b border-border px-5 py-3">
+          <button
+            type="button"
+            onClick={() => setMode("library")}
+            className={`focus-ring cursor-pointer rounded-md border px-3 py-1.5 text-sm font-medium ${
+              mode === "library" ? "border-blue-700 bg-blue-50 text-blue-700" : "border-border-strong text-ink-muted hover:bg-surface-sunken"
+            }`}
+          >
+            Library
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("import")}
+            className={`focus-ring cursor-pointer rounded-md border px-3 py-1.5 text-sm font-medium ${
+              mode === "import" ? "border-blue-700 bg-blue-50 text-blue-700" : "border-border-strong text-ink-muted hover:bg-surface-sunken"
+            }`}
+          >
+            Import from URL
+          </button>
         </div>
+
+        {mode === "library" && (
+          <div className="flex items-center gap-3 border-b border-border px-5 py-3">
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                load(e.target.value);
+              }}
+              placeholder="Search by filename, alt text or caption…"
+              className="focus-ring w-full rounded-md border border-border-strong px-3 py-1.5 text-sm text-ink placeholder:text-ink-faint"
+            />
+            <label className="focus-ring cursor-pointer whitespace-nowrap rounded-md bg-surface-sunken px-3 py-1.5 text-sm font-medium text-ink hover:bg-border">
+              {uploading ? "Uploading…" : "Upload new"}
+              <input
+                ref={inputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                disabled={uploading}
+                onChange={(e) => handleUpload(e.target.files)}
+                className="hidden"
+              />
+            </label>
+          </div>
+        )}
 
         {error && <p className="px-5 pt-3 text-sm text-destructive">{error}</p>}
 
-        <div className="flex-1 overflow-y-auto px-5 py-4">
-          {loading ? (
-            <p className="py-10 text-center text-sm text-ink-faint">Loading…</p>
-          ) : items.length === 0 ? (
-            <p className="py-10 text-center text-sm text-ink-faint">No media found.</p>
-          ) : (
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
-              {items.map((item) => {
-                const isSelected = Boolean(selected[item.id]);
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => toggle(item)}
-                    className={`focus-ring group relative aspect-square overflow-hidden rounded-md border bg-surface-sunken transition-colors ${
-                      isSelected ? "border-blue-500 ring-2 ring-blue-500" : "border-border hover:border-border-strong"
-                    }`}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element -- uploaded files, not a static import */}
-                    <img src={item.url} alt={item.alt ?? ""} className="h-full w-full object-cover" />
-                    {isSelected && (
-                      <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs text-white">
-                        ✓
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        {mode === "import" ? (
+          <div className="flex-1 overflow-y-auto px-5 py-4">
+            <ImportFromUrl onImported={handleImported} />
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto px-5 py-4">
+            {loading ? (
+              <p className="py-10 text-center text-sm text-ink-faint">Loading…</p>
+            ) : items.length === 0 ? (
+              <p className="py-10 text-center text-sm text-ink-faint">No media found.</p>
+            ) : (
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
+                {items.map((item) => {
+                  const isSelected = Boolean(selected[item.id]);
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => toggle(item)}
+                      className={`focus-ring group relative aspect-square overflow-hidden rounded-md border bg-surface-sunken transition-colors ${
+                        isSelected ? "border-blue-500 ring-2 ring-blue-500" : "border-border hover:border-border-strong"
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element -- uploaded files, not a static import */}
+                      <img src={item.url} alt={item.alt ?? ""} className="h-full w-full object-cover" />
+                      {isSelected && (
+                        <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs text-white">
+                          ✓
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex items-center justify-between border-t border-border px-5 py-4">
           <p className="text-sm text-ink-faint">{selectedCount} selected</p>

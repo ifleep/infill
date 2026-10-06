@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { MediaItem } from "@/lib/admin/media-types";
+import { ImportFromUrl } from "@/components/admin/import-from-url";
 
 interface MediaListResponse {
   items: MediaItem[];
@@ -29,6 +30,7 @@ export function MediaLibrary() {
   const [deletingUnused, setDeletingUnused] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -115,6 +117,12 @@ export function MediaLibrary() {
     }
   }
 
+  function handleImported(imported: MediaItem[]) {
+    setItems((prev) => [...imported.map((m) => ({ ...m, inUse: false })), ...prev]);
+    setTotal((t) => t + imported.length);
+    setUnusedTotal((t) => t + imported.length);
+  }
+
   async function handleSave(item: MediaItem, patch: { alt?: string | null; caption?: string | null }) {
     setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, ...patch } : i)));
     try {
@@ -159,18 +167,27 @@ export function MediaLibrary() {
             uploads twice.
           </p>
         </div>
-        <label className="focus-ring cursor-pointer whitespace-nowrap rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-          {uploading ? "Uploading…" : "Upload files"}
-          <input
-            ref={inputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            disabled={uploading}
-            onChange={(e) => handleUpload(e.target.files)}
-            className="hidden"
-          />
-        </label>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setImportOpen(true)}
+            className="focus-ring cursor-pointer whitespace-nowrap rounded-md border border-border-strong px-4 py-2 text-sm font-medium text-ink hover:bg-surface-sunken"
+          >
+            Import from URL
+          </button>
+          <label className="focus-ring cursor-pointer whitespace-nowrap rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+            {uploading ? "Uploading…" : "Upload files"}
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              disabled={uploading}
+              onChange={(e) => handleUpload(e.target.files)}
+              className="hidden"
+            />
+          </label>
+        </div>
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -296,6 +313,28 @@ export function MediaLibrary() {
                 Done
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {importOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4" onClick={() => setImportOpen(false)}>
+          <div
+            className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-y-auto rounded-xl bg-surface p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-base font-semibold text-ink">Import from URL</h2>
+              <button
+                type="button"
+                onClick={() => setImportOpen(false)}
+                aria-label="Close"
+                className="focus-ring cursor-pointer rounded p-1 text-ink-muted hover:bg-surface-sunken"
+              >
+                &times;
+              </button>
+            </div>
+            <ImportFromUrl onImported={handleImported} />
           </div>
         </div>
       )}
