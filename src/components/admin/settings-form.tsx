@@ -161,14 +161,14 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
 
       <div className="space-y-2">
         {values.printMaterials.map((material, i) => (
-          <div key={i} className="flex items-center gap-2 rounded-md border border-border p-2">
+          <div key={i} className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-md border border-border p-2">
             <input
               value={material.name}
               onChange={(e) => updateMaterial(i, { name: e.target.value })}
               placeholder="Name (e.g. PLA)"
-              className={`${inputClass} w-28`}
+              className={`${inputClass} w-28 shrink-0`}
             />
-            <label className="flex items-center gap-1 text-xs text-ink-muted">
+            <label className="flex shrink-0 items-center gap-1 text-xs text-ink-muted">
               Density
               <input
                 type="number"
@@ -177,11 +177,11 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
                 value={material.densityGCm3}
                 onChange={(e) => updateMaterial(i, { densityGCm3: Number(e.target.value) })}
                 placeholder="g/cm³"
-                className={`${inputClass} w-20`}
+                className={`${inputClass} w-20 shrink-0`}
               />
               g/cm³
             </label>
-            <label className="flex flex-1 items-center gap-1 text-xs text-ink-muted">
+            <label className="flex shrink-0 items-center gap-1 text-xs text-ink-muted">
               Price
               <input
                 type="number"
@@ -190,7 +190,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
                 value={material.pricePerKgPkr}
                 onChange={(e) => updateMaterial(i, { pricePerKgPkr: Number(e.target.value) })}
                 placeholder="PKR/kg"
-                className={`${inputClass} w-24`}
+                className={`${inputClass} w-32 shrink-0`}
               />
               PKR/kg
             </label>
@@ -198,7 +198,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
               type="button"
               onClick={() => removeMaterial(i)}
               aria-label="Remove material"
-              className="focus-ring cursor-pointer rounded p-1 text-ink-faint hover:text-destructive"
+              className="focus-ring ml-auto shrink-0 cursor-pointer rounded p-1 text-ink-faint hover:text-destructive"
             >
               <Trash size={14} />
             </button>
