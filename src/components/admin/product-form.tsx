@@ -87,7 +87,7 @@ function toDatetimeLocal(iso: string | undefined): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function fromProduct(p: Product, preorderLeadDaysOverride: number | null): ProductFormValues {
+export function fromProduct(p: Product, preorderLeadDaysOverride: number | null): ProductFormValues {
   return {
     slug: p.slug,
     name: p.name,
@@ -320,45 +320,45 @@ export function ProductForm({
         <p className="rounded-md bg-destructive-tint px-3 py-2 text-sm text-destructive">{error}</p>
       )}
 
-      {!productId && (
-        <div className="rounded-lg border border-dashed border-border-strong p-4">
-          <button
-            type="button"
-            onClick={() => setPasteOpen((o) => !o)}
-            className="focus-ring cursor-pointer text-sm font-medium text-blue-700 hover:text-blue-600"
-          >
-            {pasteOpen ? "Hide" : "Paste product text to fill this form"}
-          </button>
-          {pasteOpen && (
-            <div className="mt-3 space-y-3">
-              <p className="text-xs text-ink-faint">
-                Paste &ldquo;Label: value&rdquo; text (from a supplier sheet, ChatGPT, or written by hand) and click
-                Parse to fill in the fields below — nothing is saved until you review and click Create Product
-                yourself. A &ldquo;Specifications:&rdquo; section fills the spec table; a &ldquo;Variants:&rdquo;
-                section (one pipe-separated variant per line, e.g. <code>Combo | Price: 65000 | Stock: 4 | Default</code>)
-                fills the Variants section below instead of adding them by hand.
-              </p>
-              <textarea
-                rows={8}
-                value={pasteText}
-                onChange={(e) => setPasteText(e.target.value)}
-                placeholder={"Name: L4\nBrand: LightMake\nCategory: machines\nSubcategory: Robots\nPrice: 250000\nStock: 5\nShort description: ...\nFull description: ...\n\nSpecifications:\nToolheads: 4, independent\n\nVariants:\nStandard | Price: 45000 | Stock: 10\nCombo (AMS Lite) | Price: 65000 | Stock: 4 | Default"}
-                className={`${inputClass} font-mono text-xs`}
-              />
-              <Button type="button" variant="secondary" size="sm" onClick={handleParse}>
-                Parse
-              </Button>
-              {pasteWarnings.length > 0 && (
-                <ul className="space-y-1 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                  {pasteWarnings.map((w, i) => (
-                    <li key={i}>{w}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      <div className="rounded-lg border border-dashed border-border-strong p-4">
+        <button
+          type="button"
+          onClick={() => setPasteOpen((o) => !o)}
+          className="focus-ring cursor-pointer text-sm font-medium text-blue-700 hover:text-blue-600"
+        >
+          {pasteOpen ? "Hide" : "Paste product text to fill this form"}
+        </button>
+        {pasteOpen && (
+          <div className="mt-3 space-y-3">
+            <p className="text-xs text-ink-faint">
+              Paste &ldquo;Label: value&rdquo; text (from a supplier sheet, ChatGPT, or written by hand) and click
+              Parse to fill in the fields below — nothing is saved until you review and click{" "}
+              {productId ? "Save Changes" : "Create Product"} yourself. A &ldquo;Specifications:&rdquo; section
+              fills the spec table; a &ldquo;Variants:&rdquo; section (one pipe-separated variant per line, e.g.{" "}
+              <code>Combo | Price: 65000 | Stock: 4 | Default</code>) fills the Variants section below instead of
+              adding them by hand.
+              {productId && " Any field left out of the pasted text keeps its current value — paste just what you want to change."}
+            </p>
+            <textarea
+              rows={8}
+              value={pasteText}
+              onChange={(e) => setPasteText(e.target.value)}
+              placeholder={"Name: L4\nBrand: LightMake\nCategory: machines\nSubcategory: Robots\nPrice: 250000\nStock: 5\nShort description: ...\nFull description: ...\n\nSpecifications:\nToolheads: 4, independent\n\nVariants:\nStandard | Price: 45000 | Stock: 10\nCombo (AMS Lite) | Price: 65000 | Stock: 4 | Default"}
+              className={`${inputClass} font-mono text-xs`}
+            />
+            <Button type="button" variant="secondary" size="sm" onClick={handleParse}>
+              Parse
+            </Button>
+            {pasteWarnings.length > 0 && (
+              <ul className="space-y-1 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                {pasteWarnings.map((w, i) => (
+                  <li key={i}>{w}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Name" required>
