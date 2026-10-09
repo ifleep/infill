@@ -4,6 +4,7 @@ export async function getApprovedReviewsForProduct(productId: string) {
   return prisma.productReview.findMany({
     where: { productId, status: "approved" },
     orderBy: { createdAt: "desc" },
+    include: { photos: { orderBy: { position: "asc" } } },
   });
 }
 
@@ -14,11 +15,15 @@ export interface CreateReviewInput {
   rating: number;
   title?: string;
   body?: string;
+  /** Already-uploaded photo URLs (see validateAndStoreImage) — saved in the order given. */
+  photoUrls?: string[];
 }
 
 // New reviews start "pending" and don't affect the product's displayed
 // rating until an admin approves them (see updateReviewStatus) — keeps
-// the storefront's rating trustworthy against spam/abuse.
+// the storefront's rating trustworthy against spam/abuse. Photos are
+// submitted right along with the review, not added afterward, so
+// moderators see exactly what the customer attached before approving.
 export async function createReview(input: CreateReviewInput) {
   return prisma.productReview.create({
     data: {
@@ -29,13 +34,17 @@ export async function createReview(input: CreateReviewInput) {
       title: input.title || null,
       body: input.body || null,
       status: "pending",
+      photos: input.photoUrls?.length
+        ? { create: input.photoUrls.map((url, position) => ({ url, position })) }
+        : undefined,
     },
+    include: { photos: true },
   });
 }
 
 export async function getAllReviewsAdmin() {
   return prisma.productReview.findMany({
-    include: { product: { select: { name: true, slug: true } } },
+    include: { product: { select: { name: true, slug: true } }, photos: { orderBy: { position: "asc" } } },
     orderBy: { createdAt: "desc" },
   });
 }

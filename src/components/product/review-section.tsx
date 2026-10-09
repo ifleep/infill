@@ -24,6 +24,22 @@ export async function ReviewSection({ productId, productSlug }: { productId: str
               </div>
               {r.title && <p className="mt-1.5 text-sm font-semibold text-ink">{r.title}</p>}
               {r.body && <p className="mt-1 text-sm text-ink-muted">{r.body}</p>}
+              {r.photos.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {r.photos.map((photo) => (
+                    <a
+                      key={photo.id}
+                      href={photo.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="focus-ring block h-16 w-16 overflow-hidden rounded-md border border-border bg-surface-sunken"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element -- customer-uploaded, not a static import */}
+                      <img src={photo.url} alt={`Photo from ${r.authorName}'s review`} className="h-full w-full object-cover" />
+                    </a>
+                  ))}
+                </div>
+              )}
               <p className="mt-1.5 text-xs text-ink-faint">
                 {r.authorName} ·{" "}
                 {new Date(r.createdAt).toLocaleDateString("en-PK", { day: "numeric", month: "short", year: "numeric" })}

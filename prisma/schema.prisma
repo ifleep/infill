@@ -210,8 +210,26 @@ model ProductReview {
   status     String    @default("pending") // "pending" | "approved" | "rejected"
   createdAt  DateTime  @default(now())
 
+  photos ReviewPhoto[]
+
   @@index([productId])
   @@index([status])
+}
+
+// A customer's own snapshot of the thing they bought, attached to their
+// review — deliberately NOT part of the Media Library (that's curated
+// admin-chosen assets: product photos, content blocks, banners). These
+// belong to exactly one review, aren't meant to be reused elsewhere, and
+// cascade-delete with it, so they never need the Media Library's
+// "in use anywhere?" bookkeeping (see getUsedMediaRefs).
+model ReviewPhoto {
+  id       String        @id @default(cuid())
+  reviewId String
+  review   ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  url      String        @db.VarChar(512)
+  position Int           @default(0)
+
+  @@index([reviewId])
 }
 
 // ============================================================================

@@ -36,6 +36,20 @@ export default async function AdminReviewsPage() {
                 <td className="max-w-xs px-4 py-3 text-ink-muted">
                   {r.title && <p className="font-medium text-ink">{r.title}</p>}
                   <p className="line-clamp-2">{r.body}</p>
+                  {r.photos.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {r.photos.map((photo) => (
+                        <a key={photo.id} href={photo.url} target="_blank" rel="noopener noreferrer" className="focus-ring block">
+                          {/* eslint-disable-next-line @next/next/no-img-element -- customer-uploaded, not a static import */}
+                          <img
+                            src={photo.url}
+                            alt="Review photo"
+                            className="h-10 w-10 rounded border border-border object-cover"
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   <ReviewStatusControl id={r.id} status={r.status} />

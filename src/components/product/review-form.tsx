@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Star } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
+
+const MAX_PHOTOS = 4;
 
 export function ReviewForm({ productSlug }: { productSlug: string }) {
   const [open, setOpen] = useState(false);
@@ -11,8 +13,10 @@ export function ReviewForm({ productSlug }: { productSlug: string }) {
   const [authorName, setAuthorName] = useState("");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [photos, setPhotos] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (result?.ok) {
     return <p className="rounded-md bg-pk-green-tint px-4 py-3 text-sm text-pk-green-deep">{result.message}</p>;
@@ -26,6 +30,17 @@ export function ReviewForm({ productSlug }: { productSlug: string }) {
     );
   }
 
+  function addPhotos(fileList: FileList | null) {
+    if (!fileList) return;
+    const newFiles = Array.from(fileList);
+    setPhotos((prev) => [...prev, ...newFiles].slice(0, MAX_PHOTOS));
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function removePhoto(index: number) {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  }
+
   return (
     <form
       className="max-w-lg space-y-4 rounded-xl border border-border p-5"
@@ -34,11 +49,14 @@ export function ReviewForm({ productSlug }: { productSlug: string }) {
         setSubmitting(true);
         setResult(null);
         try {
-          const res = await fetch(`/api/products/${productSlug}/reviews`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ rating, authorName, title, body }),
-          });
+          const formData = new FormData();
+          formData.set("rating", String(rating));
+          formData.set("authorName", authorName);
+          formData.set("title", title);
+          formData.set("body", body);
+          for (const photo of photos) formData.append("photos", photo);
+
+          const res = await fetch(`/api/products/${productSlug}/reviews`, { method: "POST", body: formData });
           const data = await res.json();
           if (!res.ok) {
             setResult({ ok: false, message: data.error ?? "Something went wrong." });
@@ -100,6 +118,39 @@ export function ReviewForm({ productSlug }: { productSlug: string }) {
           className="focus-ring w-full rounded-md border border-border-strong px-3 py-2 text-sm text-ink"
         />
       </label>
+
+      <div>
+        <span className="mb-1.5 block text-sm font-medium text-ink">Photos (optional)</span>
+        {photos.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-2">
+            {photos.map((photo, i) => (
+              <div key={i} className="group relative h-16 w-16 overflow-hidden rounded-md border border-border bg-surface-sunken">
+                {/* eslint-disable-next-line @next/next/no-img-element -- local file preview, not a static import */}
+                <img src={URL.createObjectURL(photo)} alt="" className="h-full w-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => removePhoto(i)}
+                  aria-label="Remove photo"
+                  className="focus-ring absolute right-0.5 top-0.5 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-ink/70 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100"
+                >
+                  &times;
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        {photos.length < MAX_PHOTOS && (
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => addPhotos(e.target.files)}
+            className="block text-xs text-ink-muted file:mr-3 file:cursor-pointer file:rounded file:border-0 file:bg-surface-sunken file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-ink hover:file:bg-border"
+          />
+        )}
+        <p className="mt-1 text-xs text-ink-faint">Show off your print — up to {MAX_PHOTOS} photos, 8MB each.</p>
+      </div>
 
       <div className="flex gap-3">
         <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={submitting}>
