@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { getVisibleProducts } from "@/lib/data/products";
 import { ProductCard } from "@/components/product/product-card";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/search" },
+  robots: { index: false, follow: true },
+};
 
 export default async function SearchPage({
   searchParams,
