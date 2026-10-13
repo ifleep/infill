@@ -72,7 +72,7 @@ export function CategoryForm({
 
       <label className="block text-sm">
         <span className="mb-1.5 block font-medium text-ink">Parent category</span>
-        <select value={parentId} onChange={(e) => setParentId(e.target.value)} className={inputClass}>
+        <select value={parentId} onChange={(e) => setParentId(e.target.value)} className={`${inputClass} select-arrow`}>
           <option value="">None — top level</option>
           {options.map((o) => (
             <option key={o.id} value={o.id}>

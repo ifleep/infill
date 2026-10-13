@@ -75,7 +75,7 @@ export function OrderDetailControls({
             setStatus(e.target.value);
             save({ status: e.target.value });
           }}
-          className="focus-ring mt-1 w-full rounded-md border border-border-strong px-3 py-2 text-sm"
+          className="select-arrow focus-ring mt-1 w-full rounded-md border border-border-strong py-2 pl-3 text-sm"
         >
           <option value="pending">Pending</option>
           <option value="processing">Processing</option>
@@ -91,7 +91,7 @@ export function OrderDetailControls({
             setPaymentStatus(e.target.value);
             save({ paymentStatus: e.target.value });
           }}
-          className="focus-ring mt-1 w-full rounded-md border border-border-strong px-3 py-2 text-sm"
+          className="select-arrow focus-ring mt-1 w-full rounded-md border border-border-strong py-2 pl-3 text-sm"
         >
           <option value="unpaid">Unpaid</option>
           <option value="paid">Paid</option>

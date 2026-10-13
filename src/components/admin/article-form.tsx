@@ -125,7 +125,7 @@ export function ArticleForm({ article, articleId }: { article?: Article; article
 
       <div className="grid grid-cols-4 gap-4">
         <Field label="Category" required>
-          <select value={values.category} onChange={(e) => set("category", e.target.value as Article["category"])} className={inputClass}>
+          <select value={values.category} onChange={(e) => set("category", e.target.value as Article["category"])} className={`${inputClass} select-arrow`}>
             {categories.map((c) => (
               <option key={c} value={c}>
                 {c}
@@ -146,7 +146,7 @@ export function ArticleForm({ article, articleId }: { article?: Article; article
           <input value={values.author} onChange={(e) => set("author", e.target.value)} className={inputClass} />
         </Field>
         <Field label="Status" required>
-          <select value={values.status} onChange={(e) => set("status", e.target.value as Article["status"])} className={inputClass}>
+          <select value={values.status} onChange={(e) => set("status", e.target.value as Article["status"])} className={`${inputClass} select-arrow`}>
             <option value="published">Published</option>
             <option value="draft">Draft</option>
             <option value="scheduled">Scheduled</option>

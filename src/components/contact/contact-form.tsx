@@ -80,7 +80,7 @@ export function ContactForm({
         <select
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
-          className="focus-ring h-11 w-full rounded-md border border-border-strong px-3 text-sm text-ink"
+          className="select-arrow focus-ring h-11 w-full rounded-md border border-border-strong pl-3 text-sm text-ink"
         >
           {topics.map((t) => (
             <option key={t.value} value={t.value}>

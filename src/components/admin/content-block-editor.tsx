@@ -153,7 +153,7 @@ function BlockFields({
           <select
             value={block.level}
             onChange={(e) => onPatch({ level: Number(e.target.value) })}
-            className={`${textInput} w-24`}
+            className={`${textInput} select-arrow w-24`}
           >
             <option value={2}>H2</option>
             <option value={3}>H3</option>
@@ -195,7 +195,7 @@ function BlockFields({
           <select
             value={block.imagePosition}
             onChange={(e) => onPatch({ imagePosition: e.target.value })}
-            className={textInput}
+            className={`${textInput} select-arrow`}
           >
             <option value="left">Image on left</option>
             <option value="right">Image on right</option>
@@ -219,7 +219,7 @@ function BlockFields({
           <select
             value={block.columns}
             onChange={(e) => onPatch({ columns: Number(e.target.value) })}
-            className={`${textInput} w-32`}
+            className={`${textInput} select-arrow w-32`}
           >
             <option value={2}>2 columns</option>
             <option value={3}>3 columns</option>
@@ -382,7 +382,7 @@ function BlockFields({
     case "callout":
       return (
         <div className="space-y-3">
-          <select value={block.tone} onChange={(e) => onPatch({ tone: e.target.value })} className={`${textInput} w-40`}>
+          <select value={block.tone} onChange={(e) => onPatch({ tone: e.target.value })} className={`${textInput} select-arrow w-40`}>
             <option value="info">Info</option>
             <option value="warning">Warning</option>
             <option value="success">Success</option>
@@ -452,7 +452,7 @@ function BlockFields({
 
     case "spacer":
       return (
-        <select value={block.size} onChange={(e) => onPatch({ size: e.target.value })} className={`${textInput} w-32`}>
+        <select value={block.size} onChange={(e) => onPatch({ size: e.target.value })} className={`${textInput} select-arrow w-32`}>
           <option value="sm">Small</option>
           <option value="md">Medium</option>
           <option value="lg">Large</option>

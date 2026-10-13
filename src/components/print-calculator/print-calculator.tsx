@@ -258,7 +258,7 @@ export function PrintCalculator({
               <select
                 value={materialIndex}
                 onChange={(e) => setMaterialIndex(Number(e.target.value))}
-                className={inputClass}
+                className={`${inputClass} select-arrow`}
               >
                 {materials.map((m, i) => (
                   <option key={m.name} value={i}>

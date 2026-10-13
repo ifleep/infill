@@ -1,9 +1,9 @@
+// "Rs" (Intl's default PKR symbol) is ambiguous with Indian Rupees, which
+// Google and other crawlers/readers default to far more often — spelling
+// out "PKR" removes that ambiguity everywhere a price is shown.
 export function formatPKR(amount: number): string {
-  return new Intl.NumberFormat("en-PK", {
-    style: "currency",
-    currency: "PKR",
-    maximumFractionDigits: 0,
-  }).format(amount);
+  const number = new Intl.NumberFormat("en-PK", { maximumFractionDigits: 0 }).format(amount);
+  return `PKR ${number}`;
 }
 
 export function formatCompactNumber(value: number): string {

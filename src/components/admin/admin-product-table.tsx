@@ -3,11 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { PencilSimple, Trash, Copy, CheckCircle, WarningCircle, CaretUp, CaretDown } from "@phosphor-icons/react";
+import { PencilSimple, Trash, Copy, Eye, EyeSlash, CheckCircle, WarningCircle, CaretUp, CaretDown } from "@phosphor-icons/react";
 import type { Availability, Brand, Product } from "@/lib/types";
 
 type RowStatus = "idle" | "saving" | "saved" | "error";
-type SortMode = "default" | "newest" | "best-selling" | "rating" | "in-stock";
+type SortField = "name" | "category" | "price" | "stock" | "availability";
+type Sort = { field: SortField; direction: "asc" | "desc" };
 
 const categoryLabels: Record<Product["category"], string> = {
   printers: "3D Printer",
@@ -17,17 +18,36 @@ const categoryLabels: Record<Product["category"], string> = {
   machines: "Machine",
 };
 
-const SORT_MODE_OPTIONS: { value: SortMode; label: string }[] = [
-  { value: "default", label: "Default" },
-  { value: "newest", label: "Newest" },
-  { value: "best-selling", label: "Best Selling" },
-  { value: "rating", label: "Top Rated" },
-  { value: "in-stock", label: "In Stock First" },
-];
-
 // in-stock/preorder are both purchasable right now (preorder just has a
-// wait); out-of-stock isn't, so it always sorts last regardless of mode.
+// wait); out-of-stock isn't, so it always sorts last regardless of direction.
 const availabilityRank: Record<string, number> = { "in-stock": 0, preorder: 1, "out-of-stock": 2 };
+
+function SortableHeader({
+  field,
+  label,
+  sort,
+  onToggle,
+}: {
+  field: SortField;
+  label: string;
+  sort: Sort | null;
+  onToggle: (field: SortField) => void;
+}) {
+  const active = sort?.field === field;
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(field)}
+      className="focus-ring flex cursor-pointer items-center gap-1 font-medium uppercase tracking-wide text-ink-faint hover:text-ink"
+    >
+      {label}
+      <span className="flex flex-col">
+        <CaretUp size={8} weight="bold" className={active && sort.direction === "asc" ? "text-ink" : "text-ink-faint"} />
+        <CaretDown size={8} weight="bold" className={active && sort.direction === "desc" ? "text-ink" : "text-ink-faint"} />
+      </span>
+    </button>
+  );
+}
 
 export function AdminProductTable({
   initialProducts,
@@ -41,47 +61,37 @@ export function AdminProductTable({
   const [status, setStatus] = useState<Record<string, RowStatus>>({});
   const [deleting, setDeleting] = useState<string | null>(null);
   const [duplicating, setDuplicating] = useState<string | null>(null);
-  const [categorySort, setCategorySort] = useState<"asc" | "desc" | null>(null);
-  const [sortBy, setSortBy] = useState<SortMode>("default");
+  const [sort, setSort] = useState<Sort | null>(null);
   const brandName = (id: string) => brands.find((b) => b.id === id)?.name ?? id;
 
-  function toggleCategorySort() {
-    setCategorySort((dir) => (dir === "asc" ? "desc" : "asc"));
+  function toggleSort(field: SortField) {
+    setSort((prev) => (prev?.field === field ? { field, direction: prev.direction === "asc" ? "desc" : "asc" } : { field, direction: "asc" }));
   }
 
-  // The "Sort by" dropdown takes priority over the Category column's own
-  // click-to-sort when set to anything but Default, so the two controls
-  // never fight over the same list at once.
   const displayProducts =
-    sortBy !== "default"
-      ? [...products].sort((a, b) => {
-          switch (sortBy) {
-            case "newest":
-              return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-            case "best-selling":
-              if ((b.soldCount ?? 0) !== (a.soldCount ?? 0)) return (b.soldCount ?? 0) - (a.soldCount ?? 0);
-              return a.name.localeCompare(b.name);
-            case "rating": {
-              const hasRating = (p: Product) => p.rating !== undefined && Boolean(p.reviewCount);
-              if (hasRating(a) !== hasRating(b)) return hasRating(a) ? -1 : 1;
-              if (hasRating(a) && hasRating(b) && a.rating !== b.rating) return (b.rating ?? 0) - (a.rating ?? 0);
-              return a.name.localeCompare(b.name);
-            }
-            case "in-stock":
-              if (availabilityRank[a.availability] !== availabilityRank[b.availability]) {
-                return availabilityRank[a.availability] - availabilityRank[b.availability];
-              }
-              return a.name.localeCompare(b.name);
-            default:
-              return 0;
+    sort === null
+      ? products
+      : [...products].sort((a, b) => {
+          let cmp = 0;
+          switch (sort.field) {
+            case "name":
+              cmp = a.name.localeCompare(b.name);
+              break;
+            case "category":
+              cmp = categoryLabels[a.category].localeCompare(categoryLabels[b.category]);
+              break;
+            case "price":
+              cmp = a.price - b.price;
+              break;
+            case "stock":
+              cmp = a.stock - b.stock;
+              break;
+            case "availability":
+              cmp = availabilityRank[a.availability] - availabilityRank[b.availability];
+              break;
           }
-        })
-      : categorySort === null
-        ? products
-        : [...products].sort((a, b) => {
-            const cmp = categoryLabels[a.category].localeCompare(categoryLabels[b.category]);
-            return categorySort === "asc" ? cmp : -cmp;
-          });
+          return sort.direction === "asc" ? cmp : -cmp;
+        });
 
   async function save(product: Product) {
     setStatus((s) => ({ ...s, [product.id]: "saving" }));
@@ -145,53 +155,34 @@ export function AdminProductTable({
     }
   }
 
+  function toggleHidden(product: Product) {
+    const hidden = !(product.hidden ?? false);
+    updateLocal(product.id, { hidden });
+    save({ ...product, hidden });
+  }
+
   return (
     <div className="rounded-xl border border-border bg-surface">
-      <div className="flex items-center justify-end gap-2 border-b border-border px-4 py-3">
-        <label htmlFor="admin-product-sort" className="text-xs font-medium text-ink-muted">
-          Sort by
-        </label>
-        <select
-          id="admin-product-sort"
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as SortMode)}
-          className="focus-ring cursor-pointer rounded-md border border-border-strong bg-surface px-2 py-1 text-sm text-ink"
-        >
-          {SORT_MODE_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="overflow-x-auto">
-      <table className="w-full min-w-[900px] text-sm">
+      <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border bg-surface-sunken text-left text-xs uppercase tracking-wide text-ink-faint">
-            <th className="px-4 py-3 font-medium">Product</th>
             <th className="px-4 py-3 font-medium">
-              <button
-                type="button"
-                onClick={toggleCategorySort}
-                className="focus-ring flex cursor-pointer items-center gap-1 font-medium uppercase tracking-wide text-ink-faint hover:text-ink"
-              >
-                Category
-                <span className="flex flex-col">
-                  <CaretUp size={8} weight="bold" className={categorySort === "asc" ? "text-ink" : "text-ink-faint"} />
-                  <CaretDown
-                    size={8}
-                    weight="bold"
-                    className={categorySort === "desc" ? "text-ink" : "text-ink-faint"}
-                  />
-                </span>
-              </button>
+              <SortableHeader field="name" label="Product" sort={sort} onToggle={toggleSort} />
             </th>
-            <th className="px-4 py-3 font-medium">Price (PKR)</th>
+            <th className="px-4 py-3 font-medium">
+              <SortableHeader field="category" label="Category" sort={sort} onToggle={toggleSort} />
+            </th>
+            <th className="px-4 py-3 font-medium">
+              <SortableHeader field="price" label="Price (PKR)" sort={sort} onToggle={toggleSort} />
+            </th>
             <th className="px-4 py-3 font-medium">Sale Price</th>
-            <th className="px-4 py-3 font-medium">Stock</th>
-            <th className="px-4 py-3 font-medium">Availability</th>
+            <th className="px-4 py-3 font-medium">
+              <SortableHeader field="stock" label="Stock" sort={sort} onToggle={toggleSort} />
+            </th>
+            <th className="px-4 py-3 font-medium">
+              <SortableHeader field="availability" label="Availability" sort={sort} onToggle={toggleSort} />
+            </th>
             <th className="px-4 py-3 font-medium">Featured</th>
-            <th className="px-4 py-3 font-medium">Hidden</th>
             <th className="px-4 py-3 font-medium" />
           </tr>
         </thead>
@@ -257,7 +248,7 @@ export function AdminProductTable({
                       updateLocal(p.id, { availability });
                       save({ ...p, availability });
                     }}
-                    className="focus-ring rounded border border-border-strong px-2 py-1"
+                    className="select-arrow focus-ring rounded border border-border-strong py-1 pl-2"
                   >
                     <option value="in-stock">In stock</option>
                     <option value="out-of-stock">Out of stock</option>
@@ -276,19 +267,6 @@ export function AdminProductTable({
                     className="h-4 w-4"
                   />
                 </td>
-                <td className="px-4 py-3 text-center">
-                  <input
-                    type="checkbox"
-                    checked={p.hidden ?? false}
-                    title="Pulled from every public page — direct link included. Admin keeps seeing it regardless."
-                    onChange={(e) => {
-                      const hidden = e.target.checked;
-                      updateLocal(p.id, { hidden });
-                      save({ ...p, hidden });
-                    }}
-                    className="h-4 w-4"
-                  />
-                </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-2">
                     {rowStatus === "saving" && <span className="text-xs text-ink-faint">Saving…</span>}
@@ -296,6 +274,18 @@ export function AdminProductTable({
                     {rowStatus === "error" && (
                       <WarningCircle size={16} weight="fill" className="text-destructive" />
                     )}
+                    <button
+                      onClick={() => toggleHidden(p)}
+                      aria-label={p.hidden ? `Unhide ${p.name}` : `Hide ${p.name}`}
+                      title={
+                        p.hidden
+                          ? "Hidden — pulled from every public page, direct link included. Click to show again."
+                          : "Visible on the site. Click to hide — admin keeps seeing it regardless."
+                      }
+                      className="focus-ring cursor-pointer rounded p-1.5 text-ink-muted hover:bg-surface-sunken"
+                    >
+                      {p.hidden ? <EyeSlash size={16} /> : <Eye size={16} />}
+                    </button>
                     <Link
                       href={`/admin/products/${p.id}/edit`}
                       aria-label={`Edit ${p.name}`}
@@ -327,7 +317,6 @@ export function AdminProductTable({
           })}
         </tbody>
       </table>
-      </div>
     </div>
   );
 }

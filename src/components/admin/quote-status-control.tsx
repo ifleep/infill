@@ -23,7 +23,7 @@ export function QuoteStatusControl({ id, status }: { id: string; status: string 
         setSaving(false);
         router.refresh();
       }}
-      className="focus-ring rounded-md border border-border-strong px-2 py-1 text-xs capitalize text-ink"
+      className="select-arrow focus-ring rounded-md border border-border-strong py-1 pl-2 text-xs capitalize text-ink"
     >
       {statuses.map((s) => (
         <option key={s} value={s}>

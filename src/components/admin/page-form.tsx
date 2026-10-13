@@ -100,7 +100,7 @@ export function PageForm({ page, pageId }: { page?: Page; pageId?: string }) {
       </div>
 
       <Field label="Status" required>
-        <select value={values.status} onChange={(e) => set("status", e.target.value as "draft" | "published")} className={inputClass}>
+        <select value={values.status} onChange={(e) => set("status", e.target.value as "draft" | "published")} className={`${inputClass} select-arrow`}>
           <option value="published">Published</option>
           <option value="draft">Draft</option>
         </select>

@@ -417,7 +417,7 @@ function PromoImageFields({
       <select
         value={config.variant}
         onChange={(e) => onChange({ ...config, variant: e.target.value as PromoImageVariant })}
-        className={textInput}
+        className={`${textInput} select-arrow`}
       >
         <option value="full-width">Full-width image</option>
         <option value="image-text">Image + text</option>
@@ -472,7 +472,7 @@ function PromoImageFields({
         <select
           value={config.imagePosition ?? "left"}
           onChange={(e) => onChange({ ...config, imagePosition: e.target.value as "left" | "right" })}
-          className={textInput}
+          className={`${textInput} select-arrow`}
         >
           <option value="left">Image on left</option>
           <option value="right">Image on right</option>

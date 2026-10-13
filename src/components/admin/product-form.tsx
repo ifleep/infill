@@ -398,7 +398,7 @@ export function ProductForm({
             required
             value={values.brandId}
             onChange={(e) => set("brandId", e.target.value)}
-            className={inputClass}
+            className={`${inputClass} select-arrow`}
           >
             <option value="" disabled>
               Select a brand
@@ -415,7 +415,7 @@ export function ProductForm({
             required
             value={values.category}
             onChange={(e) => set("category", e.target.value as Product["category"])}
-            className={inputClass}
+            className={`${inputClass} select-arrow`}
           >
             {categories.map((c) => (
               <option key={c.value} value={c.value}>
@@ -436,7 +436,7 @@ export function ProductForm({
           />
         </Field>
         <Field label="Internal category" hint="Your own organizational taxonomy — optional, doesn't affect the shop">
-          <select value={values.categoryId} onChange={(e) => set("categoryId", e.target.value)} className={inputClass}>
+          <select value={values.categoryId} onChange={(e) => set("categoryId", e.target.value)} className={`${inputClass} select-arrow`}>
             <option value="">None</option>
             {categoryOptions.map((c) => (
               <option key={c.id} value={c.id}>
@@ -599,7 +599,7 @@ export function ProductForm({
           required
           value={values.availability}
           onChange={(e) => set("availability", e.target.value as Product["availability"])}
-          className={inputClass}
+          className={`${inputClass} select-arrow`}
         >
           <option value="in-stock">In stock</option>
           <option value="out-of-stock">Out of stock</option>
@@ -696,7 +696,7 @@ export function ProductForm({
                       onChange={(e) =>
                         updateVariant(i, { availability: e.target.value as Product["availability"] })
                       }
-                      className={inputClass}
+                      className={`${inputClass} select-arrow`}
                     >
                       <option value="in-stock">In stock</option>
                       <option value="out-of-stock">Out of stock</option>

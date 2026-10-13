@@ -32,7 +32,7 @@ export function SortSelect({ base, otherParams, current }: { base: string; other
       value={current}
       onChange={(e) => onChange(e.target.value)}
       aria-label="Sort products"
-      className="focus-ring cursor-pointer rounded-md border border-border-strong bg-surface px-3 py-1.5 text-sm text-ink"
+      className="select-arrow focus-ring cursor-pointer rounded-md border border-border-strong bg-surface py-1.5 pl-3 text-sm text-ink"
     >
       {SORT_OPTIONS.map((o) => (
         <option key={o.value} value={o.value}>
