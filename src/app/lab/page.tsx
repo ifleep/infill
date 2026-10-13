@@ -6,6 +6,7 @@ import { getPublishedArticles } from "@/lib/data/articles";
 export const metadata: Metadata = {
   title: "INFiLL Lab",
   description: "Buying guides, comparisons and material guides for 3D printing and digital fabrication.",
+  alternates: { canonical: "/lab" },
 };
 
 const categories = ["All", "Buying Guide", "Comparison", "Materials", "Maintenance", "Technology"] as const;

@@ -7,6 +7,7 @@ import { RegionalMotifEdge } from "@/components/patterns/regional-motif-edge";
 export const metadata: Metadata = {
   title: "Contact",
   description: "Get in touch with INFiLLPK for sales, technical support, or partnership inquiries.",
+  alternates: { canonical: "/contact" },
 };
 
 const channels = [
