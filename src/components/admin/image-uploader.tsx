@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { CaretLeft, CaretRight } from "@phosphor-icons/react";
 import type { MediaItem } from "@/lib/admin/media-types";
 import { MediaPicker } from "@/components/admin/media-picker";
 
@@ -54,6 +55,14 @@ export function ImageUploader({
     onChange(items.filter((_, i) => i !== index));
   }
 
+  function move(index: number, direction: -1 | 1) {
+    const target = index + direction;
+    if (target < 0 || target >= items.length) return;
+    const next = [...items];
+    [next[index], next[target]] = [next[target], next[index]];
+    onChange(next);
+  }
+
   function addFromLibrary(picked: MediaItem[]) {
     const existingIds = new Set(items.map((i) => i.id));
     const additions = picked.filter((p) => !existingIds.has(p.id));
@@ -65,11 +74,11 @@ export function ImageUploader({
       {items.length > 0 && (
         <div className="mb-3 grid grid-cols-4 gap-3 sm:grid-cols-6">
           {items.map((item, i) => (
-            // eslint-disable-next-line @next/next/no-img-element -- uploaded files, not a static import
             <div
               key={item.id}
               className="group relative aspect-square overflow-hidden rounded-md border border-border bg-surface-sunken"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element -- uploaded files, not a static import */}
               <img src={item.url} alt={item.alt ?? ""} className="h-full w-full object-cover" />
               <button
                 type="button"
@@ -80,10 +89,30 @@ export function ImageUploader({
                 &times;
               </button>
               {i === 0 && (
-                <span className="absolute bottom-1 left-1 rounded bg-ink/70 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                <span className="absolute left-1 top-1 rounded bg-ink/70 px-1.5 py-0.5 text-[10px] font-medium text-white">
                   Main
                 </span>
               )}
+              <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-ink/70 px-1 py-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                <button
+                  type="button"
+                  onClick={() => move(i, -1)}
+                  disabled={i === 0}
+                  aria-label="Move image earlier"
+                  className="focus-ring cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  <CaretLeft size={12} weight="bold" className="text-white" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => move(i, 1)}
+                  disabled={i === items.length - 1}
+                  aria-label="Move image later"
+                  className="focus-ring cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  <CaretRight size={12} weight="bold" className="text-white" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -110,7 +139,8 @@ export function ImageUploader({
       {uploading && <p className="mt-1.5 text-xs text-ink-muted">Uploading…</p>}
       {error && <p className="mt-1.5 text-xs text-destructive">{error}</p>}
       <p className="mt-1.5 text-xs text-ink-faint">
-        JPEG, PNG, WebP, AVIF or GIF, up to 8MB each. The first image is used as the main photo.
+        JPEG, PNG, WebP, AVIF or GIF, up to 8MB each. The first image is used as the main photo — hover a photo to
+        reorder it.
       </p>
 
       <MediaPicker open={pickerOpen} onClose={() => setPickerOpen(false)} onSelect={addFromLibrary} multiple />

@@ -162,7 +162,7 @@ export function AdminProductTable({
   }
 
   return (
-    <div className="rounded-xl border border-border bg-surface">
+    <div className="overflow-x-auto rounded-xl border border-border bg-surface">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border bg-surface-sunken text-left text-xs uppercase tracking-wide text-ink-faint">
