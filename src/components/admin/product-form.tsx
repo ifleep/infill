@@ -267,7 +267,18 @@ export function ProductForm({
     } = parseProductText(pasteText, brands);
     setValues((v) => ({ ...v, ...parsed }));
     if (parsedBlocks) setContentBlocks(parsedBlocks);
-    if (parsedVariants) setVariants(parsedVariants);
+    if (parsedVariants) {
+      // The paste format has no way to specify a variant's photo, so a
+      // pasted variant never carries one — keep whatever the existing
+      // variant with the same label already had instead of clearing it.
+      setVariants((prevVariants) => {
+        const prevByLabel = new Map(prevVariants.map((v) => [v.label.trim().toLowerCase(), v]));
+        return parsedVariants.map((v) => {
+          const prev = prevByLabel.get(v.label.trim().toLowerCase());
+          return { ...v, imageUrl: v.imageUrl || prev?.imageUrl || "" };
+        });
+      });
+    }
     setPasteWarnings(warnings);
   }
 

@@ -26,9 +26,12 @@ export function MediaPicker({
 }) {
   const [mode, setMode] = useState<Mode>("library");
   const [items, setItems] = useState<MediaItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Record<string, MediaItem>>({});
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -37,7 +40,7 @@ export function MediaPicker({
     if (!open) return;
     setSelected({});
     setMode("library");
-    load(query);
+    load(query, 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run on open, not on every keystroke
   }, [open]);
 
@@ -50,21 +53,25 @@ export function MediaPicker({
     });
   }
 
-  async function load(q: string) {
-    setLoading(true);
+  async function load(q: string, pageToLoad: number) {
+    if (pageToLoad === 1) setLoading(true);
+    else setLoadingMore(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/media?q=${encodeURIComponent(q)}`);
+      const res = await fetch(`/api/admin/media?q=${encodeURIComponent(q)}&page=${pageToLoad}`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(data.error ?? "Couldn't load the media library.");
         return;
       }
-      setItems(data.items ?? []);
+      setItems((prev) => (pageToLoad === 1 ? data.items ?? [] : [...prev, ...(data.items ?? [])]));
+      setTotal(data.total ?? 0);
+      setPage(pageToLoad);
     } catch {
       setError("Network error while loading the media library.");
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }
 
@@ -158,7 +165,7 @@ export function MediaPicker({
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
-                load(e.target.value);
+                load(e.target.value, 1);
               }}
               placeholder="Search by filename, alt text or caption…"
               className="focus-ring w-full rounded-md border border-border-strong px-3 py-1.5 text-sm text-ink placeholder:text-ink-faint"
@@ -191,29 +198,47 @@ export function MediaPicker({
             ) : items.length === 0 ? (
               <p className="py-10 text-center text-sm text-ink-faint">No media found.</p>
             ) : (
-              <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
-                {items.map((item) => {
-                  const isSelected = Boolean(selected[item.id]);
-                  return (
+              <>
+                <p className="mb-3 text-xs text-ink-faint">
+                  Showing {items.length} of {total}
+                </p>
+                <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
+                  {items.map((item) => {
+                    const isSelected = Boolean(selected[item.id]);
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => toggle(item)}
+                        title={item.filename ?? item.alt ?? undefined}
+                        className={`focus-ring group relative aspect-square overflow-hidden rounded-md border bg-surface-sunken transition-colors ${
+                          isSelected ? "border-blue-500 ring-2 ring-blue-500" : "border-border hover:border-border-strong"
+                        }`}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element -- uploaded files, not a static import */}
+                        <img src={item.url} alt={item.alt ?? ""} className="h-full w-full object-cover" />
+                        {isSelected && (
+                          <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs text-white">
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+                {items.length < total && (
+                  <div className="mt-4 flex justify-center">
                     <button
-                      key={item.id}
                       type="button"
-                      onClick={() => toggle(item)}
-                      className={`focus-ring group relative aspect-square overflow-hidden rounded-md border bg-surface-sunken transition-colors ${
-                        isSelected ? "border-blue-500 ring-2 ring-blue-500" : "border-border hover:border-border-strong"
-                      }`}
+                      onClick={() => load(query, page + 1)}
+                      disabled={loadingMore}
+                      className="focus-ring cursor-pointer rounded-md border border-border-strong px-4 py-1.5 text-sm font-medium text-ink hover:bg-surface-sunken disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element -- uploaded files, not a static import */}
-                      <img src={item.url} alt={item.alt ?? ""} className="h-full w-full object-cover" />
-                      {isSelected && (
-                        <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs text-white">
-                          ✓
-                        </span>
-                      )}
+                      {loadingMore ? "Loading…" : `Load more (${total - items.length} left)`}
                     </button>
-                  );
-                })}
-              </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}

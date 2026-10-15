@@ -57,6 +57,16 @@ function buildBody(item: BulkItem, mode: Mode) {
     // block actually had a Specifications:/Variants: section.
     if (block.contentBlocks) body.contentBlocks = block.contentBlocks;
     if (block.variants) {
+      // The paste format has no way to specify a variant's photo, so a
+      // pasted Variants: block never carries one — fall back to whatever
+      // the existing variant with the same label already has, matched
+      // case-insensitively, instead of wiping it to null. Variants are
+      // replaced wholesale on PATCH (see updateProduct in data/products.ts),
+      // so without this, re-pasting prices alone silently drops every
+      // variant photo.
+      const existingByLabel = new Map(
+        (existing.variants ?? []).map((v) => [v.label.trim().toLowerCase(), v])
+      );
       body.variants = block.variants.map((v) => ({
         id: v.id,
         label: v.label,
@@ -67,7 +77,7 @@ function buildBody(item: BulkItem, mode: Mode) {
         availability: v.availability,
         isDefault: v.isDefault,
         colorHex: v.colorHex || null,
-        imageUrl: v.imageUrl || null,
+        imageUrl: v.imageUrl || existingByLabel.get(v.label.trim().toLowerCase())?.imageUrl || null,
       }));
     }
     return body;
