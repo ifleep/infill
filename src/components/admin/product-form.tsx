@@ -7,7 +7,7 @@ import type { ContentBlock } from "@/lib/content-blocks/types";
 import type { MediaItem } from "@/lib/admin/media-types";
 import { Button } from "@/components/ui/button";
 import { ImageUploader } from "@/components/admin/image-uploader";
-import { MediaPicker } from "@/components/admin/media-picker";
+import { VariantPhotoPicker } from "@/components/admin/variant-photo-picker";
 import { ContentBlockEditor } from "@/components/admin/content-block-editor";
 import { ProductRelationField, type PickableProduct } from "@/components/admin/product-picker";
 import { parseProductText } from "@/lib/admin/parse-product-text";
@@ -784,15 +784,14 @@ export function ProductForm({
             ))}
           </div>
         )}
-        <MediaPicker
+        <VariantPhotoPicker
           open={variantPhotoPickerIndex !== null}
+          items={photos}
           onClose={() => setVariantPhotoPickerIndex(null)}
-          multiple={false}
-          onSelect={(items) => {
-            if (variantPhotoPickerIndex !== null && items[0]) {
-              updateVariant(variantPhotoPickerIndex, { imageUrl: items[0].url });
+          onSelect={(item) => {
+            if (variantPhotoPickerIndex !== null) {
+              updateVariant(variantPhotoPickerIndex, { imageUrl: item.url });
             }
-            setVariantPhotoPickerIndex(null);
           }}
         />
       </div>
