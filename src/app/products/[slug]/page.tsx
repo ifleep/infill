@@ -78,6 +78,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
+    image: product.images,
     brand: { "@type": "Brand", name: product.brandName },
     description: product.shortDescription,
     // A product with more than one variant has more than one real price —
