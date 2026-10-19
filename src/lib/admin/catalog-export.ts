@@ -9,6 +9,8 @@ const PRODUCT_HEADERS = [
   "Category",
   "Subcategory",
   "Technology",
+  "Experience Level",
+  "Use Cases",
   "Price (PKR)",
   "Sale Price (PKR)",
   "Stock",
@@ -119,11 +121,11 @@ export async function buildCatalogWorkbook(products: Product[]): Promise<ExcelJS
   styleHeaderRow(productsSheet.getRow(1));
   productsSheet.columns = [
     { width: 28 }, { width: 24 }, { width: 14 }, { width: 12 }, { width: 16 },
-    { width: 16 }, { width: 12 }, { width: 14 }, { width: 9 }, { width: 13 },
-    { width: 12 }, { width: 10 }, { width: 12 }, { width: 10 }, { width: 9 },
-    { width: 10 }, { width: 8 }, { width: 11 }, { width: 18 }, { width: 11 },
-    { width: 18 }, { width: 12 }, { width: 40 }, { width: 50 }, { width: 14 },
-    { width: 16 }, { width: 16 }, { width: 40 },
+    { width: 16 }, { width: 24 }, { width: 24 }, { width: 12 }, { width: 14 },
+    { width: 9 }, { width: 13 }, { width: 12 }, { width: 10 }, { width: 12 },
+    { width: 10 }, { width: 9 }, { width: 10 }, { width: 8 }, { width: 11 },
+    { width: 18 }, { width: 11 }, { width: 18 }, { width: 12 }, { width: 40 },
+    { width: 50 }, { width: 14 }, { width: 16 }, { width: 16 }, { width: 40 },
   ];
   productsSheet.views = [{ state: "frozen", ySplit: 1 }];
 
@@ -138,6 +140,8 @@ export async function buildCatalogWorkbook(products: Product[]): Promise<ExcelJS
       p.category,
       p.subcategory,
       p.technology?.join(", ") ?? "",
+      p.experienceLevel?.join(", ") ?? "",
+      p.useCases?.join(", ") ?? "",
       p.price,
       p.compareAtPrice ?? "",
       p.stock,
