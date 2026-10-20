@@ -5,7 +5,7 @@ import { FindYourPrinterSection } from "@/components/sections/find-your-printer-
 import { FeaturedPrintersSection } from "@/components/sections/featured-printers-section";
 import { ReviewVideoCard } from "@/components/sections/review-video-card";
 import { HomepagePromoSections } from "@/components/sections/homepage-promo-sections";
-import { MaterialsSection } from "@/components/sections/materials-section";
+import { FeaturedFilamentsSection } from "@/components/sections/featured-filaments-section";
 import { DigitalFabricationSection } from "@/components/sections/digital-fabrication-section";
 import { ServicesSection } from "@/components/sections/services-section";
 import { LearnSection } from "@/components/sections/learn-section";
@@ -43,7 +43,7 @@ export default async function Home() {
         supportOverheadPercent={settings.printSupportOverheadPercent}
         serviceFeePkr={settings.printServiceFeePkr}
       />
-      <MaterialsSection />
+      <FeaturedFilamentsSection />
       <PrintingDiscoverySection />
       <FindYourPrinterSection printers={printers} />
       <DigitalFabricationSection />
