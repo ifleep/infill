@@ -221,7 +221,17 @@ export async function getFeaturedProducts(): Promise<Product[]> {
  * drop it from the list for real.
  */
 export async function getRelatedProducts(product: Product, options?: { includeHidden?: boolean }): Promise<Product[]> {
-  const ids = product.relatedProductIds ?? [];
+  return getProductsByIds(product.relatedProductIds ?? [], options);
+}
+
+/**
+ * Resolves a bare list of product IDs into full Product records — the same
+ * shape getRelatedProducts/getAccessories use, but not tied to another
+ * product's own relation fields, so anything else that stores a plain
+ * `string[]` of product IDs (e.g. an Article's relatedProductIds) can reuse
+ * it instead of re-deriving the same query.
+ */
+export async function getProductsByIds(ids: string[], options?: { includeHidden?: boolean }): Promise<Product[]> {
   if (ids.length === 0) return [];
   const where = options?.includeHidden ? { id: { in: ids } } : { id: { in: ids }, hidden: false };
   const [rows, leadDays] = await Promise.all([
@@ -233,14 +243,7 @@ export async function getRelatedProducts(product: Product, options?: { includeHi
 
 // See getRelatedProducts above for the includeHidden reasoning.
 export async function getAccessories(product: Product, options?: { includeHidden?: boolean }): Promise<Product[]> {
-  const ids = product.accessoryIds ?? [];
-  if (ids.length === 0) return [];
-  const where = options?.includeHidden ? { id: { in: ids } } : { id: { in: ids }, hidden: false };
-  const [rows, leadDays] = await Promise.all([
-    prisma.product.findMany({ where, include: productWithMediaInclude }),
-    getEffectivePreorderLeadDays(),
-  ]);
-  return rows.map((r) => fromRow(r, leadDays));
+  return getProductsByIds(product.accessoryIds ?? [], options);
 }
 
 // Storefront only — excludes hidden products.

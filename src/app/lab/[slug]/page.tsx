@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getPublishedArticleBySlug, getPublishedArticles } from "@/lib/data/articles";
+import { getProductsByIds } from "@/lib/data/products";
 import { ContentRenderer } from "@/components/content-blocks/content-renderer";
+import { ProductCard } from "@/components/product/product-card";
 import { getRedirectTarget } from "@/lib/data/redirects";
 
 export async function generateStaticParams() {
@@ -42,6 +44,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     notFound();
   }
 
+  const relatedProducts = await getProductsByIds(article.relatedProductIds ?? []);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -77,6 +81,17 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       <div className="prose mt-8">
         <ContentRenderer blocks={article.contentBlocks} />
       </div>
+
+      {relatedProducts.length > 0 && (
+        <section className="mt-12 border-t border-border pt-8">
+          <h2 className="font-display text-xl font-semibold text-ink">Shop the products in this guide</h2>
+          <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {relatedProducts.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="mt-12 border-t border-border pt-6">
         <Link href="/lab" className="focus-ring text-sm font-medium text-blue-700 hover:text-blue-600">

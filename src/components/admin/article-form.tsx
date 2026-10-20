@@ -8,6 +8,7 @@ import type { MediaItem } from "@/lib/admin/media-types";
 import { Button } from "@/components/ui/button";
 import { ContentBlockEditor } from "@/components/admin/content-block-editor";
 import { MediaPicker } from "@/components/admin/media-picker";
+import { ProductRelationField, type PickableProduct } from "@/components/admin/product-picker";
 
 const categories: Article["category"][] = ["Buying Guide", "Comparison", "Materials", "Maintenance", "Technology"];
 
@@ -55,9 +56,18 @@ const empty: FormValues = {
   noindex: false,
 };
 
-export function ArticleForm({ article, articleId }: { article?: Article; articleId?: string }) {
+export function ArticleForm({
+  article,
+  articleId,
+  relatedProducts: initialRelatedProducts,
+}: {
+  article?: Article;
+  articleId?: string;
+  relatedProducts?: PickableProduct[];
+}) {
   const [values, setValues] = useState<FormValues>(article ? fromArticle(article) : empty);
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>(article?.contentBlocks ?? []);
+  const [relatedProducts, setRelatedProducts] = useState<PickableProduct[]>(initialRelatedProducts ?? []);
   const [featuredImage, setFeaturedImage] = useState<MediaItem | null>(
     article?.featuredImageUrl ? { id: "", url: article.featuredImageUrl, alt: null, caption: null } : null
   );
@@ -80,6 +90,7 @@ export function ArticleForm({ article, articleId }: { article?: Article; article
       publishedAt: values.publishedAt || null,
       contentBlocks,
       featuredImageId: featuredImage?.id || null,
+      relatedProductIds: relatedProducts.map((p) => p.id),
     };
     try {
       const res = await fetch(articleId ? `/api/admin/articles/${articleId}` : "/api/admin/articles", {
@@ -182,6 +193,15 @@ export function ArticleForm({ article, articleId }: { article?: Article; article
       <div>
         <span className="mb-1.5 block text-sm font-medium text-ink">Article content</span>
         <ContentBlockEditor blocks={contentBlocks} onChange={setContentBlocks} />
+      </div>
+
+      <div className="border-t border-border pt-5">
+        <ProductRelationField
+          label="Related products"
+          hint='Shown as a "Shop the products in this guide" section on the article page — the actual products this article discusses.'
+          items={relatedProducts}
+          onChange={setRelatedProducts}
+        />
       </div>
 
       <div className="border-t border-border pt-5">

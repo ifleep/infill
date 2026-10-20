@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { getCategoryDef, categoryDefs } from "@/components/category/category-config";
 import { getProductsByCategory } from "@/lib/data/products";
+import { getPublishedArticles } from "@/lib/data/articles";
 import { ProductCard } from "@/components/product/product-card";
 import { CategoryFilters, type ActiveFilters } from "@/components/category/category-filters";
 import { SortSelect } from "@/components/category/sort-select";
@@ -58,7 +60,13 @@ export default async function CategoryPage({
     priceMax: firstParam(sp.priceMax),
   };
 
-  const productsInCategory = await getProductsByCategory(def.productCategory);
+  const [productsInCategory, allArticles] = await Promise.all([
+    getProductsByCategory(def.productCategory),
+    getPublishedArticles(),
+  ]);
+  const relatedGuides = allArticles
+    .filter((a) => !a.noindex && def.articleCategories.includes(a.category))
+    .slice(0, 3);
 
   const priceMin = current.priceMin ? Number(current.priceMin) : undefined;
   const priceMax = current.priceMax ? Number(current.priceMax) : undefined;
@@ -92,9 +100,10 @@ export default async function CategoryPage({
     }
   });
 
+  const showAll = firstParam(sp.view) === "all";
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
   const currentPage = Math.min(Math.max(Number(firstParam(sp.page)) || 1, 1), totalPages);
-  const paged = sorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const paged = showAll ? sorted : sorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   // Every filter except sort/page — reused as the base for both the sort
   // dropdown (picking a new sort resets to page 1) and page links (which
@@ -103,6 +112,13 @@ export default async function CategoryPage({
   for (const [k, v] of Object.entries(current)) {
     if (v) filterParams.set(k, v);
   }
+
+  const viewAllHref = (() => {
+    const params = new URLSearchParams(filterParams);
+    if (sort !== "featured") params.set("sort", sort);
+    params.set("view", "all");
+    return `/category/${slug}?${params.toString()}`;
+  })();
 
   function hrefForPage(page: number) {
     const params = new URLSearchParams(filterParams);
@@ -141,11 +157,46 @@ export default async function CategoryPage({
                   <ProductCard key={p.id} product={p} />
                 ))}
               </div>
-              <Pagination currentPage={currentPage} totalPages={totalPages} hrefForPage={hrefForPage} />
+              {showAll ? (
+                totalPages > 1 && (
+                  <p className="mt-6 text-center text-sm text-ink-muted">
+                    Showing all {sorted.length} results.{" "}
+                    <Link href={hrefForPage(1)} className="focus-ring text-blue-700 hover:underline">
+                      Back to paginated view
+                    </Link>
+                  </p>
+                )
+              ) : (
+                <>
+                  <Pagination currentPage={currentPage} totalPages={totalPages} hrefForPage={hrefForPage} />
+                  {totalPages > 1 && (
+                    <p className="mt-4 text-center text-sm">
+                      <Link href={viewAllHref} className="focus-ring text-blue-700 hover:underline">
+                        View all {sorted.length} results on one page
+                      </Link>
+                    </p>
+                  )}
+                </>
+              )}
             </>
           ) : (
             <div className="rounded-xl border border-dashed border-border-strong p-10 text-center text-sm text-ink-muted">
               No products match these filters yet.
+            </div>
+          )}
+
+          {relatedGuides.length > 0 && (
+            <div className="mt-12 border-t border-border pt-6">
+              <h2 className="font-display text-base font-semibold text-ink">Related guides</h2>
+              <ul className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
+                {relatedGuides.map((a) => (
+                  <li key={a.slug}>
+                    <Link href={`/lab/${a.slug}`} className="focus-ring text-sm text-blue-700 hover:underline">
+                      {a.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>
