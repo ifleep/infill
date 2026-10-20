@@ -90,6 +90,9 @@ export function SiteFooter() {
             <Link href="/legal/shipping" className="focus-ring hover:text-on-navy">
               Shipping
             </Link>
+            <Link href="/sitemap-page" className="focus-ring hover:text-on-navy">
+              Sitemap
+            </Link>
           </div>
         </div>
       </div>
