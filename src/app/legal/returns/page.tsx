@@ -8,8 +8,9 @@ export default function ReturnsPage() {
     <div className="container-page max-w-2xl py-12 sm:py-16">
       <h1 className="font-display text-3xl font-semibold text-ink">Returns &amp; Warranty</h1>
       <LegalSection title="Returns">
-        Unopened, unused items in original packaging can be returned within a reasonable window of
-        delivery. Contact support to start a return.
+        Unopened, unused items in original packaging can be returned within 3 days of delivery —
+        we cover the return shipping cost. Contact support to start a return, and choose a refund
+        to your original payment method or an exchange, whichever you prefer.
       </LegalSection>
       <LegalSection title="Warranty">
         You have 3 days from delivery to check your product and report any manufacturing defects or

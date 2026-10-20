@@ -49,6 +49,39 @@ export async function generateMetadata({
   };
 }
 
+// Same return policy site-wide: 3 days from delivery, merchant pays return
+// shipping, refund as money back or exchange (customer's choice — not a
+// field schema.org's MerchantReturnPolicy has, so that detail lives on the
+// /legal/returns page text instead).
+const MERCHANT_RETURN_POLICY = {
+  "@type": "MerchantReturnPolicy",
+  returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+  merchantReturnDays: 3,
+  returnMethod: "https://schema.org/ReturnByMail",
+  returnFees: "https://schema.org/FreeReturn",
+  applicableCountry: "PK",
+} as const;
+
+// Flat shipping rate by category, matching the real tiers on /legal/shipping:
+// printers are heavy enough to cost more to ship than filament/resin/parts.
+// "machines" (industrial/robotics) ship via a custom freight quote with no
+// fixed rate, so there's nothing honest to put in shippingRate for those —
+// shippingDetails is omitted entirely rather than inventing a number.
+function shippingDetailsFor(category: Product["category"]) {
+  if (category === "machines") return undefined;
+  const value = category === "printers" ? 2500 : 500;
+  return {
+    "@type": "OfferShippingDetails",
+    shippingRate: { "@type": "MonetaryAmount", value, currency: "PKR" },
+    shippingDestination: { "@type": "DefinedRegion", addressCountry: "PK" },
+    deliveryTime: {
+      "@type": "ShippingDeliveryTime",
+      handlingTime: { "@type": "QuantitativeValue", minValue: 1, maxValue: 3, unitCode: "DAY" },
+      transitTime: { "@type": "QuantitativeValue", minValue: 2, maxValue: 5, unitCode: "DAY" },
+    },
+  };
+}
+
 const statFields: { label: string; get: (p: Product) => string | null }[] = [
   {
     label: "Build volume",
@@ -73,6 +106,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     getCompatibleFilaments(product),
   ]);
   const stats = statFields.map((f) => ({ label: f.label, value: f.get(product) })).filter((s) => s.value);
+  const shippingDetails = shippingDetailsFor(product.category);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -92,12 +126,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             lowPrice: Math.min(...product.variants.map((v) => v.price)),
             highPrice: Math.max(...product.variants.map((v) => v.price)),
             offerCount: product.variants.length,
+            hasMerchantReturnPolicy: MERCHANT_RETURN_POLICY,
+            ...(shippingDetails ? { shippingDetails } : {}),
           }
         : {
             "@type": "Offer",
             priceCurrency: "PKR",
             price: product.price,
             availability: schemaAvailability(product.availability),
+            hasMerchantReturnPolicy: MERCHANT_RETURN_POLICY,
+            ...(shippingDetails ? { shippingDetails } : {}),
           },
     ...(product.rating && product.reviewCount
       ? {
