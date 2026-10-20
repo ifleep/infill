@@ -198,6 +198,19 @@ export async function getProductsByCategory(category: Product["category"]): Prom
   return rows.map((r) => fromRow(r, leadDays));
 }
 
+// Storefront only (brand page) — excludes hidden products.
+export async function getProductsByBrandSlug(brandSlug: string): Promise<Product[]> {
+  const [rows, leadDays] = await Promise.all([
+    prisma.product.findMany({
+      where: { brand: { slug: brandSlug }, hidden: false },
+      orderBy: { name: "asc" },
+      include: productWithMediaInclude,
+    }),
+    getEffectivePreorderLeadDays(),
+  ]);
+  return rows.map((r) => fromRow(r, leadDays));
+}
+
 // Storefront only (homepage) — excludes hidden products.
 export async function getFeaturedProducts(): Promise<Product[]> {
   const [rows, leadDays] = await Promise.all([

@@ -5,6 +5,7 @@ const columns = [
   {
     heading: "Shop",
     links: [
+      { label: "Brands", href: "/brands" },
       { label: "3D Printers", href: "/category/3d-printers" },
       { label: "Filaments", href: "/category/filament" },
       { label: "Parts & Accessories", href: "/category/parts-accessories" },

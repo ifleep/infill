@@ -2,15 +2,17 @@ import type { MetadataRoute } from "next";
 import { getVisibleProducts } from "@/lib/data/products";
 import { getAllPublishedPages } from "@/lib/data/pages";
 import { getPublishedArticles } from "@/lib/data/articles";
+import { getBrandsWithVisibleProducts } from "@/lib/data/brands";
 import { categoryDefs } from "@/components/category/category-config";
 
 const BASE_URL = "https://infillpk.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [products, cmsPages, articles] = await Promise.all([
+  const [products, cmsPages, articles, brands] = await Promise.all([
     getVisibleProducts(),
     getAllPublishedPages(),
     getPublishedArticles(),
+    getBrandsWithVisibleProducts(),
   ]);
   const staticRoutes = [
     "",
@@ -20,6 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/lab",
     "/compare",
     "/sitemap-page",
+    "/brands",
   ].map((path) => ({
     url: `${BASE_URL}${path}`,
     changeFrequency: "weekly" as const,
@@ -30,6 +33,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${BASE_URL}/category/${c.slug}`,
     changeFrequency: "daily" as const,
     priority: 0.8,
+  }));
+
+  const brandRoutes = brands.map((b) => ({
+    url: `${BASE_URL}/brands/${b.slug}`,
+    changeFrequency: "weekly" as const,
+    priority: 0.6,
   }));
 
   const productRoutes = products
@@ -56,5 +65,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.4,
     }));
 
-  return [...staticRoutes, ...categoryRoutes, ...productRoutes, ...articleRoutes, ...cmsPageRoutes];
+  return [...staticRoutes, ...categoryRoutes, ...brandRoutes, ...productRoutes, ...articleRoutes, ...cmsPageRoutes];
 }

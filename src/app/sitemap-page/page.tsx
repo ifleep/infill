@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getVisibleProducts } from "@/lib/data/products";
 import { getAllPublishedPages } from "@/lib/data/pages";
 import { getPublishedArticles } from "@/lib/data/articles";
+import { getBrandsWithVisibleProducts } from "@/lib/data/brands";
 import { categoryDefs } from "@/components/category/category-config";
 
 export const metadata: Metadata = {
@@ -29,10 +30,11 @@ const staticPages = [
  * category-page pagination to surface the full catalog.
  */
 export default async function SitemapPage() {
-  const [products, cmsPages, articles] = await Promise.all([
+  const [products, cmsPages, articles, brands] = await Promise.all([
     getVisibleProducts(),
     getAllPublishedPages(),
     getPublishedArticles(),
+    getBrandsWithVisibleProducts(),
   ]);
 
   const productsByCategory = new Map<string, typeof products>();
@@ -95,6 +97,25 @@ export default async function SitemapPage() {
           </section>
         );
       })}
+
+      {brands.length > 0 && (
+        <section className="mt-10">
+          <h2 className="font-display text-lg font-semibold text-ink">
+            <Link href="/brands" className="focus-ring hover:underline">
+              Brands
+            </Link>
+          </h2>
+          <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-1.5 sm:grid-cols-3">
+            {brands.map((b) => (
+              <li key={b.slug}>
+                <Link href={`/brands/${b.slug}`} className="focus-ring text-sm text-blue-700 hover:underline">
+                  {b.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {articles.length > 0 && (
         <section className="mt-10">

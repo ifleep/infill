@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Star } from "@phosphor-icons/react";
 import type { Product } from "@/lib/types";
 import { ProductGallery } from "@/components/product/product-gallery";
@@ -36,7 +37,12 @@ export function ProductPurchaseSection({
       </div>
 
       <div>
-        <p className="text-sm font-medium uppercase tracking-wide text-ink-faint">{product.brandName}</p>
+        <Link
+          href={`/brands/${product.brandSlug}`}
+          className="focus-ring text-sm font-medium uppercase tracking-wide text-ink-faint hover:text-blue-700"
+        >
+          {product.brandName}
+        </Link>
         <h1 className="font-display mt-1 text-3xl font-semibold text-ink sm:text-4xl">{product.name}</h1>
 
         {product.rating && product.reviewCount ? (
