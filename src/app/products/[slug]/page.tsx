@@ -193,7 +193,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <div className="mt-16 grid grid-cols-1 gap-12 lg:grid-cols-[1fr_320px]">
         <div>
           <h2 className="font-display text-xl font-semibold text-ink">Overview</h2>
-          {product.description && <p className="mt-3 max-w-2xl text-ink-muted">{product.description}</p>}
+          {product.description && <p className="mt-3 text-justify text-ink-muted">{product.description}</p>}
           {product.contentBlocks && product.contentBlocks.length > 0 && (
             <div className="mt-4">
               <ContentRenderer blocks={product.contentBlocks} />
