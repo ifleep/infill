@@ -101,7 +101,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
               </div>
               {order.discount > 0 && (
                 <div className="flex justify-between text-ink-muted">
-                  <span>Discount</span>
+                  <span>Discount{order.couponCode ? ` (${order.couponCode})` : ""}</span>
                   <span className="tabular">−{formatPKR(order.discount)}</span>
                 </div>
               )}

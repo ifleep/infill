@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { computeCouponDiscount, normalizeCouponCode, CouponError } from "@/lib/data/coupons";
 
 // 250 PKR/kg, capped at 2500 PKR — the cap kicks in naturally at 10kg
 // (10 * 250 = 2500), so a single min() covers both halves of the rule.
@@ -33,6 +34,8 @@ export interface CreateOrderInput {
   address: CheckoutAddressInput;
   paymentMethod: "cod" | "transfer";
   lines: CheckoutLineInput[];
+  /** Raw code as typed by the customer — re-validated and redeemed here, never trusted from a client-computed discount amount. */
+  couponCode?: string;
 }
 
 export class OrderError extends Error {}
@@ -119,7 +122,26 @@ export async function createOrder(input: CreateOrderInput) {
     }
 
     const shippingCost = Math.min(Math.round(totalWeightKg * SHIPPING_COST_PER_KG), SHIPPING_COST_CAP);
-    const total = subtotal + shippingCost;
+
+    // Re-validated and redeemed inside this same transaction — the usage-limit
+    // check and the increment below have to see the same row, or two orders
+    // placed at once could both slip past a maxRedemptions check.
+    let discount = 0;
+    let appliedCouponCode: string | null = null;
+    if (input.couponCode && input.couponCode.trim()) {
+      const code = normalizeCouponCode(input.couponCode);
+      const coupon = await tx.coupon.findUnique({ where: { code } });
+      if (!coupon) throw new OrderError("This coupon code isn't valid.");
+      try {
+        discount = computeCouponDiscount(coupon, subtotal);
+      } catch (err) {
+        throw new OrderError(err instanceof CouponError ? err.message : "This coupon code isn't valid.");
+      }
+      appliedCouponCode = coupon.code;
+      await tx.coupon.update({ where: { id: coupon.id }, data: { redemptionCount: { increment: 1 } } });
+    }
+
+    const total = subtotal + shippingCost - discount;
 
     let orderNumber = generateOrderNumber();
     for (let attempt = 0; attempt < 5; attempt++) {
@@ -141,6 +163,8 @@ export async function createOrder(input: CreateOrderInput) {
         shippingAddress: { ...input.address, phone: input.guestPhone || input.address.phone },
         subtotal,
         shippingCost,
+        discount,
+        couponCode: appliedCouponCode,
         total,
         items: { create: items },
       },

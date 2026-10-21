@@ -12,6 +12,8 @@ interface OrderForNotification {
   orderNumber: string;
   subtotal: number;
   shippingCost: number;
+  discount: number;
+  couponCode: string | null;
   total: number;
   paymentMethod: string | null;
   shippingAddress: unknown;
@@ -107,6 +109,14 @@ function totalsBlock(order: OrderForNotification): string {
         <td style="padding:3px 0;font-size:13px;color:${INK_MUTED}">Shipping</td>
         <td style="padding:3px 0;font-size:13px;color:${INK_MUTED};text-align:right">${formatPKR(order.shippingCost)}</td>
       </tr>
+      ${
+        order.discount > 0
+          ? `<tr>
+        <td style="padding:3px 0;font-size:13px;color:${BRAND_GREEN}">Discount${order.couponCode ? ` (${order.couponCode})` : ""}</td>
+        <td style="padding:3px 0;font-size:13px;color:${BRAND_GREEN};text-align:right">−${formatPKR(order.discount)}</td>
+      </tr>`
+          : ""
+      }
       <tr>
         <td style="padding:8px 0 0;font-size:16px;font-weight:700;color:${INK}">Total</td>
         <td style="padding:8px 0 0;font-size:16px;font-weight:700;color:${INK};text-align:right">${formatPKR(order.total)}</td>

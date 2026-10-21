@@ -393,6 +393,8 @@ model Order {
   subtotal     Int
   shippingCost Int @default(0)
   discount     Int @default(0)
+  /** Snapshot of the code applied, kept even if the Coupon row is later edited or deleted — same pattern as OrderItem.productName. */
+  couponCode   String?
   total        Int
 
   notes String? @db.Text
@@ -404,6 +406,31 @@ model Order {
 
   @@index([customerId])
   @@index([status])
+}
+
+// A discount code an admin creates and a customer applies at checkout.
+// Validated and redeemed server-side only (createOrder) — the client-side
+// "Apply" button in checkout just previews the discount before placing the
+// order, same no-trust-the-client pattern as prices/stock.
+model Coupon {
+  id       String @id @default(cuid())
+  code     String @unique
+
+  discountType  String // "percent" | "fixed"
+  discountValue Int // percent (1-100) or a flat PKR amount, depending on discountType
+  /** Caps the PKR amount a percent discount can take off — ignored for discountType "fixed". Null means uncapped. */
+  maxDiscountAmount Int?
+  /** Cart subtotal (PKR) required before the code can be applied. Null means no minimum. */
+  minOrderAmount Int?
+  /** Total number of times this code can ever be redeemed. Null means unlimited. */
+  maxRedemptions  Int?
+  redemptionCount Int  @default(0)
+
+  active    Boolean   @default(true)
+  expiresAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model OrderItem {

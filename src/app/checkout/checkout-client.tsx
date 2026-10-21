@@ -42,6 +42,10 @@ export default function CheckoutClient({
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
   const [placing, setPlacing] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountAmount: number } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
   const [form, setForm] = useState<FormState>({
     email: initial.email ?? "",
     phone: initial.phone ?? "",
@@ -61,7 +65,38 @@ export default function CheckoutClient({
     const totalWeightKg = lines.reduce((sum, l) => sum + (l.weightKg ?? FALLBACK_ITEM_WEIGHT_KG) * l.quantity, 0);
     return Math.min(Math.round(totalWeightKg * SHIPPING_COST_PER_KG), SHIPPING_COST_CAP);
   }, [lines]);
-  const total = subtotal + shipping;
+  const discount = appliedCoupon?.discountAmount ?? 0;
+  const total = subtotal + shipping - discount;
+
+  async function applyCoupon() {
+    if (!couponInput.trim()) return;
+    setApplyingCoupon(true);
+    setCouponError(null);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponInput, subtotal }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCouponError(data.error ?? "Couldn't apply that code.");
+        setAppliedCoupon(null);
+        return;
+      }
+      setAppliedCoupon({ code: data.code, discountAmount: data.discountAmount });
+    } catch {
+      setCouponError("Couldn't reach the server. Try again.");
+    } finally {
+      setApplyingCoupon(false);
+    }
+  }
+
+  function removeCoupon() {
+    setAppliedCoupon(null);
+    setCouponInput("");
+    setCouponError(null);
+  }
 
   if (lines.length === 0 && step < 4) {
     return (
@@ -90,6 +125,7 @@ export default function CheckoutClient({
           province: form.province,
           paymentMethod: form.paymentMethod,
           lines: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, quantity: l.quantity })),
+          couponCode: appliedCoupon?.code,
         }),
       });
       const data = await res.json();
@@ -162,6 +198,48 @@ export default function CheckoutClient({
                 </li>
               ))}
             </ul>
+            <div className="mt-4 border-t border-border pt-4">
+              {appliedCoupon ? (
+                <div className="flex items-center justify-between rounded-md bg-green-50 px-3 py-2 text-sm">
+                  <span className="font-medium text-green-700">
+                    &ldquo;{appliedCoupon.code}&rdquo; applied
+                  </span>
+                  <button
+                    type="button"
+                    onClick={removeCoupon}
+                    className="focus-ring cursor-pointer text-xs font-medium text-ink-muted hover:text-ink"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex gap-2">
+                    <input
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          applyCoupon();
+                        }
+                      }}
+                      placeholder="Coupon code"
+                      className="focus-ring h-9 w-full rounded-md border border-border-strong px-3 text-sm text-ink placeholder:text-ink-faint"
+                    />
+                    <Button
+                      variant="ghost"
+                      onClick={applyCoupon}
+                      disabled={applyingCoupon || !couponInput.trim()}
+                    >
+                      {applyingCoupon ? "Checking…" : "Apply"}
+                    </Button>
+                  </div>
+                  {couponError && <p className="mt-1.5 text-xs text-destructive">{couponError}</p>}
+                </div>
+              )}
+            </div>
+
             <div className="mt-4 space-y-1.5 border-t border-border pt-4 text-sm">
               <div className="flex justify-between text-ink-muted">
                 <span>Product total</span>
@@ -171,6 +249,12 @@ export default function CheckoutClient({
                 <span>Shipping</span>
                 <span className="tabular">{formatPKR(shipping)}</span>
               </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-green-700">
+                  <span>Discount</span>
+                  <span className="tabular">−{formatPKR(discount)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-base font-semibold text-ink">
                 <span>Total</span>
                 <span className="tabular">{formatPKR(total)}</span>

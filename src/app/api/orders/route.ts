@@ -18,6 +18,7 @@ export async function POST(request: Request) {
   const province = typeof b.province === "string" ? b.province.trim() : "";
   const paymentMethod = b.paymentMethod === "transfer" ? "transfer" : "cod";
   const lines = Array.isArray(b.lines) ? (b.lines as unknown[]) : [];
+  const couponCode = typeof b.couponCode === "string" ? b.couponCode.trim() : undefined;
 
   if (!email.includes("@")) return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
   if (phone.length < 7) return NextResponse.json({ error: "Enter a valid phone number." }, { status: 400 });
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
       address: { fullName, phone, address, city, province },
       paymentMethod,
       lines: parsedLines,
+      couponCode,
     });
 
     await sendOrderNotifications(order, email).catch((err) => {

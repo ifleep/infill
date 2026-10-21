@@ -24,6 +24,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     label: "Sales",
     items: [
       { href: "/admin/orders", label: "Orders", available: true },
+      { href: "/admin/coupons", label: "Coupons", available: true },
       { href: "/admin/customers", label: "Customers", available: true },
       { href: "/admin/quote-requests", label: "Quote Requests", available: true },
       { href: "/admin/reviews", label: "Reviews", available: true },
