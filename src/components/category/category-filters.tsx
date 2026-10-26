@@ -53,6 +53,7 @@ function FilterGroup({
             <li key={opt.value}>
               <Link
                 href={buildHref(base, current, filterKey, opt.value)}
+                rel="nofollow"
                 className={`focus-ring flex cursor-pointer items-center gap-2 text-sm ${
                   active ? "font-semibold text-blue-700" : "text-ink-muted hover:text-ink"
                 }`}
