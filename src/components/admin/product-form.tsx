@@ -291,7 +291,13 @@ export function ProductForm({
       ...values,
       categoryId: values.categoryId || null,
       price: values.price === "" ? 0 : values.price,
-      compareAtPrice: values.compareAtPrice === "" ? null : values.compareAtPrice,
+      // The Sale price input is disabled (and shown blank) once variants exist —
+      // compareAtPrice lives per-variant then, see the variants map below — but
+      // values.compareAtPrice still holds whatever was loaded from the product
+      // before variants were added, since a disabled input never fires onChange
+      // to clear it. Force null here so saving doesn't silently resurrect that
+      // stale product-level value as a strikethrough price on the live page.
+      compareAtPrice: variants.length > 0 ? null : values.compareAtPrice === "" ? null : values.compareAtPrice,
       stock: values.stock === "" ? 0 : values.stock,
       lowStockThreshold: values.lowStockThreshold === "" ? null : values.lowStockThreshold,
       preorderLeadDays: values.preorderLeadDays === "" ? null : values.preorderLeadDays,
