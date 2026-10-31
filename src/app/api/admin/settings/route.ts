@@ -1,9 +1,31 @@
 import { NextResponse } from "next/server";
 import { hasValidAdminSession } from "@/lib/admin-auth";
 import { getSiteSettings, updateSiteSettings } from "@/lib/data/settings";
+import type { BankAccount } from "@/lib/data/settings";
 import type { BlockImageRef } from "@/lib/content-blocks/types";
 import type { PrintMaterial } from "@/lib/print-estimate";
 import { revalidateSite } from "@/lib/revalidate";
+
+function parseBankAccounts(input: unknown): BankAccount[] | undefined {
+  if (!Array.isArray(input)) return undefined;
+  const accounts: BankAccount[] = [];
+  for (const raw of input) {
+    if (typeof raw !== "object" || raw === null) continue;
+    const r = raw as Record<string, unknown>;
+    if (typeof r.id !== "string" || !r.id) continue;
+    if (typeof r.accountTitle !== "string" || !r.accountTitle.trim()) continue;
+    if (typeof r.bankName !== "string" || !r.bankName.trim()) continue;
+    if (typeof r.iban !== "string" || !r.iban.trim()) continue;
+    accounts.push({
+      id: r.id,
+      label: typeof r.label === "string" && r.label.trim() ? r.label.trim() : r.accountTitle.trim(),
+      accountTitle: r.accountTitle.trim(),
+      bankName: r.bankName.trim(),
+      iban: r.iban.trim(),
+    });
+  }
+  return accounts;
+}
 
 function parseHeroImages(input: unknown): BlockImageRef[] | undefined {
   if (!Array.isArray(input)) return undefined;
@@ -67,6 +89,7 @@ export async function PATCH(request: Request) {
     printSupportOverheadPercent?: number;
     printServiceFeePkr?: number;
     preorderLeadTimeDays?: number;
+    savedBankAccounts?: BankAccount[];
   } = {};
   if (typeof b.whatsappNumber === "string") patch.whatsappNumber = b.whatsappNumber.replace(/[^0-9]/g, "");
   if (typeof b.whatsappMessage === "string") patch.whatsappMessage = b.whatsappMessage;
@@ -88,6 +111,8 @@ export async function PATCH(request: Request) {
   if (typeof b.preorderLeadTimeDays === "number" && b.preorderLeadTimeDays >= 1) {
     patch.preorderLeadTimeDays = Math.round(b.preorderLeadTimeDays);
   }
+  const savedBankAccounts = parseBankAccounts(b.savedBankAccounts);
+  if (savedBankAccounts) patch.savedBankAccounts = savedBankAccounts;
 
   await updateSiteSettings(patch);
   revalidateSite();

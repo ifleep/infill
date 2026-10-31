@@ -5,6 +5,7 @@ import { Plus, Trash } from "@phosphor-icons/react";
 import type { SiteSettings } from "@/lib/data/settings";
 import type { PrintMaterial } from "@/lib/print-estimate";
 import { HeroImagesEditor } from "@/components/admin/hero-images-editor";
+import { BankAccountsManager } from "@/components/admin/bank-accounts-manager";
 
 const inputClass =
   "focus-ring w-full rounded-md border border-border-strong px-3 py-2 text-sm text-ink placeholder:text-ink-faint";
@@ -259,6 +260,11 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
           Applies to every preorder product unless a product sets its own override on its edit page.
         </span>
       </label>
+
+      <BankAccountsManager
+        accounts={values.savedBankAccounts}
+        onChange={(savedBankAccounts) => setValues((v) => ({ ...v, savedBankAccounts }))}
+      />
 
       <div className="flex items-center gap-3">
         <button

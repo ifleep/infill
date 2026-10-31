@@ -4,6 +4,19 @@ import type { Prisma } from "@/generated/prisma/client";
 import type { BlockImageRef } from "@/lib/content-blocks/types";
 import type { PrintMaterial } from "@/lib/print-estimate";
 
+// A bank account an admin can put on a generated invoice — kept as a
+// reusable "history" list (see SiteSettings.savedBankAccounts) so the
+// account used most recently is one click away next time rather than
+// retyped. Nothing here is validated against a real bank — it's exactly
+// what the admin typed, printed as-is onto invoices.
+export interface BankAccount {
+  id: string;
+  label: string; // e.g. "Standard Chartered — Muhammad Ahsan"
+  accountTitle: string;
+  bankName: string;
+  iban: string;
+}
+
 // A small key-value store for global site settings that don't warrant
 // their own model (SiteSetting.value is a Json column).
 export interface SiteSettings {
@@ -25,6 +38,8 @@ export interface SiteSettings {
   printServiceFeePkr: number;
   /** Default "ships in ~N days" shown next to Preorder anywhere a product doesn't set its own preorderLeadDays override — see Product.preorderLeadDays. */
   preorderLeadTimeDays: number;
+  /** Saved bank accounts an admin can pick from when generating an order invoice — see BankAccount. */
+  savedBankAccounts: BankAccount[];
 }
 
 // Real physical densities (g/cm³) — safe defaults, these are material
@@ -49,6 +64,7 @@ const DEFAULTS: SiteSettings = {
   printSupportOverheadPercent: 15,
   printServiceFeePkr: 200,
   preorderLeadTimeDays: 25,
+  savedBankAccounts: [],
 };
 
 // Wrapped in React's cache() so the several product-listing data functions

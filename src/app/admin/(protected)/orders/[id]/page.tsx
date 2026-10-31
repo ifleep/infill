@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react/ssr";
 import { prisma } from "@/lib/db";
 import { formatPKR } from "@/lib/format";
+import { getSiteSettings } from "@/lib/data/settings";
 import { OrderDetailControls } from "@/components/admin/order-detail-controls";
+import { InvoiceGenerator } from "@/components/admin/invoice-generator";
 
 interface ShippingAddress {
   fullName: string;
@@ -32,6 +34,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   });
   if (!order) notFound();
 
+  const settings = await getSiteSettings();
   const address = isShippingAddress(order.shippingAddress) ? order.shippingAddress : null;
   const customerName = order.customer?.name ?? order.guestName ?? "Guest";
   const customerEmail = order.customer?.email ?? order.guestEmail ?? "—";
@@ -169,6 +172,8 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
               <p className="text-sm text-ink-faint">No address on file.</p>
             )}
           </div>
+
+          <InvoiceGenerator orderId={order.id} bankAccounts={settings.savedBankAccounts} />
 
           <OrderDetailControls
             orderId={order.id}
