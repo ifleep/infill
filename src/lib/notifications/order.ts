@@ -138,6 +138,51 @@ function addressBlock(address: ShippingAddress | null): string {
     </div>`;
 }
 
+const STATUS_EMAIL_COPY: Record<string, { subject: string; heading: string; message: string }> = {
+  processing: {
+    subject: "is being processed",
+    heading: "Your order is being processed",
+    message: "is now being prepared and will be packed for shipping soon.",
+  },
+  shipped: {
+    subject: "has shipped",
+    heading: "Your order is on its way",
+    message: "has shipped and is on its way to you.",
+  },
+  delivered: {
+    subject: "has been delivered",
+    heading: "Your order has been delivered",
+    message: "has been marked as delivered. We hope you enjoy it!",
+  },
+  cancelled: {
+    subject: "has been cancelled",
+    heading: "Your order has been cancelled",
+    message: "has been cancelled. If this doesn't look right, just reply to this email and we'll sort it out.",
+  },
+};
+
+/** Fired from the admin order status dropdown — see PATCH /api/admin/orders/[id]. "pending" has no email of its own since the order-confirmation email already covers that first state. */
+export async function sendOrderStatusEmail(
+  order: { orderNumber: string },
+  status: string,
+  customerEmail: string
+): Promise<void> {
+  const copy = STATUS_EMAIL_COPY[status];
+  if (!copy) return;
+
+  const html = emailLayout(
+    `Order ${order.orderNumber} ${copy.subject}`,
+    `
+      <h1 style="margin:0 0 4px;font-size:22px;font-weight:700;color:${INK}">${copy.heading}</h1>
+      <p style="margin:0;font-size:14px;color:${INK_MUTED}">
+        Order <strong style="color:${INK}">${order.orderNumber}</strong> ${copy.message}
+      </p>
+    `
+  );
+
+  await sendEmail(customerEmail, `Order ${order.orderNumber} ${copy.subject} — INFiLLPK`, html);
+}
+
 export async function sendOrderNotifications(order: OrderForNotification, customerEmail: string): Promise<void> {
   const settings = await getSiteSettings();
   const address = isShippingAddress(order.shippingAddress) ? order.shippingAddress : null;

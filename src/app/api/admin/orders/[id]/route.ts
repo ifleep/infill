@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { hasValidAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
+import { sendOrderStatusEmail } from "@/lib/notifications/order";
 
 const VALID_STATUS = ["pending", "processing", "shipped", "delivered", "cancelled"];
 const VALID_PAYMENT_STATUS = ["unpaid", "paid", "refunded"];
@@ -55,6 +56,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     data,
     include: { items: true, customer: true },
   });
+
+  // Only email on a real status change, not a no-op PATCH or a
+  // paymentStatus/notes-only update — and skip "pending", which the
+  // order-confirmation email sent at checkout already covers.
+  if (data.status && data.status !== existing.status) {
+    const customerEmail = order.customer?.email ?? order.guestEmail;
+    if (customerEmail) {
+      sendOrderStatusEmail(order, data.status, customerEmail).catch((err) => {
+        console.error("Order status email failed:", err);
+      });
+    }
+  }
+
   return NextResponse.json(order);
 }
 
