@@ -26,12 +26,19 @@ function keySpec(product: Product) {
 
 export function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((s) => s.addItem);
+  // A product with variants (e.g. Standard/Combo) keeps its sale price on
+  // the default variant rather than the product itself — the admin form
+  // blanks product.compareAtPrice once variants exist — so fall back to the
+  // default variant's compareAtPrice the same way the product page's
+  // add-to-cart panel already does, instead of only checking the product.
+  const defaultVariant = product.variants.find((v) => v.isDefault) ?? product.variants[0];
+  const compareAtPrice = defaultVariant?.compareAtPrice ?? product.compareAtPrice;
 
   return (
     <div className="group flex flex-col overflow-hidden rounded-xl border border-border bg-surface transition-shadow hover:shadow-md">
       <Link href={`/products/${product.slug}`} className="focus-ring relative block p-4 pb-0">
         <ProductVisual product={product} className="transition-transform duration-300 group-hover:scale-[1.02]" />
-        {product.compareAtPrice && (
+        {compareAtPrice && (
           <span className="absolute left-6 top-6 rounded bg-destructive px-2 py-0.5 text-xs font-semibold text-white">
             Sale
           </span>
@@ -76,9 +83,9 @@ export function ProductCard({ product }: { product: Product }) {
             lines up at the same height even when their content doesn't. */}
         <div className="mt-auto flex items-baseline gap-2 pt-3">
           <span className="tabular text-base font-semibold text-ink">{formatPKR(product.price)}</span>
-          {product.compareAtPrice && (
+          {compareAtPrice && (
             <span className="tabular text-xs text-ink-faint line-through">
-              {formatPKR(product.compareAtPrice)}
+              {formatPKR(compareAtPrice)}
             </span>
           )}
         </div>
