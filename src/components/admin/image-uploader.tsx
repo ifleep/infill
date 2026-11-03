@@ -1,10 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { CaretLeft, CaretRight, LinkSimple } from "@phosphor-icons/react";
+import { CaretLeft, CaretRight } from "@phosphor-icons/react";
 import type { MediaItem } from "@/lib/admin/media-types";
 import { MediaPicker } from "@/components/admin/media-picker";
-import { ImportFromUrl } from "@/components/admin/import-from-url";
 
 /**
  * Product photo manager. New files upload immediately on selection
@@ -23,7 +22,6 @@ export function ImageUploader({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function handleFiles(fileList: FileList | null) {
@@ -69,11 +67,6 @@ export function ImageUploader({
     const existingIds = new Set(items.map((i) => i.id));
     const additions = picked.filter((p) => !existingIds.has(p.id));
     if (additions.length > 0) onChange([...items, ...additions]);
-  }
-
-  function addFromImport(imported: MediaItem[]) {
-    addFromLibrary(imported);
-    setImportOpen(false);
   }
 
   return (
@@ -142,18 +135,6 @@ export function ImageUploader({
         >
           Choose from Library
         </button>
-        <button
-          type="button"
-          onClick={() => setImportOpen((v) => !v)}
-          className={`focus-ring inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md border px-3 py-1.5 text-sm font-medium ${
-            importOpen
-              ? "border-blue-700 bg-blue-50 text-blue-700"
-              : "border-border-strong text-ink hover:bg-surface-sunken"
-          }`}
-        >
-          <LinkSimple size={14} weight="bold" />
-          Import from a web page
-        </button>
       </div>
       {uploading && <p className="mt-1.5 text-xs text-ink-muted">Uploading…</p>}
       {error && <p className="mt-1.5 text-xs text-destructive">{error}</p>}
@@ -161,12 +142,6 @@ export function ImageUploader({
         JPEG, PNG, WebP, AVIF or GIF, up to 8MB each. The first image is used as the main photo — hover a photo to
         reorder it.
       </p>
-
-      {importOpen && (
-        <div className="mt-3 rounded-md border border-border bg-surface-sunken p-3">
-          <ImportFromUrl onImported={addFromImport} />
-        </div>
-      )}
 
       <MediaPicker open={pickerOpen} onClose={() => setPickerOpen(false)} onSelect={addFromLibrary} multiple />
     </div>
