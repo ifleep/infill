@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Minus, Plus } from "@phosphor-icons/react";
 import type { Product } from "@/lib/types";
 import { useCartStore } from "@/components/cart/cart-store";
@@ -41,7 +42,7 @@ export function AddToCartPanel({
   const selectedVariantId = controlledVariantId ?? internalVariantId;
   const setSelectedVariantId = onSelectVariant ?? setInternalVariantId;
   const addItem = useCartStore((s) => s.addItem);
-  const openCart = useCartStore((s) => s.open);
+  const router = useRouter();
 
   const showSwatches = categoryUsesColorVariants(product.category) && product.variants.some((v) => v.colorHex);
   const variant = product.variants.find((v) => v.id === selectedVariantId);
@@ -159,7 +160,7 @@ export function AddToCartPanel({
             size="lg"
             onClick={() => {
               addItem(product, brandName, qty, variant);
-              openCart();
+              router.push("/checkout");
             }}
           >
             Buy Now
