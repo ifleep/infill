@@ -94,9 +94,32 @@ This matters directly for AI Overviews/answer engines: they lean heavily on exac
 
 **Where it's weaker:** this structured data is only as good as what's actually filled in per product. Given the content-quality work done earlier this session (fixing thin descriptions, em-dashes, leaked internal notes across many products), the schema *mechanism* is strong but its *inputs* — short/full description quality, whether `FAQPage` entries exist per product or only on some — are inconsistent across the catalog, matching the content-debt issues already identified and partially fixed earlier. The code can't fix that; it's a per-product content task, same category as the photo/variant work already underway.
 
+**Correction from the first pass:** Google retired FAQ rich results for *all* sites on 2026-05-07 (this had previously been a gov/health-only restriction since Aug 2023). The `FAQPage` markup in `faq.tsx` no longer earns a SERP rich result for anyone — it's harmless to keep (still a legitimate AI-citability/answer-structure signal) but it is not the differentiator the first pass called it. Demoted from a strength to an "Info, no action needed" item below.
+
 ---
 
-## 6. Prioritized task list
+## 7. Deeper pass (via the `claude-seo` plugin's checklists)
+
+Re-audited against the installed `claude-seo` plugin's `seo-technical`, `seo-schema`, `seo-ecommerce`, and `seo-geo` checklists, code-verified the same way as the rest of this report (no live crawl available — see the Method note at the top).
+
+**New finding — no security headers configured (High).** `next.config.ts` has no `headers()` block at all: no `Content-Security-Policy`, `Strict-Transport-Security`, `X-Frame-Options`, `X-Content-Type-Options`, or `Referrer-Policy`. None of these are ranking signals on their own, but HSTS/CSP/X-Frame-Options are standard page-experience/clickjacking hardening that costs one `headers()` export to add, and their total absence is unusual for a production ecommerce site handling checkout.
+
+**New finding — Product JSON-LD omits fields the data already has (Medium).** The schema in `src/app/products/[slug]/page.tsx` builds a solid `Product`/`Offer`/`AggregateOffer` block (correctly using `AggregateOffer` for multi-variant products and plain `Offer` for single-variant ones — this is the right modeling, not a bug), but it never includes:
+- `sku` — every variant already has a real `sku` column (`src/lib/data/products.ts:68`), just not read into the schema.
+- `color` / `material` — filament products have real per-variant color data and a `product.materials` list rendered on-page, neither is in the schema, so Google can't attach variant-color facts to the `Product` entity.
+- `review` — only `aggregateRating` is emitted; no individual `Review` nodes (not required, but it's the last gap between this and a 100/100 on the plugin's schema-completeness rubric: required fields + aggregateRating + shippingDetails + merchantReturnPolicy are already present, landing around ~90/100 — `sku`/`gtin`/`mpn` and reviews are what's left).
+This only matters for Google Shopping / Merchant Center if that's ever pursued — for organic rich results the current block is already solid.
+
+**New finding — empty `alt=""` on product gallery thumbnails (Low).** `src/components/product/product-gallery.tsx:63` sets `alt=""` on every thumbnail button's image. The main gallery image correctly uses `alt={product.name}` ; the thumbnails strip it entirely. Low severity (thumbnails are decorative/navigational, so empty alt isn't automatically wrong per WCAG), but cheap to improve to something like `` `${product.name} photo ${i + 1}` ``.
+
+**Re-confirmed fine, with the plugin's own checklist this time:**
+- Category pagination (`src/app/category/[slug]/page.tsx`) uses real crawlable `<a href>` links via the `Pagination` component (not JS-only load-more), and `generateMetadata` gives every paginated/filtered variant a canonical that always points back to the base `/category/{slug}` — exactly the "self-referencing canonical + crawlable links" combo the plugin's pagination checklist asks for, paired with `robots.txt`'s `/category/*?*` block so query-string variants never get indexed as separate pages in the first place.
+- No AI-crawler-specific `robots.txt` directives exist (`GPTBot`, `OAI-SearchBot`, `ClaudeBot`, `Claude-SearchBot`, `PerplexityBot`, `Google-Extended`, etc. are all unmentioned). This is a deliberate-or-not default-allow, not a bug — it means the site is currently open to both AI training crawlers and AI search-citation crawlers. Worth a conscious decision (block training crawlers like `GPTBot`/`ClaudeBot`/`Google-Extended` while keeping citation crawlers like `OAI-SearchBot`/`Claude-SearchBot` allowed, if you'd rather not have the catalog used for model training), but leaving it as-is is a legitimate choice too.
+- No `/llms.txt`. Per Google's own AI-optimization guide (cited directly in the plugin's `seo-geo` skill), this file carries **zero** ranking or citation weight for Google Search and was never worth building for that reason — correctly skipped, not a gap.
+
+---
+
+## 8. Updated prioritized task list (supersedes section 6 where they overlap)
 
 **High priority — real, verified issues:**
 - [ ] Add `images.remotePatterns` to `next.config.ts` for your R2/S3 host, then migrate the hero, carousel, and product-gallery `<img>` tags to `next/image`. Highest-leverage Core Web Vitals fix available; likely the LCP element on every major page.
@@ -113,3 +136,15 @@ This matters directly for AI Overviews/answer engines: they lean heavily on exac
 
 **Not an issue — no action needed:**
 - Heading hierarchy, robots.txt rules, sitemap generation logic, font loading strategy, analytics script loading strategy, and structured-data coverage are all already in good shape and don't need rework.
+
+**High priority — new from the deeper pass:**
+- [ ] Add a `headers()` block to `next.config.ts`: at minimum `Strict-Transport-Security`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN` (or a `frame-ancestors` CSP directive), and `Referrer-Policy`. A checkout-handling site with none of these is the one real security-hardening gap this audit found.
+
+**Medium priority — new from the deeper pass:**
+- [ ] Add `sku`, `color`, and `material` to the Product JSON-LD in `src/app/products/[slug]/page.tsx` — the data already exists (variant `sku`, variant color, `product.materials`), it's just not read into the schema block.
+- [ ] Fix the empty `alt=""` on product gallery thumbnails in `src/components/product/product-gallery.tsx:63`.
+
+**Info — corrected understanding, no action needed:**
+- `FAQPage` schema (`faq.tsx`) no longer earns a Google rich result for any site as of 2026-05-07 — harmless to keep, just not the SERP differentiator the first pass credited it as.
+- No AI-crawler-specific `robots.txt` rules exist — this is a default-allow, which is a legitimate choice, not a bug. Add explicit `Disallow` lines for `GPTBot`/`ClaudeBot`/`Google-Extended` only if you specifically want to opt the catalog out of AI model training (doing so has no effect on Google Search, AI Overviews, ChatGPT Search, or Claude's search citability — those run on separate crawlers that would stay allowed).
+- No `/llms.txt` — Google's own guidance says this file has no ranking/citation effect on Google Search, so skipping it was correct.
