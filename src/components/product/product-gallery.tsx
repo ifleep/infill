@@ -60,7 +60,13 @@ export function ProductGallery({ product, variantImageUrl }: { product: Product;
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- uploaded files, not a static import */}
-              <img src={src} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+              <img
+                src={src}
+                alt={`${product.name} photo ${i + 1}`}
+                className="h-full w-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
             </button>
           ))}
         </div>

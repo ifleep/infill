@@ -15,6 +15,7 @@ import { ReviewSection } from "@/components/product/review-section";
 import type { Product } from "@/lib/types";
 import { ContentRenderer } from "@/components/content-blocks/content-renderer";
 import { getRedirectTarget } from "@/lib/data/redirects";
+import { categoryUsesColorVariants } from "@/lib/product-variant-colors";
 
 // See the comment on `revalidate` in src/app/page.tsx — same reasoning
 // applies here (price/stock/availability/description are admin-editable).
@@ -107,6 +108,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   ]);
   const stats = statFields.map((f) => ({ label: f.label, value: f.get(product) })).filter((s) => s.value);
   const shippingDetails = shippingDetailsFor(product.category);
+  const colors = categoryUsesColorVariants(product.category)
+    ? Array.from(new Set(product.variants.map((v) => v.label).filter(Boolean)))
+    : [];
+  const singleVariantSku = product.variants.length === 1 ? product.variants[0].sku : undefined;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -115,6 +120,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     image: product.images,
     brand: { "@type": "Brand", name: product.brandName },
     description: product.shortDescription,
+    ...(singleVariantSku ? { sku: singleVariantSku } : {}),
+    ...(colors.length > 0 ? { color: colors.length === 1 ? colors[0] : colors } : {}),
+    ...(product.materials && product.materials.length > 0
+      ? { material: product.materials.length === 1 ? product.materials[0] : product.materials }
+      : {}),
     // A product with more than one variant has more than one real price —
     // AggregateOffer (with the cheapest as lowPrice) is schema.org's way of
     // declaring that, rather than pretending there's a single fixed price.
