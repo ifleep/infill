@@ -793,10 +793,22 @@ export function ProductForm({
         <VariantPhotoPicker
           open={variantPhotoPickerIndex !== null}
           items={photos}
+          allowImport={values.category === "filament"}
           onClose={() => setVariantPhotoPickerIndex(null)}
           onSelect={(item) => {
             if (variantPhotoPickerIndex !== null) {
               updateVariant(variantPhotoPickerIndex, { imageUrl: item.url });
+            }
+          }}
+          onImported={(imported) => {
+            if (imported.length === 0) return;
+            setPhotos((prev) => {
+              const existingIds = new Set(prev.map((p) => p.id));
+              const additions = imported.filter((p) => !existingIds.has(p.id));
+              return additions.length > 0 ? [...prev, ...additions] : prev;
+            });
+            if (variantPhotoPickerIndex !== null) {
+              updateVariant(variantPhotoPickerIndex, { imageUrl: imported[0].url });
             }
           }}
         />
