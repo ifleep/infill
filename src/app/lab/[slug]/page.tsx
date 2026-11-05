@@ -30,7 +30,11 @@ export async function generateMetadata({
     openGraph: {
       title: article.ogTitle || title,
       description: article.ogDescription || description,
-      images: article.featuredImageUrl ? [{ url: article.featuredImageUrl }] : undefined,
+      // Defining openGraph here at all replaces the root layout's version
+      // wholesale rather than merging field-by-field — so without this
+      // fallback, an article with no featuredImageUrl set gets no image at
+      // all instead of quietly inheriting the site default.
+      images: [article.featuredImageUrl || "/og-image.png"],
     },
   };
 }
