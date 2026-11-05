@@ -17,6 +17,7 @@ export default async function PrintPriceCalculatorPage() {
       <section className="bg-navy-900 py-16 text-on-navy sm:py-20">
         <div className="container-page">
           <SectionHeading
+            as="h1"
             inverted
             eyebrow="Instant Quote"
             title="Get your 3D printing price right now."
