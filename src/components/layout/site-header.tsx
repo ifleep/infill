@@ -126,6 +126,7 @@ export function SiteHeader() {
             </button>
             <Link
               href="/wishlist"
+              rel="nofollow"
               aria-label={`Wishlist, ${wishlistCount} item${wishlistCount === 1 ? "" : "s"}`}
               className="focus-ring relative hidden cursor-pointer rounded p-2 text-ink hover:bg-surface-sunken sm:block"
             >
@@ -150,6 +151,7 @@ export function SiteHeader() {
             </Link>
             <Link
               href="/account"
+              rel="nofollow"
               aria-label="Account"
               className="focus-ring hidden cursor-pointer rounded p-2 text-ink hover:bg-surface-sunken sm:block"
             >

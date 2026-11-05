@@ -17,6 +17,10 @@ import { ContentRenderer } from "@/components/content-blocks/content-renderer";
 import { getRedirectTarget } from "@/lib/data/redirects";
 import { categoryUsesColorVariants } from "@/lib/product-variant-colors";
 
+// Below this, a rating is real but not yet a meaningful signal to show in
+// search results — adjust freely as the review base grows.
+const MIN_REVIEWS_FOR_RATING_SCHEMA = 3;
+
 // See the comment on `revalidate` in src/app/page.tsx — same reasoning
 // applies here (price/stock/availability/description are admin-editable).
 export const revalidate = 60;
@@ -112,6 +116,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     ? Array.from(new Set(product.variants.map((v) => v.label).filter(Boolean)))
     : [];
   const singleVariantSku = product.variants.length === 1 ? product.variants[0].sku : undefined;
+  // The cheapest real price across variants (or the base price with none) —
+  // 0 means "no real price set yet" (quote-only, or just not priced), never
+  // a genuine free/zero-cost offer. Shipping "price": 0 as InStock in
+  // structured data is actively misleading and a Merchant Center risk, so
+  // such products get no `offers` block at all rather than a fabricated one.
+  const effectivePrice =
+    product.variants.length > 1 ? Math.min(...product.variants.map((v) => v.price)) : product.price;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -128,26 +139,32 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     // A product with more than one variant has more than one real price —
     // AggregateOffer (with the cheapest as lowPrice) is schema.org's way of
     // declaring that, rather than pretending there's a single fixed price.
-    offers:
-      product.variants.length > 1
-        ? {
-            "@type": "AggregateOffer",
-            priceCurrency: "PKR",
-            lowPrice: Math.min(...product.variants.map((v) => v.price)),
-            highPrice: Math.max(...product.variants.map((v) => v.price)),
-            offerCount: product.variants.length,
-            hasMerchantReturnPolicy: MERCHANT_RETURN_POLICY,
-            ...(shippingDetails ? { shippingDetails } : {}),
-          }
-        : {
-            "@type": "Offer",
-            priceCurrency: "PKR",
-            price: product.price,
-            availability: schemaAvailability(product.availability),
-            hasMerchantReturnPolicy: MERCHANT_RETURN_POLICY,
-            ...(shippingDetails ? { shippingDetails } : {}),
-          },
-    ...(product.rating && product.reviewCount
+    ...(effectivePrice > 0
+      ? {
+          offers:
+            product.variants.length > 1
+              ? {
+                  "@type": "AggregateOffer",
+                  priceCurrency: "PKR",
+                  lowPrice: effectivePrice,
+                  highPrice: Math.max(...product.variants.map((v) => v.price)),
+                  offerCount: product.variants.length,
+                  hasMerchantReturnPolicy: MERCHANT_RETURN_POLICY,
+                  ...(shippingDetails ? { shippingDetails } : {}),
+                }
+              : {
+                  "@type": "Offer",
+                  priceCurrency: "PKR",
+                  price: product.price,
+                  availability: schemaAvailability(product.availability),
+                  hasMerchantReturnPolicy: MERCHANT_RETURN_POLICY,
+                  ...(shippingDetails ? { shippingDetails } : {}),
+                },
+        }
+      : {}),
+    // A single review rounding to 5.0 reads as a settled rating in a search
+    // snippet when it isn't one — require a few before claiming it in schema.
+    ...(product.rating && product.reviewCount && product.reviewCount >= MIN_REVIEWS_FOR_RATING_SCHEMA
       ? {
           aggregateRating: {
             "@type": "AggregateRating",

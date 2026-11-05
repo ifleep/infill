@@ -112,6 +112,7 @@ export function MobileNav({ open, onClose }: { open: boolean; onClose: () => voi
           ))}
           <Link
             href="/wishlist"
+            rel="nofollow"
             onClick={onClose}
             className="focus-ring flex items-center gap-2 border-b border-border px-3 py-3.5 text-sm font-medium text-ink"
           >

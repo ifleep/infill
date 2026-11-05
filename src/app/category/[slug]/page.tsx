@@ -21,16 +21,28 @@ export function generateStaticParams() {
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
   const { slug } = await params;
   const def = getCategoryDef(slug);
   if (!def) return {};
+  // Plain pagination (?page=N, no filters) gets its own self-referencing
+  // canonical — it's genuinely different content from page 1, not a
+  // duplicate of it. Filtered views still canonicalize back to the base
+  // category page, since those remain a blocked/nofollow'd subset, not a
+  // page meant to rank on its own.
+  const sp = await searchParams;
+  const page = firstParam(sp.page);
+  const hasOnlyPageParam = Object.keys(sp).every((k) => k === "page");
+  const canonicalPath =
+    page && hasOnlyPageParam && page !== "1" ? `/category/${def.slug}?page=${page}` : `/category/${def.slug}`;
   return {
     title: def.title,
     description: def.description,
-    alternates: { canonical: `/category/${def.slug}` },
+    alternates: { canonical: canonicalPath },
   };
 }
 

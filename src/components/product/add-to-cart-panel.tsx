@@ -56,9 +56,15 @@ export function AddToCartPanel({
   return (
     <div className="mt-5">
       <div className="flex items-baseline gap-3">
-        <span className="tabular text-3xl font-semibold text-ink">{formatPKR(price)}</span>
-        {compareAtPrice && (
-          <span className="tabular text-base text-ink-faint line-through">{formatPKR(compareAtPrice)}</span>
+        {price > 0 ? (
+          <>
+            <span className="tabular text-3xl font-semibold text-ink">{formatPKR(price)}</span>
+            {compareAtPrice && (
+              <span className="tabular text-base text-ink-faint line-through">{formatPKR(compareAtPrice)}</span>
+            )}
+          </>
+        ) : (
+          <span className="text-xl font-semibold text-ink">Request price</span>
         )}
       </div>
 

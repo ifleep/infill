@@ -82,11 +82,17 @@ export function ProductCard({ product }: { product: Product }) {
             above for this particular product, so every card in a grid row
             lines up at the same height even when their content doesn't. */}
         <div className="mt-auto flex items-baseline gap-2 pt-3">
-          <span className="tabular text-base font-semibold text-ink">{formatPKR(product.price)}</span>
-          {compareAtPrice && (
-            <span className="tabular text-xs text-ink-faint line-through">
-              {formatPKR(compareAtPrice)}
-            </span>
+          {product.price > 0 ? (
+            <>
+              <span className="tabular text-base font-semibold text-ink">{formatPKR(product.price)}</span>
+              {compareAtPrice && (
+                <span className="tabular text-xs text-ink-faint line-through">
+                  {formatPKR(compareAtPrice)}
+                </span>
+              )}
+            </>
+          ) : (
+            <span className="text-sm font-semibold text-ink">Request price</span>
           )}
         </div>
 

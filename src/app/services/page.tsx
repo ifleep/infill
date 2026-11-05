@@ -16,6 +16,7 @@ export default function ServicesPage() {
       <section className="bg-navy-900 py-16 text-on-navy sm:py-20">
         <div className="container-page">
           <SectionHeading
+            as="h1"
             inverted
             eyebrow="3D Printing Services"
             title="Need something 3D printed? We'll print it for you."

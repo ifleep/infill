@@ -17,6 +17,7 @@ export default function AboutPage() {
       <section className="bg-navy-900 py-20 text-on-navy sm:py-28">
         <div className="container-page">
           <SectionHeading
+            as="h1"
             inverted
             eyebrow="About INFiLLPK"
             title="Pakistan doesn't need to wait for the future to arrive."
