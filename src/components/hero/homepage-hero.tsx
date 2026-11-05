@@ -65,9 +65,14 @@ export function HomepageHero({
 
           <div className="container-page relative z-10 flex h-full items-center pointer-events-none">
             <div className="max-w-xl pointer-events-auto">
-              <h1 className="font-display text-5xl font-semibold leading-[1.05] tracking-tight text-on-navy sm:text-6xl lg:text-7xl">
+              {/* Not an <h1> — MobileHero's heading below (hidden on this breakpoint
+                  via CSS, not removed from the DOM) is the one real H1 on this page;
+                  Google indexes the mobile render by default (mobile-first indexing),
+                  and a page should have exactly one H1 regardless of which breakpoint
+                  a human happens to be looking at. */}
+              <p className="font-display text-5xl font-semibold leading-[1.05] tracking-tight text-on-navy sm:text-6xl lg:text-7xl">
                 Build what&rsquo;s next.
-              </h1>
+              </p>
               <p className="mt-5 max-w-md text-lg text-on-navy-muted">
                 3D printing technology, materials and digital fabrication for Pakistan.
               </p>

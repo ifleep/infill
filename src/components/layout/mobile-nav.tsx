@@ -77,6 +77,8 @@ export function MobileNav({ open, onClose }: { open: boolean; onClose: () => voi
                           <li key={link.label}>
                             <Link
                               href={link.href}
+                              // Only /category/*?* is robots.txt-disallowed.
+                              rel={link.href.startsWith("/category/") && link.href.includes("?") ? "nofollow" : undefined}
                               onClick={onClose}
                               className="focus-ring block py-1 text-sm text-ink-muted hover:text-blue-700"
                             >

@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Instant 3D Printing Price Calculator",
   description:
     "Upload your STL, OBJ, or G-code file and get an instant 3D printing price in Pakistan, in PLA, ABS, PETG, TPU and more. No signup, no waiting for a reply.",
+  alternates: { canonical: "/print-price-calculator" },
 };
 
 export default async function PrintPriceCalculatorPage() {

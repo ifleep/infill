@@ -6,6 +6,7 @@ import { RegionalMotifEdge } from "@/components/patterns/regional-motif-edge";
 export const metadata: Metadata = {
   title: "About",
   description: "Who INFiLLPK is, and why we exist — modern 3D printing and digital fabrication for Pakistan.",
+  alternates: { canonical: "/about" },
 };
 
 export default function AboutPage() {

@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "3D Printing Services in Pakistan",
   description:
     "Get your parts 3D printed in Pakistan — upload your file for an instant price, or get help with design, prototyping, installation and support.",
+  alternates: { canonical: "/services" },
 };
 
 export default function ServicesPage() {

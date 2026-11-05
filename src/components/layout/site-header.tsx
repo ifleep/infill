@@ -90,6 +90,8 @@ export function SiteHeader() {
                           <li key={link.label}>
                             <Link
                               href={link.href}
+                              // Only /category/*?* is robots.txt-disallowed.
+                              rel={link.href.startsWith("/category/") && link.href.includes("?") ? "nofollow" : undefined}
                               onClick={() => setOpenMenu(null)}
                               className="focus-ring text-sm text-ink hover:text-blue-700"
                             >

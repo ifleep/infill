@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Stop advertising "X-Powered-By: Next.js" on every response — a free
+  // fingerprinting signal for anyone probing the stack, with no upside.
+  poweredByHeader: false,
   experimental: {
     // Next.js sizes its static-generation worker pool off os.cpus().length,
     // which on shared/VPS hosting (Hostinger included) often reports the
@@ -24,6 +27,7 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },
     ];

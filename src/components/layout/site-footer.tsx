@@ -68,6 +68,10 @@ export function SiteFooter() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
+                      // Only /category/*?* is robots.txt-disallowed — other
+                      // query strings (/lab?category=, /contact?type=) are
+                      // fine to follow.
+                      rel={link.href.startsWith("/category/") && link.href.includes("?") ? "nofollow" : undefined}
                       className="focus-ring text-sm text-on-navy hover:text-blue-300"
                     >
                       {link.label}

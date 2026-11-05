@@ -25,6 +25,7 @@ export function DigitalFabricationSection() {
             <Link
               key={label}
               href={href}
+              rel="nofollow"
               className="focus-ring group flex flex-col items-center rounded-xl border border-border-on-navy p-6 text-center transition-colors hover:border-blue-300 hover:bg-white/5"
             >
               <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-white/5 text-blue-300 transition-colors group-hover:bg-white/10">

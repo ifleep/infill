@@ -131,6 +131,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
                 <Link
                   key={b.id}
                   href={`/category/3d-printers?brand=${b.slug}`}
+                  rel="nofollow"
                   onClick={onClose}
                   className="focus-ring rounded-full bg-surface-sunken px-3.5 py-1.5 text-sm text-ink hover:bg-blue-50"
                 >

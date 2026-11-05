@@ -41,6 +41,7 @@ export function PrintingDiscoverySection() {
           <Link
             key={t.label}
             href={t.href}
+            rel="nofollow"
             className="focus-ring group flex flex-col items-center rounded-xl border border-border bg-surface p-6 text-center transition-colors hover:border-blue-300 hover:bg-blue-50"
           >
             <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-blue-50 text-blue-700 transition-colors group-hover:bg-white">

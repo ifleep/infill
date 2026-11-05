@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { HomepageHero } from "@/components/hero/homepage-hero";
 import { InstantQuoteSection } from "@/components/sections/instant-quote-section";
 import { PrintingDiscoverySection } from "@/components/sections/printing-discovery-section";
@@ -26,6 +27,10 @@ import { getSiteSettings } from "@/lib/data/settings";
 // instead of holding a stale homepage (featured products, promo banner)
 // forever. See node_modules/next/dist/docs/01-app/02-guides/cdn-caching.md.
 export const revalidate = 60;
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default async function Home() {
   const [printers, settings] = await Promise.all([getProductsByCategory("printers"), getSiteSettings()]);

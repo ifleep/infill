@@ -53,12 +53,18 @@ export const metadata: Metadata = {
     title: "INFiLLPK — 3D Printing & Digital Fabrication for Pakistan",
     description:
       "Modern 3D printing and digital fabrication technology for Pakistan. Machines, materials, and the expertise to use them.",
+    // Only product pages override this with their own photo today — every
+    // other page (home, category, brand, lab) falls back to this. Add the
+    // real file at public/og-image.png (1200x630 recommended) for this to
+    // actually show a picture instead of a broken share-preview image.
+    images: ["/og-image.png"],
   },
   twitter: {
     card: "summary_large_image",
     title: "INFiLLPK — 3D Printing & Digital Fabrication for Pakistan",
     description:
       "Modern 3D printing and digital fabrication technology for Pakistan.",
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,
