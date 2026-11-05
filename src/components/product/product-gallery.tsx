@@ -39,7 +39,11 @@ export function ProductGallery({ product, variantImageUrl }: { product: Product;
           decoding="async"
         />
       </div>
-      {product.images.length > 1 && (
+      {/* Filaments carry one imported photo per color variant, so the main
+          Photos gallery ends up with a dozen+ near-duplicate entries that
+          just repeat what the color swatches above already do — the strip
+          below is only useful when photos aren't already picked by variant. */}
+      {product.category !== "filament" && product.images.length > 1 && (
         <div className="mt-3 grid grid-cols-5 gap-2">
           {product.images.map((src, i) => (
             <button
